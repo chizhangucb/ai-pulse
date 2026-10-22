@@ -1,6 +1,7 @@
 // Full-text translations follow the text: an article corrected while the model was translating the old
 // wording is translated again, and a translation of an older revision is never shown as the current one.
 // Links and images inside a paragraph survive the model, and the post an X item quotes is translated.
+// The site reads English, so the fixtures declare their bodies French: a declared language decides.
 import { gate, pointModels, Reply, stub, tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import http from "node:http";
@@ -42,7 +43,7 @@ const provider = await stub(async (_hit, req) => {
       return n === 1 ? "解释 Neuroglancer 的文字 ⟦0⟧。" : '解释 <a id="L0">Neuroglancer</a> 的文字 ⟦0⟧。';
     }
     if (s.includes("never keeps")) return "丢了链接。";
-    if (s.includes("Introducing")) return "隆重推出 Sonnet 5.5。";
+    if (s.includes("発表")) return "Introducing Sonnet 5.5.";
     return s.includes("twenty") ? "价格是二十美元。" : s.includes("ten") ? "价格是十美元。" : "译文";
   });
   return { id: "stub", choices: [{ message: { content: JSON.stringify({ t }) } }], usage: { prompt_tokens: 10, completion_tokens: 10, total_tokens: 20 } };
@@ -55,7 +56,7 @@ const app = await buildApp();
 // tag keeps the text unique: identical input would reuse an earlier run's paid answer.
 const material = (price: string) =>
   upsertMaterial({
-    sourceId: SOURCE, url: URL_, title: `Price update ${T}`, language: "en", bodyText: `The price is ${price} dollars (${T}).`,
+    sourceId: SOURCE, url: URL_, title: `Price update ${T}`, language: "fr", bodyText: `The price is ${price} dollars (${T}).`,
     bodyHtml: `<p>The price is ${price} dollars (${T}).</p>`, bodyStatus: "ok", via: "fetch", publishedAt: new Date(), discoveredAt: new Date(Date.now() + 600_000),
   });
 
@@ -77,10 +78,10 @@ after(async () => {
 });
 
 test("Japanese bodies with kanji are translated with or without a language hint", async () => {
-  // A newer Chinese original used to be skipped. Reconsidering old language skips must neither
+  // A newer English original used to be skipped. Reconsidering old language skips must neither
   // send it to a paid provider nor let it take the single batch slot from Japanese behind it.
-  const { articleId: chinese } = await upsertMaterial({ sourceId: SOURCE, url: `${URL_}-chinese`, title: '新的模型已发布',
-    bodyText: '这是已经用中文写好的完整正文。', bodyHtml: '<p>这是已经用中文写好的完整正文。</p>',
+  const { articleId: chinese } = await upsertMaterial({ sourceId: SOURCE, url: `${URL_}-chinese`, title: 'A new model is out',
+    bodyText: 'This is a complete body already written in English.', bodyHtml: '<p>This is a complete body already written in English.</p>',
     bodyStatus: 'ok', via: 'fetch', publishedAt: new Date(), discoveredAt: new Date(Date.now() + 600_000) });
   await sql`INSERT INTO analyses (article_id,input_revision,origin,relevance,category,title_zh,summary_zh,reason_zh,score,selected)
     VALUES (${chinese},1,'rule','pass','ai-models','新的模型已发布','摘要','理由',90,true)`;
@@ -108,7 +109,7 @@ test("a presentation-only source update repairs original and translated bodies w
   const text = `The model introduces useful improvements ${T}. Read the documentation.`;
   const beforeHtml = `<p>The model introduces useful improvements ${T}.</p><p>Read <a href="https://example.com/old">the documentation</a>.</p>`;
   const afterHtml = `<div><p>The model introduces useful improvements ${T}.</p><figure><a href="https://example.com/chart"><img src="https://example.com/chart.png" alt="Chart"></a></figure><p>Read <a href="https://example.com/docs">the documentation</a>.</p></div>`;
-  const material = { sourceId: SOURCE, url: `${URL_}-presentation`, title: `Display repair ${T}`, language: "en", bodyText: text, bodyHtml: beforeHtml,
+  const material = { sourceId: SOURCE, url: `${URL_}-presentation`, title: `Display repair ${T}`, language: "fr", bodyText: text, bodyHtml: beforeHtml,
     bodyStatus: "ok" as const, via: "fetch" as const, publishedAt: new Date() };
   const { articleId } = await upsertMaterial(material);
   await sql`INSERT INTO analyses (article_id,input_revision,origin,relevance,category,title_zh,summary_zh,reason_zh,score,selected)
@@ -152,7 +153,7 @@ test("a presentation-only source update repairs original and translated bodies w
 
 test("a layout refresh follows image identity when translated text moved its pictures", async () => {
   const text = `Compare charts A and B ${T}.`;
-  const input = { sourceId: SOURCE, url: `${URL_}-reordered-media`, title: `Compare charts ${T}`, language: "en", bodyText: text,
+  const input = { sourceId: SOURCE, url: `${URL_}-reordered-media`, title: `Compare charts ${T}`, language: "fr", bodyText: text,
     bodyHtml: `<p>Compare <img src="https://example.com/a.png"> charts <img src="https://example.com/b.png"> A and B ${T}.</p>`,
     bodyStatus: "ok" as const, via: "fetch" as const, publishedAt: new Date() };
   const { articleId } = await upsertMaterial(input);
@@ -165,7 +166,7 @@ test("a layout refresh follows image identity when translated text moved its pic
 
 test("a translation finishing during a layout refresh cannot restore the missing image", async () => {
   const text = `The price is ten dollars (layout-race-${T}).`;
-  const input = { sourceId: SOURCE, url: `${URL_}-inflight-layout`, title: `Layout race ${T}`, language: "en", bodyText: text,
+  const input = { sourceId: SOURCE, url: `${URL_}-inflight-layout`, title: `Layout race ${T}`, language: "fr", bodyText: text,
     bodyHtml: `<p>${text}</p>`, bodyStatus: "ok" as const, via: "fetch" as const, publishedAt: new Date() };
   const { articleId } = await upsertMaterial(input);
   await sql`INSERT INTO analyses (article_id,input_revision,origin,relevance,category,title_zh,summary_zh,reason_zh,score,selected)
@@ -222,7 +223,7 @@ test("links and images inside a paragraph survive the translation, or the paragr
   const html = `<p>Explaining <a href="https://neuroglancer.dev/docs">Neuroglancer</a> in text ${T} <img src="https://example.com/chart-${T}.png" alt="B200 prices"></p>` +
     `<p>A paragraph the model <a href="https://example.com/kept">never keeps</a> whole ${T}.</p>`;
   const { articleId: id } = await upsertMaterial({
-    sourceId: SOURCE, url: `${URL_}-links`, title: `Links ${T}`, language: "en", bodyText: `Explaining Neuroglancer. ${T}`, bodyHtml: html,
+    sourceId: SOURCE, url: `${URL_}-links`, title: `Links ${T}`, language: "fr", bodyText: `Explaining Neuroglancer. ${T}`, bodyHtml: html,
     bodyStatus: "ok", via: "fetch", publishedAt: new Date(), discoveredAt: new Date(Date.now() + 1_200_000),
   });
   await sql`INSERT INTO analyses (article_id, input_revision, origin, relevance, category, title_zh, summary_zh, reason_zh, score, selected)
@@ -242,9 +243,9 @@ test("links and images inside a paragraph survive the translation, or the paragr
 test("the post a selected X post quotes is translated once and shown with the item", async () => {
   const tweetId = `7${Date.now()}`;
   const { articleId: id } = await upsertMaterial({
-    sourceId: SOURCE, url: `https://x.com/bcherny/status/8${Date.now()}`, title: `Sonnet ${T}`, language: "en", bodyText: "Try it!", bodyStatus: "ok",
+    sourceId: SOURCE, url: `https://x.com/bcherny/status/8${Date.now()}`, title: `Sonnet ${T}`, language: "fr", bodyText: "Try it!", bodyStatus: "ok",
     via: "fetch", publishedAt: new Date(), discoveredAt: new Date(Date.now() + 1_800_000),
-    xPost: { tweetId: `8${Date.now()}`, authorName: "Boris", handle: "bcherny", text: "Try it!", quoted: { authorName: "Anthropic", handle: "AnthropicAI", text: `Introducing Claude Sonnet 5.5 ${T}`, url: `https://x.com/AnthropicAI/status/${tweetId}` } },
+    xPost: { tweetId: `8${Date.now()}`, authorName: "Boris", handle: "bcherny", text: "Try it!", quoted: { authorName: "Anthropic", handle: "AnthropicAI", text: `Claude Sonnet 5.5 を発表しました ${T}`, url: `https://x.com/AnthropicAI/status/${tweetId}` } },
   });
   await sql`INSERT INTO analyses (article_id, input_revision, origin, relevance, category, title_zh, summary_zh, reason_zh, score, selected)
             VALUES (${id}, 1, 'rule', 'pass', 'ai-models', ${`引用-${T}`}, '摘要', '理由', 90, true)`;
@@ -252,10 +253,10 @@ test("the post a selected X post quotes is translated once and shown with the it
   const run = await translatePending({ limit: 1 });
   assert.ok(run.quotes >= 1);
   const [q] = await sql<{ text_zh: string; origin: string }[]>`SELECT text_zh, origin FROM quote_translations WHERE tweet_id = ${tweetId}`;
-  assert.deepEqual({ ...q }, { text_zh: "隆重推出 Sonnet 5.5。", origin: "model" });
+  assert.deepEqual({ ...q }, { text_zh: "Introducing Sonnet 5.5.", origin: "model" });
   const res = await app.inject({ method: "GET", url: `/api/site/items/${id}` });
   const item = JSON.parse(res.body) as { x: { quoted: { text: string; translation: string | null } } };
-  assert.deepEqual([item.x.quoted.text, item.x.quoted.translation], [`Introducing Claude Sonnet 5.5 ${T}`, "隆重推出 Sonnet 5.5。"]);
+  assert.deepEqual([item.x.quoted.text, item.x.quoted.translation], [`Claude Sonnet 5.5 を発表しました ${T}`, "Introducing Sonnet 5.5."]);
   await translatePending({ limit: 1 });
   const receipts = await sql<{ status: string }[]>`SELECT status FROM receipts WHERE purpose = 'translate_quoted' AND subject = ${`quote:${tweetId}`}`;
   assert.equal(receipts.length, 1, "translated once");
@@ -267,7 +268,7 @@ test("an unusable X translation gets a bounded fresh attempt instead of terminal
   const marker = `alignment-x-${T}`;
   const text = `A new model release with practical improvements and detailed availability notes ${marker}. This post explains the new behavior and user-visible changes.`;
   const { articleId: id } = await upsertMaterial({
-    sourceId: SOURCE, url: `https://x.com/example/status/9${Date.now()}`, title: `Alignment X ${T}`, language: "en",
+    sourceId: SOURCE, url: `https://x.com/example/status/9${Date.now()}`, title: `Alignment X ${T}`, language: "fr",
     bodyText: text, bodyStatus: "ok", via: "fetch", publishedAt: new Date(), discoveredAt: new Date(Date.now() + 3_600_000),
     xPost: { tweetId: `9${Date.now()}`, authorName: "Test", handle: "example", text },
   });
@@ -296,7 +297,7 @@ test("fully unusable body translations stop after three recorded attempts", asyn
   const marker = `alignment-body-${T}`;
   const text = `One complete English paragraph ${marker} that requires a Chinese translation.`;
   const { articleId: id } = await upsertMaterial({
-    sourceId: SOURCE, url: `${URL_}-alignment`, title: `Alignment body ${T}`, language: "en",
+    sourceId: SOURCE, url: `${URL_}-alignment`, title: `Alignment body ${T}`, language: "fr",
     bodyText: text, bodyHtml: `<p>${text}</p>`, bodyStatus: "ok", via: "fetch",
     publishedAt: new Date(), discoveredAt: new Date(Date.now() + 7_200_000),
   });
@@ -323,7 +324,7 @@ test("a received alignment retry survives a failed translation commit without pa
   const post = `This detailed English announcement ${marker} describes a new public release and its availability. The main changes are supported by documented examples and clear usage notes.`;
   const tweetId = `9${Date.now()}`;
   const { articleId: id } = await upsertMaterial({
-    sourceId: SOURCE, url: `https://x.com/example/status/${tweetId}`, title: `Recovery ${T}`, language: "en",
+    sourceId: SOURCE, url: `https://x.com/example/status/${tweetId}`, title: `Recovery ${T}`, language: "fr",
     bodyText: post, bodyStatus: "ok", via: "fetch", publishedAt: new Date(), discoveredAt: new Date(Date.now() + 10_800_000),
     xPost: { tweetId, authorName: "Test", handle: "example", text: post },
   });
@@ -371,7 +372,7 @@ test("an overloaded provider and a timed-out request use up no attempts: after t
   // A timed-out batch leaves its receipt unknown; the next two runs met that receipt again and spent all three
   // attempts within ten minutes, so the automatic release half an hour later came too late and nothing alerted.
   const { articleId: id } = await upsertMaterial({
-    sourceId: SOURCE, url: `${URL_}-timeout`, title: `Timeout ${T}`, language: "en",
+    sourceId: SOURCE, url: `${URL_}-timeout`, title: `Timeout ${T}`, language: "fr",
     bodyText: `A paragraph whose answer is lost ${T}.`, bodyHtml: `<p>A paragraph whose answer is lost ${T}.</p>`,
     bodyStatus: "ok", via: "fetch", publishedAt: new Date(), discoveredAt: new Date(Date.now() + 14_400_000),
   });
@@ -414,7 +415,7 @@ test("an overloaded provider and a timed-out request use up no attempts: after t
 // exclude the article, and restoring access must let the next existing run finish it.
 test("account 429 pauses translation without spending the article attempts", async () => {
   const { articleId: id } = await upsertMaterial({
-    sourceId: SOURCE, url: `${URL_}-account`, title: `Account limit ${T}`, language: "en",
+    sourceId: SOURCE, url: `${URL_}-account`, title: `Account limit ${T}`, language: "fr",
     bodyText: `A paragraph waiting for account access ${T}.`, bodyHtml: `<p>A paragraph waiting for account access ${T}.</p>`,
     bodyStatus: "ok", via: "fetch", publishedAt: new Date(), discoveredAt: new Date(Date.now()+20_000_000),
   });

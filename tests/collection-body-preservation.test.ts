@@ -67,7 +67,7 @@ test("an unmatchable translated layout stays intact, records a visible follow-up
   assert.deepEqual({ ...row }, { body_html: input.bodyHtml, revision: 1, processing_state: 'analyzed', processing_error: null, translated: '<p>模型已开放。</p>' });
   const [run] = await sql`SELECT detail FROM fetch_runs WHERE source_id=${sourceId} ORDER BY id DESC LIMIT 1`;
   assert.equal(run!.detail.presentationFailures[0].url, input.url);
-  assert.match(run!.detail.presentationFailures[0].error, /正常重翻/);
+  assert.match(run!.detail.presentationFailures[0].error, /normal retranslation/);
   const followups = (await collectFindings()).filter(f => f.key === `sources.presentation.${sourceId}`);
   assert.equal(followups.length, 1);
   assert.match(followups[0]!.detail!, new RegExp(input.url));

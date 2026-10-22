@@ -99,7 +99,7 @@ test("a listing parsed with selectors is read from Jina as rendered HTML, dates 
   assert.equal(run.status, "ok", run.error ?? "");
   const [post] = await sql<{ title: string; published_at: Date; publication_time: string }[]>`SELECT title, published_at, publication_time FROM articles WHERE source_id = ${id}`;
   assert.equal(post?.title, `Rendered ${T}`);
-  assert.equal(post?.published_at.toISOString(), "2026-09-22T16:00:00.000Z");
+  assert.equal(post?.published_at.toISOString(), "2026-09-23T07:00:00.000Z");
   assert.equal(post?.publication_time, "2026-09-23");
 });
 
@@ -115,7 +115,7 @@ test("a JSON listing embedded in a page is read from Jina as rendered HTML", asy
   const [post] = await sql<{ title: string; url: string; published_at: Date; publication_time: string }[]>`SELECT title, url, published_at, publication_time FROM articles WHERE source_id = ${id}`;
   assert.equal(post?.title, `Embedded ${T}`);
   assert.equal(post?.url, `https://example.org/articles/embedded-${T}`);
-  assert.equal(post?.published_at.toISOString(), "2026-09-23T16:00:00.000Z");
+  assert.equal(post?.published_at.toISOString(), "2026-09-24T07:00:00.000Z");
   assert.equal(post?.publication_time, "2026-09-24");
   assert.equal((await sql`SELECT 1 FROM receipts WHERE subject = ${`source:${id}`} AND service = 'jina'`).length, 1);
 });

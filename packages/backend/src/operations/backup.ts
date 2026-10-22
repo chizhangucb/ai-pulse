@@ -130,7 +130,7 @@ export async function runBackup(now = new Date()) {
   const out: Array<{ key: string; bytes: number; sha256: string }> = [];
   const today = siteDate(now);
   const prefixes = ["daily"];
-  if (siteWeekday(today) === "星期日") prefixes.push("weekly");
+  if (siteWeekday(today) === "Sunday") prefixes.push("weekly");
   if (today.endsWith("-01")) prefixes.push("monthly");
   for (const file of filesError ? [dump] : [dump, files]) {
     const size = (await stat(file)).size;

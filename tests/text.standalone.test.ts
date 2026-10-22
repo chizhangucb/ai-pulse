@@ -50,16 +50,16 @@ test("stripTags decodes character references, also when a feed escaped them twic
   assert.equal(stripTags("?a=1&copy=2 &unknown; AT&T"), "?a=1&copy=2 &unknown; AT&T");
 });
 
-test("writing and public reading agree about Chinese, including Japanese with kanji", () => {
-  for (const body_text of ["新しい人工知能モデルを公開しました。", "人工知能 모델을 공개했습니다."]) {
+test("writing and public reading agree about English; Chinese, Japanese and Korean are translated", () => {
+  for (const body_text of ["新しい人工知能モデルを公開しました。", "人工知能 모델을 공개했습니다.", "新的人工智能模型发布了。"]) {
     assert.equal(looksEnglish(body_text), false);
-    for (const language of [null, "ja", "ko"]) {
+    for (const language of [null, "ja", "ko", "zh-Hans"]) {
       assert.equal(isEnglishBody({ language, body_text }), false);
-      assert.equal(exportTranslation({ language, body_text, tr_html: "<p>发布了新模型。</p>", tr_complete: true }), "<p>发布了新模型。</p>");
+      assert.equal(exportTranslation({ language, body_text, tr_html: "<p>A new model was released.</p>", tr_complete: true }), "<p>A new model was released.</p>");
     }
   }
-  assert.equal(isEnglishBody({ language: "ja", body_text: "人工知能研究開発" }), false);
-  assert.equal(isEnglishBody({ language: null, body_text: "新的人工智能模型发布了。" }), true);
-  assert.equal(isEnglishBody({ language: "zh-Hans", body_text: "API" }), true);
-  assert.equal(isEnglishBody({ language: "en", body_text: "An English article quoting 人工智能." }), false);
+  assert.equal(isEnglishBody({ language: null, body_text: "An English article quoting 人工智能 once." }), true, "a name in another script does not change the language");
+  assert.equal(isEnglishBody({ language: "en-US", body_text: "人工知能" }), true, "a declared language wins");
+  assert.equal(isEnglishBody({ language: "fr", body_text: "Un nouveau modèle" }), false);
+  assert.equal(exportTranslation({ language: "en", body_text: "An English body.", tr_html: "<p>x</p>", tr_complete: true }), null, "English needs no translation");
 });

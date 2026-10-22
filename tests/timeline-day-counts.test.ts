@@ -16,15 +16,16 @@ const reference = (grouped: readonly { anchor: number }[], days: ReadonlySet<str
 };
 const descending = (anchors: number[]) => anchors.sort((a, b) => b - a).map(anchor => ({ anchor }));
 
-test("day counts retain exact Beijing midnight, leap-day and year boundaries", () => {
+test("day counts retain exact Pacific midnight, leap-day, year and daylight-saving boundaries", () => {
   assert.deepEqual(countTimelineDays([], new Set()), {});
-  // UTC inputs and calendar answers are independent of the production timezone helpers.
-  const anchors = ["2023-12-30T16:00:00Z", "2023-12-31T16:00:00Z", "2024-02-28T16:00:00Z", "2024-02-29T16:00:00Z"].flatMap(time => {
+  // UTC inputs and calendar answers are independent of the production timezone helpers. 10 March 2024 is
+  // 23 hours long in Los Angeles: its midnight is 08:00Z, the next one 07:00Z.
+  const anchors = ["2023-12-31T08:00:00Z", "2024-01-01T08:00:00Z", "2024-02-29T08:00:00Z", "2024-03-01T08:00:00Z", "2024-03-10T08:00:00Z", "2024-03-11T07:00:00Z"].flatMap(time => {
     const midnight = Date.parse(time);
     return [midnight - 1, midnight, midnight, midnight + 1];
   });
   const grouped = descending(anchors);
-  const expected = { "2023-12-30": 1, "2023-12-31": 4, "2024-01-01": 3, "2024-02-28": 1, "2024-02-29": 4, "2024-03-01": 3 };
+  const expected = { "2023-12-30": 1, "2023-12-31": 4, "2024-01-01": 3, "2024-02-28": 1, "2024-02-29": 4, "2024-03-01": 3, "2024-03-09": 1, "2024-03-10": 4, "2024-03-11": 3 };
   assert.deepEqual(countTimelineDays(grouped, new Set(Object.keys(expected))), expected);
   assert.deepEqual(countTimelineDays(grouped, new Set()), {});
   assert.deepEqual(countTimelineDays(grouped, new Set(["1900-01-01"])), {});

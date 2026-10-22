@@ -41,7 +41,7 @@ async function selected(category: string, reason: string | null, copy = SPACE) {
 }
 const category = (key: string) => CATEGORIES.find((c) => c.key === key)!;
 
-test("the title is larger than the summary, followed by the source and Beijing date in grey", async () => {
+test("the title is larger than the summary, followed by the source and the site's date in grey", async () => {
   const card = await selected("ai-products", "官方演示了 Space 的协作用法。");
   assert.equal(card.schema, "2.0");
   assert.equal(card.header, undefined, "a header title cannot be made larger");
@@ -52,10 +52,10 @@ test("the title is larger than the summary, followed by the source and Beijing d
   for (const end of ["default", "pc", "mobile"]) assert.match(size[end], /^heading-[34]$/, "18px on computers, 16px on phones");
   assert.equal(summary.text_size ?? "normal", "normal");
   assert.equal(summary.content, "官方演示了团队协作用法。");
-  assert.deepEqual([meta.text_size, meta.content], ["notation", "<font color='grey'>ChatGPT · 10月15日发布</font>"]);
+  assert.deepEqual([meta.text_size, meta.content], ["notation", "<font color='grey'>ChatGPT · published Oct 14</font>"]);
   assert.deepEqual([reason.text_size, reason.content], ["notation", `<font color='grey'>**${ITEM_COPY.reasonLabel}**　官方演示了 Space 的协作用法。</font>`]);
   const links = buttons.columns.map((c: any) => c.elements[0]);
-  assert.deepEqual(links.map((b: any) => b.text.content), [`在 ${SITE.name} 阅读`, "原文"]);
+  assert.deepEqual(links.map((b: any) => b.text.content), [`Read on ${SITE.name}`, "Original"]);
   assert.ok(links.every((b: any) => b.behaviors[0].type === "open_url" && b.behaviors[0].default_url.startsWith("https://")));
   assert.doesNotMatch(JSON.stringify(card), /来源：/);
 });

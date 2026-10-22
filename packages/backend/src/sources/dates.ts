@@ -1,5 +1,5 @@
 // Published dates as list pages, articles and JSON lists print them, read the same on every host.
-import { siteDate, siteTime, siteUtcOffset } from "@aihot/contracts/time";
+import { siteAt, siteDate, siteTime } from "@aihot/contracts/time";
 import type { SourceRow } from "./types.ts";
 
 /** The offset a source's article pages print their dates in: its detail rules' own, else its listing's. */
@@ -9,7 +9,8 @@ export function articleUtcOffset(config: SourceRow["config"]): string | undefine
 
 /**
  * A time followed by its zone: "10:00Z", "10:00:00+08:00", "10:00:00 +0000", "10:00 PM GMT", "10:00 EST".
- * CST is no zone here: Date.parse reads US Central, Chinese pages mean China, so it is read in the source's offset.
+ * CST is no zone here: Date.parse reads US Central, Chinese pages mean China, so it is read in the source's offset
+ * (a source printing China time sets publishedAtUtcOffset "+08:00").
  */
 const EXPLICIT_ZONE = /\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?\s*(?:[AP]M\s*)?(?:Z|[+-]\d{2}:?\d{2}|GMT|UTC?|[EMP][SD]T|CDT)\b/i;
 
@@ -18,19 +19,23 @@ function calendarDay(y: string | number, mo: string | number, d: string | number
   return date.getUTCFullYear() === Number(y) && date.getUTCMonth() === Number(mo) - 1 && date.getUTCDate() === Number(d);
 }
 
-function atOffset(y: string | number, mo: string | number, d: string | number, h: string | number, mi: string | number, s: string | number, utcOffset: string): Date | null {
+/** A wall-clock time in a fixed offset, or without one in the site's zone on that day (daylight saving included). */
+function atOffset(y: string | number, mo: string | number, d: string | number, h: string | number, mi: string | number, s: string | number, utcOffset: string | undefined): Date | null {
   if (!calendarDay(y, mo, d) || Number(h) > 23 || Number(mi) > 59 || Number(s) > 59) return null;
   const p = (n: string | number) => String(n).padStart(2, "0");
-  const t = Date.parse(`${y}-${p(mo)}-${p(d)}T${p(h)}:${p(mi)}:${p(s)}${utcOffset}`);
+  const t = utcOffset === undefined
+    ? siteAt(`${y}-${p(mo)}-${p(d)}`, `${p(h)}:${p(mi)}`).getTime() + Number(s) * 1000
+    : Date.parse(`${y}-${p(mo)}-${p(d)}T${p(h)}:${p(mi)}:${p(s)}${utcOffset}`);
   return Number.isFinite(t) ? new Date(t) : null;
 }
 
 /**
  * A published date as a source prints it. Date.parse is kept only where it reads the same
  * on every host: a time with its zone. A calendar day always belongs to the source, including ISO date-only text. Anything else it would read
- * in the server's local zone (UTC in Docker), so "2026-09-26 10:00" is read in the source's offset instead.
+ * in the server's local zone (UTC in Docker), so "2026-09-26 10:00" is read in the source's offset instead, or in
+ * the site's zone when the source sets none.
  */
-export function parseLooseDate(value: string | null | undefined, utcOffset = siteUtcOffset()): Date | null {
+export function parseLooseDate(value: string | null | undefined, utcOffset?: string): Date | null {
   if (!value) return null;
   // "Sep 26, 2026 at 10:30": "at" joins a date and its time like a space.
   const v = value.trim().replace(/(\d),?\s+at\s+(?=\d{1,2}:\d{2})/gi, "$1 ");
@@ -79,11 +84,12 @@ export interface PublicationDate {
   publicationTime: string | null;
 }
 
-export function readPublicationDate(value: string | null | undefined, utcOffset = siteUtcOffset()): PublicationDate {
+export function readPublicationDate(value: string | null | undefined, utcOffset?: string): PublicationDate {
   const publishedAt = parseLooseDate(value, utcOffset);
   if (!publishedAt) return { publishedAt: null, publicationTime: null };
   const timed = /\d{1,2}:\d{2}/.test(value!) || /^\d{14}$/.test(value!.trim());
   if (timed) return { publishedAt, publicationTime: publishedAt.toISOString() };
+  if (utcOffset === undefined) return { publishedAt, publicationTime: siteDate(publishedAt) };
   const offsetMs = Date.UTC(2000, 0, 1) - atOffset(2000, 1, 1, 0, 0, 0, utcOffset)!.getTime();
   return { publishedAt, publicationTime: new Date(publishedAt.getTime() + offsetMs).toISOString().slice(0, 10) };
 }

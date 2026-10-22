@@ -118,7 +118,7 @@ export function llmsTxt(opts: {
   }
   if (opts.hasWeekly) lines.push(`- [${withSubject("Weekly")}](${u("/weekly")}): ${REPORTS.descriptions.weekly} (with past issues); also via /api/v1/weeklies, /api/v1/agent/weekly for agents, the MCP tool ${T.weekly}, or the /feed/weekly.xml feed`);
   if (opts.hasMonthly) lines.push(`- [${withSubject("Monthly")}](${u("/monthly")}): ${REPORTS.descriptions.monthly} (with past issues); also via /api/v1/monthlies, /api/v1/agent/monthly for agents, the MCP tool ${T.monthly}, or the /feed/monthly.xml feed`);
-  lines.push(`- [Topics](${u("/topics")}): follow the latest ${SITE.subject} news by ${TOPIC_GROUPS.map((g) => g.name.toLowerCase()).join(", ")}${opts.topics.length ? ` (${opts.topics.length} topics, listed in the next section)` : ""}`);
+  lines.push(`- [Topics](${u("/topics")}): follow the latest ${SITE.subject} news by ${TOPIC_GROUPS.map((g) => g.name.toLowerCase()).join(", ")}${opts.topics.length ? ` (${opts.topics.length} ${opts.topics.length === 1 ? "topic" : "topics"}, listed in the next section)` : ""}`);
   lines.push(...opts.modules.pages);
   if (opts.topics.length) {
     lines.push("", `## Topics: the latest from companies and ${field.toLowerCase()}`, "");

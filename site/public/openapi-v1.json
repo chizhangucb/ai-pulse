@@ -3194,7 +3194,7 @@
     },
     "responses": {
       "AgentMarkdown": {
-        "description": "Markdown for an AI agent: a heading, the data fenced off as untrusted external content, then answer hints ("How to answer"). The wording may improve at any time; programs should read the JSON endpoints instead.",
+        "description": "Markdown for an AI agent: a heading, the data fenced off as untrusted external content, then answer hints (\"How to answer\"). The wording may improve at any time; programs should read the JSON endpoints instead.",
         "headers": {
           "ETag": {
             "schema": {
@@ -3501,7 +3501,7 @@
               "string",
               "null"
             ],
-            "description": "Reader-facing recommendation reason, the same text shown as "Why it matters" on the website. Always present on /api/v1/items; null when the item is not selected or has no reader-facing reason. Selected snapshot and changes do not include this field yet."
+            "description": "Reader-facing recommendation reason, the same text shown as \"Why it matters\" on the website. Always present on /api/v1/items; null when the item is not selected or has no reader-facing reason. Selected snapshot and changes do not include this field yet."
           },
           "attribution": {
             "$ref": "#/components/schemas/Attribution"

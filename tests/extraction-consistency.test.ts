@@ -117,7 +117,7 @@ test("an audited presentation refresh previews and applies only the reviewed lay
   const unsafe = await rerun(articleId, "presentation", "preview-links", "test", { preview: true });
   assert.equal(unsafe?.ready, false);
   assert.equal(unsafe?.translation, "blocked");
-  assert.match(unsafe?.reason ?? "", /正常重翻/);
+  assert.match(unsafe?.reason ?? "", /normal retranslation/);
   presentationHtml = `<p>${body} The actual model price has changed.</p>`;
   const semantic = await rerun(articleId, "presentation", "preview-wording", "test", { preview: true });
   assert.ok(semantic && "ready" in semantic && !semantic.ready);
