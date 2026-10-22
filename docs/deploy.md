@@ -28,7 +28,7 @@ docker compose up -d --build
 
 Open `http://server-address:3000`; the admin is at `/admin`, signed in with the admin password. The first start imports the demo sources, content starts to appear after a minute or two, and the hundred-odd items of the first import take about half an hour to process (each is pre-screened, scored, structured, given a title and summary, and grouped).
 
-`docker compose` starts five containers: `db` (PostgreSQL 17), `setup` (runs database migrations and seed data at every start, then exits), `api`, `worker` (fetching, model processing, scheduled jobs) and `web` (pages). `web` gets only page settings such as the site and API addresses and reads the API over HTTP; the database, models, admin secrets and data volumes are given only to the backend containers.
+`docker compose` starts five containers: `db` (PostgreSQL 17), `setup` (runs database migrations and seed data at every start, then exits), `api` (also the jobs that read or write the data volume: housekeeping of its files, feedback forwarding, backups, image preparation and content pushes), `worker` (fetching, model processing, the other scheduled jobs) and `web` (pages). `web` gets only page settings such as the site and API addresses and reads the API over HTTP; the database, models, admin secrets and data volumes are given only to the backend containers.
 
 ### Servers in mainland China
 
@@ -92,11 +92,19 @@ docker compose stop api worker web
 docker compose run --rm setup && docker compose up -d
 ```
 
-Start the services only after the migrations succeed; if they fail, read the error before going on. Sites with HTTPS keep `--profile https`. The old API and worker must stop before migrating: migrations may drop tables or columns, and old code still running would fail; a normal worker shutdown waits for paid calls in progress to finish (up to three-odd minutes). Without Docker, update in the same order: back up, build, stop API/worker/web, migrate (`scripts/migrate.ts`), seed (`scripts/seed.ts`), start.
+Start the services only after the migrations succeed; if they fail, read the error before going on. Sites with HTTPS keep `--profile https`. The old API and worker must stop before migrating: migrations may drop tables or columns, and old code still running would fail; a normal worker shutdown waits for paid calls in progress to finish (up to 270 seconds, `STOP_TIMEOUT_MS`). On Render the old services keep running while migrating; see [Migrations and deploy order](#migrations-and-deploy-order). Without Docker, update in the same order: back up, build, stop API/worker/web, migrate (`scripts/migrate.ts`), seed (`scripts/seed.ts`), start.
 
 A new migration that meets a long-held lock reports the file name and the wait timeout; deal with the transaction holding the lock, then run setup again, without skipping the migration or rewriting the migration ledger. An interrupted concurrent index build may leave an invalid index: after checking the object named in the error, remove that failed index with `DROP INDEX CONCURRENTLY <index name>` and run again; a valid index of the same name with a different definition needs its difference checked first. These protections do not change the Docker update order above, and upgrading across old versions may still run historical destructive migrations.
 
 What to watch for in each update follows, newest first.
+
+#### Render Blueprint, and the api runs the jobs that use the data directory (October 22, 2026)
+
+- `render.yaml` deploys the site on Render; see [On Render](#on-render).
+- The api now runs the jobs that read or write the data directory, because on Render only the api has the disk: `ops.retention` (feedback screenshots and the image and share-image caches), `feedback.forward`, `ops.backup`, and the `media.prepare` and `notify.selected` queues. The worker runs everything else. With docker compose both share the `data` volume, so nothing moves; the api now also opens the job queue's own database pool (up to 4 connections). Keep the api running wherever the worker runs.
+- The worker's stop drain is `STOP_TIMEOUT_MS`, 270 seconds by default (it was a fixed 470). Unfinished jobs are failed at the deadline and retried by their queue. `docker-compose.yml` gives the worker 315 seconds to stop (was 515) and the api a 30-second drain with 45 seconds to stop. Without Docker, change systemd or pm2 as in [Without Docker](#without-docker).
+- A starting worker waits until every migration in its release is applied, so it never runs against an older schema.
+- No database migration.
 
 #### Claude Sonnet for writing, and unknown step models stop startup (October 22, 2026)
 
@@ -261,6 +269,59 @@ Once the effective configuration changes, password sessions no longer accept the
 
 Sessions found invalid during authentication are deleted, and restoring the old configuration does not bring them back. The system keeps no history of global credential changes: a configuration change that no process ever loaded, or that no session check observed before it was reverted, cannot be used to revoke sessions after the fact.
 
+## On Render
+
+`render.yaml` at the repository root is a Render Blueprint: the same Docker image in three roles, plus Render Postgres, all in Oregon. On a Hobby workspace it comes to about $59 a month:
+
+| Resource | Render type and plan | Size | Monthly |
+|---|---|---|---|
+| `ai-pulse-web` | Web service, Starter | 0.5 CPU, 512 MB | $7 |
+| `ai-pulse-api` | Private service, Starter, with the 5 GB disk `ai-pulse-data` at `/data` | 0.5 CPU, 512 MB | $7 + $1.25 |
+| `ai-pulse-worker` | Background worker, Standard | 1 CPU, 2 GB | $25 |
+| `ai-pulse-db` | Postgres 17, Basic-1gb | 1 GB RAM | $19 |
+
+Only `web` is public; it reaches the api at the api's private `host:port` (`API_BASE_URL` from `fromService`). The api is the one service with the disk, so it also runs the jobs that read or write `/data`: housekeeping of feedback screenshots and the image caches, feedback forwarding, backups, image preparation and content pushes. The worker has no disk; the thumbnails it reads for model calls and the source icons it checks are cached on its own short-lived filesystem, which a restart clears.
+
+### Creating the services
+
+1. In the Render dashboard, choose **New → Blueprint**, connect `chizhangucb/ai-pulse`, and pick the branch to deploy (`main`).
+2. Render reads `render.yaml` and lists the database, the environment group `ai-pulse-backend` and the three services. It asks for each `sync: false` secret below. Enter them, then **Apply**.
+3. Render creates the database, builds the image, runs the api's pre-deploy step (`node scripts/migrate.ts && node scripts/seed.ts`), and starts the three services.
+4. Open the `ai-pulse-web` address (`https://ai-pulse-web.onrender.com` or similar). `/api/health` answers once the api is up; sign in at `/admin` with `ADMIN_PASSWORD`.
+5. For a custom domain, add it under `ai-pulse-web` → Settings → Custom Domains, then change `SITE_URL` in all three services to `https://<domain>` and redeploy them.
+
+Secrets Render asks for. Make each one with `openssl rand -hex 32` unless noted. A secret listed under two services must have the same value in both.
+
+| Secret | Services | Value |
+|---|---|---|
+| `SITE_URL` | web, api, worker | The address readers use: the `onrender.com` address at first, later `https://<domain>`, without a trailing slash |
+| `ADMIN_PASSWORD` | api | At least 12 characters |
+| `SESSION_SECRET` | api | Random |
+| `IMG_PROXY_SIGN_SECRET` | api, worker | Random, the same in both: the worker signs image addresses the api checks |
+| `INGEST_TOKEN` | api | At least 16 characters; the hourly X job sends it ([X posts through the ingest endpoint](ingest-x.md)) |
+| `LLM_API_KEY` | api, worker | Your OpenRouter key |
+
+The other settings are in `render.yaml` and match `.env.example`. Optional settings from `.env.example` (embeddings, paid collection, Feishu, `DB_BACKUP_STORE_*` backups and so on) go into the `ai-pulse-backend` environment group, or into one service when only it reads them. Backups run in the api, so `DB_BACKUP_STORE_*` belongs in the group or on the api.
+
+Shutdown limits: Render waits at most 300 seconds for a stopping service. The worker drains its jobs for `STOP_TIMEOUT_MS` (270 s), then fails what is still running so its queue retries it, inside its `maxShutdownDelaySeconds` of 300. A service with a disk stops before its replacement starts, so the api has a 30-second drain and 45 seconds to stop; an interrupted backup or push is retried the same way.
+
+### Migrations and deploy order
+
+On every push that passes its checks (`autoDeployTrigger: checksPass`), Render builds and deploys the three services independently:
+
+1. The api's pre-deploy step migrates and seeds on a separate instance while the old api, worker and web keep running and serving. If it fails, the api deploy stops there and the old api stays.
+2. Then the old api stops and the new one starts; the site answers errors for that short gap, because a service with a disk cannot overlap with its replacement.
+3. The worker and web deploy at the same time, in any order. A new worker that starts before the api's migrations finish waits until they are applied, logging `waiting for migrations`. Web reads the database only through the api.
+
+So every release must work with the previous release's code still running against its new schema, and with web and api one release apart for a few minutes:
+
+- Migrations only add: new tables, nullable columns or columns with a constant default, `NOT VALID` constraints, concurrent indexes. The online migration check in CI enforces the statement rules from `0055` on ([Database migrations](architecture.md#database-migrations)).
+- Removing or renaming anything (a column, a table, a type change) takes two releases: first a release whose code no longer reads or writes it, deployed to all three services; then the release with the destructive migration.
+- An api route the web calls keeps its old shape for one release.
+- A release that cannot follow these rules is deployed by hand: suspend `ai-pulse-worker` and `ai-pulse-web`, deploy the api, then resume and deploy the other two.
+
+The migration waits for a running backup's `pg_dump` for the api's `STOP_TIMEOUT_MS` (30 s) and then fails the deploy. Avoid deploying around the 04:10 backup (site time), or deploy again once it ends.
+
 ## What it costs
 
 - **Models**: every new item is pre-screened once; items that pass are scored twice, structured once and given a title and summary once, then grouped (calling the model only when there are similar reports); there are also story overviews, weekly and monthly overviews, and full translations of non-English picks. X posts with empty text or only links call no writing or translation model. Daily briefs are put together by rule without a model. In a local trial run on the demo sources, the first import of 152 items took about 930 model calls. Daily use after that depends on how many items your sources publish. The admin's Models and evals page shows each step's calls, input and output tokens, and the actual cost OpenRouter reports for each call.
@@ -298,6 +359,6 @@ cd apps/web && NODE_ENV=production node --env-file=../../.env server.ts   # page
 
 All three processes need `NODE_ENV=production`. Without it, the api and worker run as development: production secrets and the admin password are not checked at start, and the `DEV_AUTH_ROLE` sign-in bypass works.
 
-The three processes must keep running; in production, supervise them with systemd or pm2 (with `NODE_ENV=production` in that config too). Give the worker 515 seconds to stop (`TimeoutStopSec=515` for systemd; `kill_timeout: 515000` and `treekill: false` for pm2), covering the queue's 470-second drain and database cleanup; systemd also needs `KillMode=mixed`, so only the main process is told to stop taking jobs and a running `pg_dump` or `tar` backup finishes on its own. A call killed early has an unknown outcome and is retried only after it is released automatically, at least half an hour later.
+The three processes must keep running; in production, supervise them with systemd or pm2 (with `NODE_ENV=production` in that config too). Give the worker 315 seconds to stop (`TimeoutStopSec=315` for systemd; `kill_timeout: 315000` and `treekill: false` for pm2), covering the queue's 270-second drain (`STOP_TIMEOUT_MS`) and database cleanup, and give the api the same, or a shorter `STOP_TIMEOUT_MS` with 15 seconds more to stop; systemd also needs `KillMode=mixed`, so only the main process is told to stop taking jobs and a running `pg_dump` or `tar` backup finishes on its own. A call killed early has an unknown outcome and is retried only after it is released automatically, at least half an hour later.
 
 For development, use the hot-reloading commands `npm run dev:api`, `npm run dev:worker` and `npm run dev:web`. To enter the admin without signing in while developing, set `DEV_AUTH_ROLE=admin` in `.env` (production refuses to start with it).
