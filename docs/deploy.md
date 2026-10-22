@@ -100,7 +100,7 @@ What to watch for in each update follows, newest first.
 
 #### Railway and Render configs, and the api runs the jobs that use the data directory (October 22, 2026)
 
-- `deploy/railway/` holds Railway config-as-code for web, api and worker, and `render.yaml` is a Render Blueprint for the same layout; see [On Railway](#on-railway) and [On Render](#on-render).
+- `.railway/railway.ts` describes the Railway project in Railway's infrastructure-as-code format, and `render.yaml` is a Render Blueprint for the same layout; see [On Railway](#on-railway) and [On Render](#on-render).
 - The api now runs the jobs that read or write the data directory, because on Railway and Render only the api has the volume: `ops.retention` (feedback screenshots and the image and share-image caches), `feedback.forward`, `ops.backup`, and the `media.prepare` and `notify.selected` queues. The worker runs everything else. With docker compose both share the `data` volume, so nothing moves; the api now also opens the job queue's own database pool (up to 4 connections). Keep the api running wherever the worker runs.
 - The worker's stop drain is `STOP_TIMEOUT_MS`, 270 seconds by default (it was a fixed 470). Unfinished jobs are failed at the deadline and retried by their queue. `docker-compose.yml` gives the worker 315 seconds to stop (was 515) and the api a 30-second drain with 45 seconds to stop. Without Docker, change systemd or pm2 as in [Without Docker](#without-docker).
 - A starting worker waits until every migration in its release is applied, so it never runs against an older schema.
@@ -271,30 +271,65 @@ Sessions found invalid during authentication are deleted, and restoring the old 
 
 ## On Railway
 
-Railway is the first host. `deploy/railway/` holds Railway config-as-code for the three app services: `web.json`, `api.json` and `worker.json`. All three build the repository's `Dockerfile` and differ in start command, health check and stop window. With Railway Postgres 17 that makes four services in one project:
+Railway is the first host. `.railway/railway.ts` describes the whole Railway project in Railway's infrastructure-as-code format: the four services, the api's volume and every variable name. The Railway CLI's `railway config plan` previews what applying it would change, and `railway config apply` makes those changes. It replaces per-service `railway.json` config files: Railway deprecated those, new services cannot use them, and Railway stops reading them on 2026-12-01.
 
-| Service | Config file | Role |
-|---|---|---|
-| `web` | `/deploy/railway/web.json` | Pages, RSS and the public API; the only service with a public domain |
-| `api` | `/deploy/railway/api.json` | The backend, with a volume at `/data`; also runs the jobs that read or write `/data` |
-| `worker` | `/deploy/railway/worker.json` | Collection, model calls, grouping, reports and the other scheduled jobs; no volume |
-| `Postgres` | Railway's PostgreSQL 17 | The database |
+| Service | Role |
+|---|---|
+| `web` | Pages, RSS and the public API; the only service with a public domain |
+| `api` | The backend, with the volume `api-volume` at `/data`; also runs the jobs that read or write `/data` |
+| `worker` | Collection, model calls, grouping, reports and the other scheduled jobs; no volume |
+| `Postgres` | Railway's PostgreSQL 17 |
 
-The api is the only service with the volume, so it runs the jobs that use `/data`: the 03:30 housekeeping of feedback screenshots and the image caches, feedback forwarding to Feishu every 10 minutes, the 04:10 backup, image preparation and content pushes. The worker caches the thumbnails it sends to models and the source icons it checks in its own container, which a redeploy clears.
+All three app services build the repository's `Dockerfile` and differ in start command, health check, restart policy and stop window, as the file sets them. The api also runs `sh -c 'node scripts/migrate.ts && node scripts/seed.ts'` as its pre-deploy step.
 
-### Creating the services
+The api is the only service with the volume, so it runs the jobs that use `/data`: the 03:30 housekeeping of feedback screenshots and the image caches, feedback forwarding to Feishu every 10 minutes, the 04:10 backup, image preparation and content pushes. The worker caches the thumbnails it sends to models and the source icons it checks in its own container, which a redeploy clears. The worker logs one `collect run` line per source fetch and one `model call` line per model request, with the step, model, outcome and cost when the provider reports it.
 
-1. Create a project in the workspace and add **PostgreSQL**, version 17. The image's `pg_dump` is version 17, and it refuses to back up a newer server.
-2. Add three services from the GitHub repository `chizhangucb/ai-pulse`, named exactly `web`, `api` and `worker`. The variables below refer to these names, and the private host names come from them (`api.railway.internal`).
-3. In each service's Settings, set **Config-as-code → Railway config file** to its file in the table above. The file sets the Dockerfile build, the start command, the health check, the restart policy and the stop window. The api's file also sets the pre-deploy step (`node scripts/migrate.ts && node scripts/seed.ts`), and requires a volume at `/data` before it deploys.
-4. Add a volume to `api`, mounted at `/data`, up to 5 GB (the Hobby limit).
-5. Set the variables below, then turn on **Wait for CI** in each service's Settings, so a push deploys only after the GitHub checks pass.
-6. Generate a domain for `web` with target port 3000, or add a custom domain. Set `SITE_URL` to that address in all three services.
-7. Deploy `api` first and wait until it is active, then `worker` and `web`. Open the site; `/api/health` answers once both are up. Sign in at `/admin` with `ADMIN_PASSWORD`.
+### Tools
+
+- The Railway CLI 5.42.1 or newer (`npm install -g @railway/cli`; the file was checked with 5.71.0), signed in with `railway login`.
+- From the repository root: `npm ci` (it installs the `railway` package the file imports), then `railway link` to the project and its `production` environment.
+
+`npm run typecheck` checks `.railway/railway.ts` against that package's types, so a misspelt setting fails CI.
+
+### Creating the project
+
+1. Create an empty project in the workspace and `railway link` to it.
+2. Run `railway config plan`. It should list the creation of `Postgres`, `api-volume`, `api`, `worker` and `web`, and nothing else. Then run `railway config apply`.
+3. Open the `Postgres` service and check that it runs PostgreSQL 17. The file cannot pin a version, and the image's `pg_dump` is version 17, which refuses to back up a newer server.
+4. Enter the **by hand** values below in each service's Variables. The file declares them with `preserve()`, so `apply` keeps whatever Railway holds and never writes a secret.
+5. Deploy the code as in [Deploying a release](#deploying-a-release).
+6. Generate a domain for `web` with target port 3000, or add a custom domain, and set `SITE_URL` to that address in all three services.
+
+### Moving existing services onto the file
+
+Railway refuses to plan for services that still read a `railway.json` or `railway.toml`. The services Engineering Lead created from the earlier JSON files need one cutover:
+
+1. Run `railway config migrate status` to list the services still on config-as-code, then `railway config migrate cutover`. It saves the old config-file paths, so `railway config migrate undo` reverses it.
+2. Run `railway config plan` and read it before applying. The file names the services `web`, `api` and `worker`, the database `Postgres` and the volume `api-volume`.
+   - If the plan would create or delete any of these, the live name differs. Change the name in the file to the live one; `railway config pull` in a scratch clone shows the live names.
+   - If the plan would delete a variable you set by hand that the file does not list (an optional one such as `DB_BACKUP_STORE_*`), add it to that service's `env` as `NAME: preserve()`.
+   - A volume must never be deleted or recreated: that loses uploads and feedback screenshots.
+3. Run `railway config apply` once the plan shows only the setting changes you expect.
+
+### Deploying a release
+
+Deploy the api first and wait until it is active, then the worker and web. The api's pre-deploy step migrates the database ([Migrations and deploy order](#migrations-and-deploy-order)).
+
+**Upload with `railway up`.** This is the current path, because Railway's GitHub app cannot see this private repository. Check out the commit whose CI passed, then run:
+
+```bash
+railway up --service api --ci
+railway up --service worker --ci
+railway up --service web --ci
+```
+
+`railway up` uploads the working directory and skips files listed in `.gitignore`, so `.env` and `.data/` stay on your machine. Nothing checks CI on this path: deploy only commits whose GitHub checks are green. `AIHOT_RELEASE` follows `RAILWAY_GIT_COMMIT_SHA`, which an upload leaves empty.
+
+**From GitHub.** Once Railway's GitHub app has access to `chizhangucb/ai-pulse`, set `source` in `.railway/railway.ts` to `github("chizhangucb/ai-pulse", { branch: "main", checkSuites: true })` and apply. Each service then deploys every push to `main`. `checkSuites: true` makes Railway wait for the commit's GitHub checks to pass first, which the dashboard calls **Wait for CI**. The three services deploy in parallel, and the worker waits for the api's migrations on its own.
 
 ### Variables
 
-Values marked **by hand** are secrets or site-specific: enter them yourself in Railway, never in the repository. Make each random secret with `openssl rand -hex 32`. A secret set on two services must be the same in both; define it once under the project's **Shared Variables** and reference it as `${{shared.NAME}}`. `${{...}}` values are Railway reference variables; enter them as written.
+`.railway/railway.ts` sets every value below except those marked **by hand**. Those are secrets or site-specific: enter them yourself in each service's Variables, never in the repository. Make each random secret with `openssl rand -hex 32`. A value entered on two services must be the same in both. `${{...}}` values are Railway reference variables.
 
 Shared by `api` and `worker` (the settings `.env.example` gives, plus the database):
 
@@ -355,7 +390,7 @@ Optional settings from `.env.example` (embeddings, paid collection, Feishu, `DB_
 
 ### Stopping
 
-Railway sends SIGTERM, waits the config's `drainingSeconds` (`RAILWAY_DEPLOYMENT_DRAINING_SECONDS`), then kills the process. Keep `STOP_TIMEOUT_MS` about 30 seconds under that window, so the queue can fail the jobs still running for retry and close the database. The worker drains for 270 s in a 300 s window. A service with a volume stops before its replacement starts, so the api drains for 30 s in a 45 s window; an interrupted backup or push is failed and retried by its queue.
+Railway sends SIGTERM, waits the service's `drainingSeconds` from `.railway/railway.ts` (`RAILWAY_DEPLOYMENT_DRAINING_SECONDS`), then kills the process. Keep `STOP_TIMEOUT_MS` about 30 seconds under that window, so the queue can fail the jobs still running for retry and close the database. The worker drains for 270 s in a 300 s window. A service with a volume stops before its replacement starts, so the api drains for 30 s in a 45 s window; an interrupted backup or push is failed and retried by its queue.
 
 ## On Render
 
@@ -443,7 +478,7 @@ Render sends SIGTERM and waits `maxShutdownDelaySeconds` (at most 300) before ki
 
 ## Migrations and deploy order
 
-On Railway and on Render, each service deploys on its own once a push passes CI:
+Each service deploys on its own: on Render once a push passes CI; on Railway in the order you run `railway up`, or, deploying from GitHub, all three in parallel once the checks pass:
 
 1. The api's pre-deploy step migrates and seeds in a separate container, while the old api, worker and web keep running. If it fails, the api deploy stops and the old api stays.
 2. Then the old api stops and the new one starts; the site answers errors for that short gap, because a service with a volume or disk cannot overlap with its replacement.
