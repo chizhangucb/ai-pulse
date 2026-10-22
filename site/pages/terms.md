@@ -7,7 +7,7 @@ This is the template that comes with the open-source framework. Before launch, r
 | Version | TBD |
 | Effective date | TBD |
 | Operator | TBD |
-| Contact | TBD |
+| Contact | @chizhangData (https://x.com/chizhangData) |
 
 Page intro:
 
