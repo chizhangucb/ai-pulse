@@ -37,6 +37,7 @@ export default defineRailway(() => {
       POSTGRES_PASSWORD: preserve(),
       POSTGRES_USER: preserve(),
       SSL_CERT_DAYS: preserve(),
+      RAILWAY_DEPLOYMENT_DRAINING_SECONDS: preserve(),
     },
   });
   const data = volume("api-volume", { region: "sfo", sizeMB: 5000 });
