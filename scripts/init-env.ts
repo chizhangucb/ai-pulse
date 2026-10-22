@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 if (existsSync(".env")) {
-  console.error(".env 已经存在，没有覆盖。要重新生成，先把它改名或删掉。");
+  console.error(".env already exists and was left as is. To generate a new one, rename or delete it first.");
   process.exit(1);
 }
 const password = randomBytes(12).toString("base64url");
@@ -17,6 +17,6 @@ const text = readFileSync(".env.example", "utf8")
   .replace(/^POSTGRES_PASSWORD=$/m, `POSTGRES_PASSWORD=${randomBytes(18).toString("hex")}`)
   .replace(/^LLM_API_KEY=$/m, `LLM_API_KEY=${llmKey}`);
 writeFileSync(".env", text, { mode: 0o600 });
-console.log("已生成 .env。");
-console.log(`管理员密码：${password}（也写在 .env 的 ADMIN_PASSWORD 里）`);
-if (!llmKey) console.log("还差一步：在 .env 里填上 LLM_API_KEY（以及 LLM_BASE_URL、LLM_MODEL，默认是 DeepSeek）。");
+console.log("Wrote .env.");
+console.log(`Admin password: ${password} (also saved as ADMIN_PASSWORD in .env)`);
+if (!llmKey) console.log("One step left: set LLM_API_KEY in .env (an OpenRouter key; LLM_BASE_URL and LLM_MODEL default to OpenRouter with Claude Haiku 5.5, reasoning off).");

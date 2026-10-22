@@ -11,8 +11,10 @@ export type { ModelPreset } from "@aihot/contracts/site-config";
 export const PRESETS: Record<string, ModelPreset> = {
   // OpenRouter, the site's default service. Every endpoint of these models lists response_format in OpenRouter's
   // model metadata, so JSON mode stays on.
+  // Haiku 5.5 reasons by default on OpenRouter, and the reasoning eats the step's output budget.
   "or-claude-haiku": {
-    service: "openrouter", model: "anthropic/claude-haiku-5.5", baseUrlEnv: "LLM_BASE_URL", apiKeyEnv: "LLM_API_KEY", jsonMode: true, vision: true,
+    service: "openrouter", model: "anthropic/claude-haiku-5.5", baseUrlEnv: "LLM_BASE_URL", apiKeyEnv: "LLM_API_KEY",
+    extra: { reasoning: { enabled: false } }, jsonMode: true, vision: true,
   },
   "or-gpt-luna": {
     service: "openrouter", model: "openai/gpt-6-luna", baseUrlEnv: "LLM_BASE_URL", apiKeyEnv: "LLM_API_KEY", jsonMode: true, vision: true,
