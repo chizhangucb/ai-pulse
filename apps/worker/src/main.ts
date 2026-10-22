@@ -1,7 +1,8 @@
 // Worker process: queues and schedules for collection, processing, events, reports and ops, and the site's
 // modules (site/modules/server.ts).
-import { assertProductionSecrets } from "@aihot/backend/config";
-import { closeDb } from "@aihot/backend/db";
+import { setTimeout as sleep } from "node:timers/promises";
+import { assertProductionSecrets, REPO_ROOT } from "@aihot/backend/config";
+import { closeDb, sql } from "@aihot/backend/db";
 import { getBoss, stopBoss, workModuleQueues } from "@aihot/backend/jobs/queue";
 import { installModules } from "@aihot/backend/modules";
 import { assertModelChoices } from "@aihot/backend/editorial/models";
@@ -12,11 +13,18 @@ import { registerEventJobs } from "@aihot/backend/jobs/events";
 import { registerPublicationJobs } from "@aihot/backend/jobs/publication";
 import { registerSchedules } from "@aihot/backend/jobs/schedules";
 import { startHeartbeat } from "@aihot/backend/operations/heartbeat";
+import { pendingMigrations } from "../../../scripts/migrate.ts";
 
 installModules(SERVER_MODULES);
 assertModelChoices();
 assertProductionSecrets([["auth", "IMG_PROXY_SIGN_SECRET"]]);
 
+// Render may start this worker before the api's pre-deploy step has migrated the database.
+let pending: string[];
+while ((pending = await pendingMigrations(sql, REPO_ROOT)).length) {
+  console.log(JSON.stringify({ level: "info", msg: "waiting for migrations", pending: pending.length }));
+  await sleep(5000);
+}
 const boss = await getBoss();
 await registerContentJobs(boss);
 if (process.env.COLLECT_ENABLED === "true") await registerSourceJobs(boss);
