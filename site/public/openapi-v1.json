@@ -943,7 +943,7 @@
     "/api/v1/dailies/{date}": {
       "get": {
         "operationId": "dailyByDate",
-        "summary": "Get a daily report by Shanghai calendar date",
+        "summary": "Get a daily report by calendar date in the site's time zone",
         "description": "A single past daily report by {{timeZone}} calendar date (YYYY-MM-DD). Each date identifies a fixed edition, but corrections and withdrawn citations can change its public content. Respect Cache-Control and revalidate with If-None-Match before reusing an expired copy; do not cache a report indefinitely.",
         "parameters": [
           {
