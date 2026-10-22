@@ -1,12 +1,19 @@
 // AI Pulse on Railway (docs/deploy.md, "On Railway"): web, api, worker and Postgres, managed with
 // `railway config plan` and `railway config apply`. Secrets are preserve(): they are entered in Railway and
 // never written here.
+import { execFileSync } from "node:child_process";
 import { defineRailway, image, preserve, project, service, volume, type SourceConfig } from "railway/iac";
 
 // `railway up` uploads the code while Railway's GitHub app cannot see this private repository. Once it can,
 // use github("chizhangucb/ai-pulse", { branch: "main", checkSuites: true }) to deploy each push to main
 // after its checks pass.
 const source: SourceConfig | undefined = undefined;
+
+// Shown on /api/health. An upload leaves RAILWAY_GIT_COMMIT_SHA empty, so plan and apply write the checked-out
+// commit instead, and each release applies before `railway up`.
+const release = source
+  ? "${{RAILWAY_GIT_COMMIT_SHA}}"
+  : execFileSync("git", ["rev-parse", "HEAD"], { cwd: import.meta.dirname, encoding: "utf8" }).trim();
 
 const dockerfile = { builder: "DOCKERFILE", dockerfilePath: "Dockerfile" } as const;
 
@@ -39,7 +46,7 @@ export default defineRailway(() => {
     NODE_ENV: "production",
     DATABASE_URL: db.env.DATABASE_URL,
     AIHOT_DATA_DIR: "/data",
-    AIHOT_RELEASE: "${{RAILWAY_GIT_COMMIT_SHA}}",
+    AIHOT_RELEASE: release,
     LLM_BASE_URL: "https://openrouter.ai/api/v1",
     LLM_MODEL: "anthropic/claude-haiku-5.5",
     LLM_EXTRA_JSON: '{"reasoning":{"enabled":false}}',
@@ -118,7 +125,7 @@ export default defineRailway(() => {
       PORT: "3000",
       // Railway's proxy adds the visitor's address to X-Forwarded-For.
       TRUST_PROXY: "true",
-      AIHOT_RELEASE: "${{RAILWAY_GIT_COMMIT_SHA}}",
+      AIHOT_RELEASE: release,
     },
   });
 

@@ -321,12 +321,13 @@ Deploy the api first and wait until it is active, then the worker and web. The a
 **Upload with `railway up`.** This is the current path, because Railway's GitHub app cannot see this private repository. Check out the commit whose CI passed, then run:
 
 ```bash
+railway config apply
 railway up --service api --ci
 railway up --service worker --ci
 railway up --service web --ci
 ```
 
-`railway up` uploads the working directory and skips files listed in `.gitignore`, so `.env` and `.data/` stay on your machine. Nothing checks CI on this path: deploy only commits whose GitHub checks are green. `AIHOT_RELEASE` follows `RAILWAY_GIT_COMMIT_SHA`, which an upload leaves empty.
+`railway up` uploads the working directory and skips files listed in `.gitignore`, so `.env` and `.data/` stay on your machine. Nothing checks CI on this path: deploy only commits whose GitHub checks are green. An upload leaves `RAILWAY_GIT_COMMIT_SHA` empty, so while `source` is unset the file sets `AIHOT_RELEASE` to the checked-out commit (`git rev-parse HEAD`) and `railway config apply` writes it before the upload. Between releases the plan therefore always shows `AIHOT_RELEASE` changing on `api`, `worker` and `web`; that change is expected.
 
 **From GitHub.** Once Railway's GitHub app has access to `chizhangucb/ai-pulse`, set `source` in `.railway/railway.ts` to `github("chizhangucb/ai-pulse", { branch: "main", checkSuites: true })` and apply. Each service then deploys every push to `main`. `checkSuites: true` makes Railway wait for the commit's GitHub checks to pass first, which the dashboard calls **Wait for CI**. The three services deploy in parallel, and the worker waits for the api's migrations on its own.
 
@@ -341,7 +342,7 @@ Shared by `api` and `worker` (the settings `.env.example` gives, plus the databa
 | `NODE_ENV` | `production` |
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (the private-network address) |
 | `AIHOT_DATA_DIR` | `/data` |
-| `AIHOT_RELEASE` | `${{RAILWAY_GIT_COMMIT_SHA}}`, shown on `/api/health` and the admin Runs page to confirm a release replaced the processes |
+| `AIHOT_RELEASE` | The commit: `${{RAILWAY_GIT_COMMIT_SHA}}` when deploying from GitHub, the checked-out commit when uploading. Shown on `/api/health` and the admin Runs page to confirm a release replaced the processes |
 | `LLM_BASE_URL` | `https://openrouter.ai/api/v1` |
 | `LLM_MODEL` | `anthropic/claude-haiku-5.5` |
 | `LLM_EXTRA_JSON` | `{"reasoning":{"enabled":false}}` |
@@ -387,7 +388,7 @@ Shared by `api` and `worker` (the settings `.env.example` gives, plus the databa
 | `WEB_PORT` | `3000`, the port the server reads |
 | `PORT` | `3000`, the port Railway routes the domain and the health check to |
 | `TRUST_PROXY` | `true`: Railway's proxy adds the visitor's address to `X-Forwarded-For` |
-| `AIHOT_RELEASE` | `${{RAILWAY_GIT_COMMIT_SHA}}` |
+| `AIHOT_RELEASE` | The commit, as for `api` and `worker` |
 
 Optional settings from `.env.example` (embeddings, paid collection, Feishu, `DB_BACKUP_STORE_*` and so on) go on the service that reads them. Backups run in the api, so `DB_BACKUP_STORE_*` belongs on `api`.
 
