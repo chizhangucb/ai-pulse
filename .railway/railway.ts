@@ -19,10 +19,10 @@ const dockerfile = { builder: "DOCKERFILE", dockerfilePath: "Dockerfile" } as co
 
 export default defineRailway(() => {
   // A service, not postgres(): postgres() pins Railway's newest image and drops the variables and volume the
-  // live database already has. The image's pg_dump is 17, which refuses to back up a newer server.
+  // live database already has. The app image's pg_dump is 17, which refuses to back up a newer server.
   const dbData = volume("postgres-volume", { region: "sfo", sizeMB: 5000 });
   const db = service("Postgres", {
-    source: image("postgres:17"),
+    source: image("ghcr.io/railwayapp-templates/postgres-ssl:17"),
     volumeMounts: { "/var/lib/postgresql/data": dbData },
     env: {
       DATABASE_URL: preserve(),
