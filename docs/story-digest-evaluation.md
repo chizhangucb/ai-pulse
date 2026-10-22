@@ -1,51 +1,51 @@
-# 事件综述提示词评测
+# Story digest prompt evaluation
 
-事件页的综述由 `industry/prompts/story-digest.md` 生成。改这份提示词之前，先在同一批事件上把现有提示词和候选提示词并排跑一遍，人工比较，不凭页面印象判断。
+The overview on a story page is written from `industry/prompts/story-digest.md`. Before changing that prompt, run the current prompt and the candidate side by side on the same stories and compare them by hand, instead of judging from how pages look.
 
-## 1. 准备案例
+## 1. Prepare the cases
 
 ```bash
-node --env-file=.env scripts/eval-story-digests.ts --stories <事件id>,<事件id> --out .data/story-digest-cases.jsonl
+node --env-file=.env scripts/eval-story-digests.ts --stories <story id>,<story id> --out .data/story-digest-cases.jsonl
 ```
 
-事件 id 是事件页地址 `/story/<id>` 里的那一段。导出只读数据库，不调用模型，不改动任何事件。报道按站点生成综述时的同一套规则取，只是顺带提及的、综合稿、撤下的和尚未公开的报道不算。已经有综述的事件按“更正后重写”组装（不带上一版综述），还没有综述的按首次撰写。找不到、已被合并或没有可用报道的事件会直接报错。
+A story id is the part of the story page address `/story/<id>`. The export only reads the database: it calls no model and changes no story. Reports are chosen by the same rules the site uses when it writes an overview, except that passing mentions, roundups, withdrawn reports and reports not yet public do not count. A story that already has an overview is assembled as "rewrite after a correction" (without the previous overview); one without an overview is assembled as a first draft. A story that cannot be found, was merged, or has no usable report is an error.
 
-导出的文件每行一个事件，可以先审阅。想测有新报道时的增量更新，把 `inputMode` 改为 `incremental`，填上 `story.previousDigest` 和 `knownArticleIds`（上一版已包含的报道 id）。也可以手写案例，格式见 `industry/story-digest-eval.example.jsonl`（虚构示例）。
+The exported file has one story per line, and you can review it first. To test the incremental update after new reports, set `inputMode` to `incremental` and fill in `story.previousDigest` and `knownArticleIds` (the ids of the reports the previous version already covered). You can also write cases by hand; the format is in `industry/story-digest-eval.example.jsonl` (made-up examples).
 
-## 2. 并排对比
+## 2. Compare side by side
 
 ```bash
 node --env-file=.env scripts/eval-story-digests.ts --cases .data/story-digest-cases.jsonl --system my-candidate.md
 ```
 
-- 每个案例用现有提示词和候选提示词各跑一次：同一个模型（默认是“事件综述”这一步当前用的模型，`--models` 可指定），同一份输入。发给模型的系统提示词、输入和采样参数与站点生成综述时完全相同。
-- 候选文件的写法与 `industry/prompts/` 相同：`{{siteName}}` 换成站名，`{{> 文件名}}` 插入共用规则，缺值会报错。候选与现有提示词渲染后完全相同时拒绝运行。不传 `--system` 时只跑现有提示词。
-- 开始前打印调用次数（案例数 × 模型数 × 提示词数），超过 `--max-calls`（默认 18）一次都不发。每次调用和站点其他模型请求一样记录、计入预算；原样重跑复用已收到的结果，不再付费，所以改一版候选再跑，现有提示词那一半不花钱。
+- Each case runs once with the current prompt and once with the candidate: the same model (by default the one the "story digest" step uses now; `--models` picks others) and the same input. The system prompt, input and sampling parameters sent to the model are exactly the ones the site uses.
+- A candidate file is written like the files in `industry/prompts/`: `{{siteName}}` becomes the site name and `{{> file name}}` inserts a shared rule; a missing value is an error. The run refuses a candidate that renders identical to the current prompt. Without `--system` only the current prompt runs.
+- Before starting it prints the number of calls (cases × models × prompts) and sends none when that is over `--max-calls` (18 by default). Every call is logged and counted against the budget like the site's other model requests. Rerunning the same input reuses the answers already received at no cost, so after changing a candidate and running again, the current-prompt half costs nothing.
 
-结果写到 `.data/eval/`（`--out-dir` 可改），一份 JSON、一份 Markdown：两边的标题和综述并排，附每次调用的 token 用量和记录编号，失败的调用写明原因。
+Results go to `.data/eval/` (`--out-dir` changes it), one JSON and one Markdown file: the two titles and overviews side by side, with each call's token use and record number, and the reason for any failed call.
 
-## 3. 人工看什么
+## 3. What to look at
 
-没有可靠的自动分数，这个工具也不让模型给模型打分。逐条看：
+There is no reliable automatic score, and this tool does not let a model grade a model. Read each case:
 
-- 是否先讲清核心变化和当前结论，而不是按日期复述下方的时间线；
-- 有没有空泛的宣传腔和套话；
-- 条件、适用对象、收费与额度、地域等限制是否仍绑在对应对象上；
-- 有没有报道和事实证据里没有的内容，有没有评论报道本身（“报道未披露……”）或把写作要求写进正文；
-- 更正后重写时，失效的旧说法是否清掉了。
+- Does it state the core change and the current conclusion first, instead of retelling the timeline below it by date?
+- Is there empty promotional tone or boilerplate?
+- Do conditions, who it applies to, pricing and quotas, regions and other limits stay attached to what they apply to?
+- Is there anything not in the reports and fact evidence? Does it comment on the reporting itself ("the report does not disclose...") or put writing instructions into the text?
+- In a rewrite after a correction, are the outdated claims gone?
 
-## 4. 改完提示词之后
+## 4. After changing the prompt
 
-提示词换版本本身不会重写已有事件的综述。一个事件只在它的报道变化时才重新生成，有新报道时以旧综述为上一版增量改写，所以新提示词随新报道逐步生效，不会一次性产生大量模型调用。
+A new prompt version does not by itself rewrite existing overviews. A story's overview is written again only when its reports change, and with new reports the old overview is the previous version for an incremental rewrite. So the new prompt takes effect gradually with new reports and never causes a burst of model calls.
 
-想让某几个事件立即用新提示词重写，在仓库根目录调用 `rewriteStoryDigest`（每个事件一次模型调用，记进后台审计）：
+To have a few stories rewritten with the new prompt right away, call `rewriteStoryDigest` from the repository root (one model call per story, recorded in the admin audit log):
 
 ```bash
 node --env-file=.env --input-type=module -e '
 const { rewriteStoryDigest } = await import("@aihot/backend/events/corrections");
 const { sql } = await import("@aihot/backend/db");
-const [s] = await sql`SELECT id FROM stories WHERE public_id = ${"<事件id>"}`;
-if (!s) throw new Error("没有这个事件 id");
-console.log(await rewriteStoryDigest(s.id, "综述提示词已更新", "ops-script"));
+const [s] = await sql`SELECT id FROM stories WHERE public_id = ${"<story id>"}`;
+if (!s) throw new Error("no story with this id");
+console.log(await rewriteStoryDigest(s.id, "Story digest prompt updated", "ops-script"));
 await sql.end();'
 ```

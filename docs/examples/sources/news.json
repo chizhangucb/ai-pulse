@@ -3,14 +3,14 @@
     "items": [
       {
         "id": "first",
-        "title": "第一条示例新闻",
-        "summary": "第一条新闻的摘要。",
+        "title": "First example story",
+        "summary": "Summary of the first story.",
         "published_at": "2026-10-01T09:00:00-07:00"
       },
       {
         "id": "second",
-        "title": "第二条示例新闻",
-        "summary": "第二条新闻的摘要。",
+        "title": "Second example story",
+        "summary": "Summary of the second story.",
         "published_at": "2026-10-01T10:00:00-07:00"
       }
     ]
