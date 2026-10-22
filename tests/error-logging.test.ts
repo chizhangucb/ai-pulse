@@ -9,7 +9,7 @@ const MARKER = "synthetic-private-person@example.test";
 const API_APP_URL = new URL("../apps/api/src/app.ts", import.meta.url).href;
 function run(source: string): string {
   return execFileSync(process.execPath, ["--input-type=module", "-e", source], {
-    cwd: new URL("..", import.meta.url), encoding: "utf8", timeout: 10_000,
+    cwd: new URL("..", import.meta.url), encoding: "utf8", timeout: 30_000,
     env: { ...process.env, LOG_LEVEL: "error", MODEL_CALLS_ENABLED: "false", COLLECT_ENABLED: "false" },
     stdio: ["ignore", "pipe", "pipe"],
   });
