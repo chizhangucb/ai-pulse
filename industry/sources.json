@@ -757,6 +757,1533 @@
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-databricks",
+      "name": "Databricks Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.databricks.com/feed"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-pytorch",
+      "name": "PyTorch Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://pytorch.org/feed/"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-nvidia-developer",
+      "name": "NVIDIA Technical Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://developer.nvidia.com/blog/feed"
+      },
+      "tier": "T1",
+      "owner_entity_id": "nvidia",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Chips"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-mastra",
+      "name": "Mastra Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://mastra.ai/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[data-testid='post-card']",
+        "titleSelector": "[data-testid='post-title']",
+        "allowUrlPrefixes": [
+          "https://mastra.ai/blog/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "[data-testid='post-date']"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "gh-claude-code",
+      "name": "Claude Code releases (GitHub)",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 3
+        },
+        "feedUrl": "https://github.com/anthropics/claude-code/releases.atom",
+        "atomUpdatedIsPublished": true
+      },
+      "tier": "T1",
+      "owner_entity_id": "anthropic",
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "Official",
+        "Releases"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-google-developers",
+      "name": "Google Developers Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 40
+        },
+        "feedUrl": "https://developers.googleblog.com/rss/"
+      },
+      "tier": "T1",
+      "owner_entity_id": "google",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-mit-news-ai",
+      "name": "MIT News: Artificial Intelligence",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://news.mit.edu/rss/topic/artificial-intelligence2"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-artificial-analysis",
+      "name": "Artificial Analysis Articles",
+      "kind": "web_list",
+      "config": {
+        "url": "https://artificialanalysis.ai/articles",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/articles/']:has(h3)",
+        "titleSelector": "h3",
+        "allowUrlPrefixes": [
+          "https://artificialanalysis.ai/articles/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "p"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-meta-engineering",
+      "name": "Meta Engineering",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://engineering.fb.com/feed/"
+      },
+      "tier": "T1",
+      "owner_entity_id": "meta",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-tessl",
+      "name": "Tessl Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://tessl.io/blog/rss.xml"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-claude-blog",
+      "name": "Claude Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://claude.com/resources/articles",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/resources/articles/']:has(h3)",
+        "titleSelector": "h3",
+        "allowUrlPrefixes": [
+          "https://claude.com/resources/articles/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "span[class*='__meta']"
+      },
+      "tier": "T1",
+      "owner_entity_id": "anthropic",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cohere",
+      "name": "Cohere Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://cohere.com/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10,
+          "titleSelector": "h1",
+          "titleAuthoritative": true
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/blog/']:not([href^='/blog/tag/']):has(> p)",
+        "titleSelector": "p",
+        "denyUrlPrefixes": [
+          "https://cohere.com/blog/tag/"
+        ],
+        "allowUrlPrefixes": [
+          "https://cohere.com/blog/"
+        ],
+        "publishedAtSelector": "span > p"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-n8n",
+      "name": "n8n Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://blog.n8n.io/rss/"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-anthropic-research",
+      "name": "Anthropic Research",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.anthropic.com/research",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 40
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/research/']:not([href^='/research/team/'])",
+        "denyUrlPrefixes": [
+          "https://www.anthropic.com/research/team/"
+        ],
+        "allowUrlPrefixes": [
+          "https://www.anthropic.com/research/"
+        ]
+      },
+      "tier": "T1",
+      "owner_entity_id": "anthropic",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-vllm-blog",
+      "name": "vLLM Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://vllm.ai/blog/rss.xml"
+      },
+      "tier": "T1",
+      "owner_entity_id": "vllm",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-modal",
+      "name": "Modal Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "feedUrl": "https://modal.com/blog/atom.xml"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-inception",
+      "name": "Inception Labs Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.inceptionlabs.ai/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='./blog/']:has(time)",
+        "titleSelector": "h3, h4, h5, h6",
+        "denyUrlPrefixes": [
+          "https://www.inceptionlabs.ai/blog/categories/"
+        ],
+        "allowUrlPrefixes": [
+          "https://www.inceptionlabs.ai/blog/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "time"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-langchain",
+      "name": "LangChain Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.langchain.com/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "div.blog-item",
+        "linkSelector": "a.blog-link-absolute",
+        "titleSelector": "h2",
+        "allowUrlPrefixes": [
+          "https://www.langchain.com/blog/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": ".date-color"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-amp",
+      "name": "Amp News",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://ampcode.com/news.rss"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-google-ai-dev",
+      "name": "Google AI on DEV",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://dev.to/feed/googleai"
+      },
+      "tier": "T1",
+      "owner_entity_id": "google",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-ibm-research",
+      "name": "IBM Research Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://research.ibm.com/rss"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-browser-use",
+      "name": "Browser Use Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://browser-use.com/posts",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/posts/']:has(h2, h3)",
+        "titleSelector": "h2, h3",
+        "allowUrlPrefixes": [
+          "https://browser-use.com/posts/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "time"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-metr",
+      "name": "METR",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://metr.org/feed.xml"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-sierra",
+      "name": "Sierra Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://sierra.ai/rss.xml"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-factory",
+      "name": "Factory News",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://factory.com/news/rss",
+        "sortByPublishedAt": true
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-sakana",
+      "name": "Sakana AI Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://sakana.ai/feed.xml"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-llamaindex",
+      "name": "LlamaIndex Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.llamaindex.ai/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "div.Post:has(p.PostTitle a)",
+        "linkSelector": "p.PostTitle a",
+        "titleSelector": "p.PostTitle",
+        "allowUrlPrefixes": [
+          "https://www.llamaindex.ai/blog/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "p.PostDate"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-waymo",
+      "name": "Waymo Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://waymo.com/blog/",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "article:has(a[class*='_postLink_'])",
+        "linkSelector": "a[class*='_postLink_']",
+        "titleSelector": "h2",
+        "allowUrlPrefixes": [
+          "https://waymo.com/blog/"
+        ],
+        "publishedAtSelector": "p[class*='_postDate_']"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-baseten",
+      "name": "Baseten Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.baseten.co/blog/",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 30
+        },
+        "parseMode": "html",
+        "itemSelector": "a[class*='collectionCard_card__link']",
+        "denyUrlPrefixes": [
+          "https://www.baseten.co/blog/category/"
+        ],
+        "allowUrlPrefixes": [
+          "https://www.baseten.co/blog/"
+        ]
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-redwood",
+      "name": "Redwood Research Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://blog.redwoodresearch.org/feed"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-lovable",
+      "name": "Lovable Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://lovable.dev/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/blog/']:has(h2)",
+        "titleSelector": "h2",
+        "allowUrlPrefixes": [
+          "https://lovable.dev/blog/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "time"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-lmsys",
+      "name": "LMSYS Blog",
+      "kind": "json_list",
+      "config": {
+        "url": "https://www.lmsys.org/blog/",
+        "mode": "html_json_key",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "jsonKey": "posts",
+        "titlePaths": [
+          "title"
+        ],
+        "authorPaths": [
+          "author"
+        ],
+        "urlTemplate": "https://www.lmsys.org/blog/{slug}/",
+        "summaryPaths": [
+          "excerpt"
+        ],
+        "externalIdPath": "slug",
+        "publishedAtPath": "date"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-microsoft-blog",
+      "name": "Microsoft Official Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://blogs.microsoft.com/feed/"
+      },
+      "tier": "T1",
+      "owner_entity_id": "microsoft",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-amazon-science",
+      "name": "Amazon Science",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.amazon.science/index.rss"
+      },
+      "tier": "T1",
+      "owner_entity_id": "amazon",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cerebras",
+      "name": "Cerebras Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.cerebras.ai/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/blog/']:has(h2, h3)",
+        "titleSelector": "h2, h3",
+        "allowUrlPrefixes": [
+          "https://www.cerebras.ai/blog/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "p"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Chips"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-openclaw",
+      "name": "OpenClaw Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://openclaw.ai/rss.xml"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-claude-release-notes",
+      "name": "Claude apps release notes",
+      "kind": "web_list",
+      "config": {
+        "url": "https://support.claude.com/en/articles/12138966-release-notes",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "parseMode": "intercom_changelog",
+        "allowUrlPrefixes": [
+          "https://support.claude.com/en/articles/12138966-release-notes"
+        ],
+        "preserveUrlFragment": true
+      },
+      "tier": "T1",
+      "owner_entity_id": "anthropic",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Releases"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-openhands",
+      "name": "OpenHands Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.openhands.dev/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[data-testid='blog-card']",
+        "titleSelector": "p[data-wf-el='paragraph-lg']",
+        "allowUrlPrefixes": [
+          "https://www.openhands.dev/blog/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "p:first-child"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-ollama-blog",
+      "name": "Ollama Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://ollama.com/blog/rss.xml"
+      },
+      "tier": "T1",
+      "owner_entity_id": "ollama",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-sarvam",
+      "name": "Sarvam AI Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.sarvam.ai/rss.xml"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cohere-labs",
+      "name": "Cohere Labs Research",
+      "kind": "web_list",
+      "config": {
+        "url": "https://cohere.com/research",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/research/papers/']:has(h2)",
+        "titleSelector": "h2",
+        "allowUrlPrefixes": [
+          "https://cohere.com/research/papers/"
+        ],
+        "publishedAtRegex": "href=\\\"/research/papers/[^\\\"]*-(\\d{4}-\\d{2}-\\d{2})\\\""
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-cognition",
+      "name": "Cognition Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://cognition.com/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/blog/']:has(h2)",
+        "titleSelector": "h2",
+        "allowUrlPrefixes": [
+          "https://cognition.com/blog/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "time"
+      },
+      "tier": "T1",
+      "owner_entity_id": "devin",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-qoder",
+      "name": "Qoder Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://qoder.com/blog",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 100
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='/blog/']:has([class*='card-title'])",
+        "titleSelector": "[class*='card-title']",
+        "allowUrlPrefixes": [
+          "https://qoder.com/blog/"
+        ]
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-anthropic-alignment",
+      "name": "Anthropic Alignment Science Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://alignment.anthropic.com/",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 100,
+          "publishedAtSelector": "div[style*='float: right']"
+        },
+        "parseMode": "html",
+        "itemSelector": "a.note:has(h3)",
+        "titleSelector": "h3",
+        "allowUrlPrefixes": [
+          "https://alignment.anthropic.com/20"
+        ]
+      },
+      "tier": "T1",
+      "owner_entity_id": "anthropic",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-zyphra",
+      "name": "Zyphra",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.zyphra.com/our-work",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "a[href^='./our-work/']:has(h6)",
+        "titleSelector": "h6",
+        "allowUrlPrefixes": [
+          "https://www.zyphra.com/our-work/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "time"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-openai-alignment",
+      "name": "OpenAI Alignment Blog",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://alignment.openai.com/rss.xml"
+      },
+      "tier": "T1",
+      "owner_entity_id": "openai",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-preferred-networks",
+      "name": "Preferred Networks Tech Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.preferred.jp/en/blog/tech",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "article:has(h2 a)",
+        "linkSelector": "h2 a",
+        "titleSelector": "h2",
+        "allowUrlPrefixes": [
+          "https://www.preferred.jp/en/blog/tech/"
+        ],
+        "publishedAtSelector": "time"
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": true,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-every",
+      "name": "Every",
+      "kind": "web_list",
+      "config": {
+        "url": "https://every.to/newsletter",
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "detail": {
+          "maxFetches": 10
+        },
+        "parseMode": "html",
+        "itemSelector": "div.collection-post:has(h3)",
+        "linkSelector": "a:has(h3)",
+        "titleSelector": "h3",
+        "denyUrlPrefixes": [
+          "https://every.to/@"
+        ],
+        "allowUrlPrefixes": [
+          "https://every.to/"
+        ],
+        "sortByPublishedAt": true,
+        "publishedAtSelector": "div.text-xxs"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-oreilly-radar",
+      "name": "O'Reilly Radar",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.oreilly.com/radar/feed/"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Media"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-tomasz-tunguz",
+      "name": "Tomasz Tunguz",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://tomtunguz.com/index.xml"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-chinatalk",
+      "name": "ChinaTalk",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.chinatalk.media/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter",
+        "Policy"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-a16z",
+      "name": "a16z News",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.a16z.news/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-gary-marcus",
+      "name": "Gary Marcus",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://garymarcus.substack.com/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-newcomer",
+      "name": "Newcomer",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.newcomer.co/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-exponential-view",
+      "name": "Exponential View",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.exponentialview.co/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-pragmatic-engineer",
+      "name": "The Pragmatic Engineer",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://newsletter.pragmaticengineer.com/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-platformer",
+      "name": "Platformer",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.platformer.news/rss/"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-big-technology",
+      "name": "Big Technology",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.bigtechnology.com/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-wheres-your-ed-at",
+      "name": "Where's Your Ed At",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.wheresyoured.at/rss/"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-recode-china-ai",
+      "name": "Recode China AI",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://recodechinaai.substack.com/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-understanding-ai",
+      "name": "Understanding AI",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.understandingai.org/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-hamel-husain",
+      "name": "Hamel Husain",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://hamel.dev/index.xml"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-dwarkesh",
+      "name": "Dwarkesh Patel",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://www.dwarkesh.com/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-air-street-press",
+      "name": "Air Street Press",
+      "kind": "rss",
+      "config": {
+        "_aihot": {
+          "initialBackfillLimit": 5
+        },
+        "feedUrl": "https://press.airstreet.com/feed"
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
     }
   ]
 }
