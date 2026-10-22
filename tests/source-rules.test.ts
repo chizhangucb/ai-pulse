@@ -4,7 +4,7 @@
 import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import http from "node:http";
-import { after, before, test } from "node:test";
+import { after, before, mock, test } from "node:test";
 import { config } from "@aihot/backend/config";
 import { closeDb, sql } from "@aihot/backend/db";
 import { stopBoss } from "@aihot/backend/jobs/queue";
@@ -85,8 +85,15 @@ const articles = (sourceId: string) =>
     SELECT url, title, excerpt, published_at, revision FROM articles WHERE source_id = ${sourceId} ORDER BY url`;
 
 test("a config entry the collector does not implement fails the fetch instead of being ignored", async () => {
-  const run = await collectSource(id("unsupported"), { force: true });
+  const log = mock.method(console, "log", () => {});
+  const run = await collectSource(id("unsupported"), { force: true }).finally(() => log.mock.restore());
   assert.equal(run.status, "failed");
+  const line = JSON.parse(String(log.mock.calls.at(-1)!.arguments[0]));
+  assert.equal(typeof line.durationMs, "number");
+  assert.deepEqual(line, {
+    level: "warn", msg: "collect run", source: id("unsupported"), kind: "rss", status: "failed", found: 0, created: 0,
+    durationMs: line.durationMs, error: "unsupported config: adapter",
+  });
   assert.match(run.error ?? "", /unsupported config: adapter/);
   assert.equal((await articles(id("unsupported"))).length, 0, "nothing collected by a fallback parse");
   const [row] = await sql<{ updated_at: Date }[]>`SELECT updated_at FROM sources WHERE id = ${id("denied")}`;

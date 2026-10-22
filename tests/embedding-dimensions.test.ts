@@ -42,7 +42,8 @@ async function freshProcess(dimensions: number, code: string) {
     const { closeDb } = await import('@aihot/backend/db');
     try { ${code} } finally { await closeDb(); }
   `], { env: { ...process.env, EMBEDDING_DIMS: String(dimensions) } });
-  return JSON.parse(stdout);
+  // The process's own log lines come first; its answer is the last line.
+  return JSON.parse(stdout.trim().split("\n").at(-1)!);
 }
 
 for (const oldLength of [2, 8]) test(`a stored vector of ${oldLength} dimensions is computed again at the configured 4`, async () => {

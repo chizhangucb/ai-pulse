@@ -3,7 +3,7 @@
 // answer cut off at the output limit says so, and the valve stops calls before they are sent.
 import { gate, stub, tag } from "./setup.ts";
 import assert from "node:assert/strict";
-import { after, test } from "node:test";
+import { after, mock, test } from "node:test";
 import { z } from "zod";
 import { config } from "@aihot/backend/config";
 import { closeDb, sql } from "@aihot/backend/db";
@@ -203,11 +203,16 @@ test("the charge a provider reports with an answer (OpenRouter's usage.cost) is 
   const original = process.env.DEEPSEEK_BASE_URL;
   const subject = `billed-${tag()}`;
   process.env.DEEPSEEK_BASE_URL = `${billed.url}/v1`;
+  const log = mock.method(console, "log", () => {});
   try {
     await ask(subject);
+    const line = JSON.parse(log.mock.calls.map((c) => String(c.arguments[0])).find((l) => l.includes('"model call"'))!);
+    assert.equal(typeof line.latencyMs, "number");
+    assert.deepEqual(line, { level: "info", msg: "model call", step: "invariant_test", model: "deepseek-flash", providerModel: "deepseek-flash", status: "ok", costUsd: 0.000425, latencyMs: line.latencyMs });
     const [a] = await sql`SELECT a.cost::text AS cost, a.currency, a.cost_basis FROM receipt_attempts a JOIN receipts r ON r.id = a.receipt_id WHERE r.subject = ${subject}`;
     assert.deepEqual({ ...a }, { cost: "0.000425", currency: "USD", cost_basis: "actual" });
   } finally {
+    log.mock.restore();
     process.env.DEEPSEEK_BASE_URL = original;
     await billed.close();
   }

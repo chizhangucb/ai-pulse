@@ -26,3 +26,11 @@ export function logError(error: unknown, depth = 0): LoggedError {
     ...(error.cause !== undefined && depth < 3 ? { cause: logError(error.cause, depth + 1) } : {}),
   };
 }
+
+/** An error for a one-line log: type and message, no stack, URLs without credentials or query, at most 300 characters. */
+export function shortError(error: unknown): string {
+  const logged = typeof error === "string" ? null : logError(error);
+  // The provider errors keep the name "Error"; their class says which one it is.
+  const text = logged ? `${logged.type === "Error" ? (error as Error).constructor.name : logged.type}: ${logged.message}` : error as string;
+  return text.replace(/(\w+:\/\/)[^\s/@]+@/g, "$1").replace(/(\w+:\/\/[^\s?#]+)[?#][^\s)"';,]*/g, "$1").slice(0, 300);
+}

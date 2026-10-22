@@ -9,6 +9,7 @@ import { sanitizeBody } from "../content/sanitize.ts";
 import { identityKeyForUrl } from "../lib/url.ts";
 import { dajialaConfigured, mpArticle, mpHistory, type MpArticle } from "../providers/dajiala.ts";
 import { failureKind } from "../providers/receipts.ts";
+import { logCollectRun } from "./collect.ts";
 
 const MAX_NEW_PER_CHECK = 8;
 /** Posts older than this on the first check of an account are history, not news. */
@@ -38,6 +39,10 @@ interface MpSource {
 }
 
 export async function checkMpAccount(sourceId: string, reason: "schedule" | "manual") {
+  return logCollectRun({ source: sourceId, kind: "mp_account", reason }, () => checkAccount(sourceId, reason));
+}
+
+async function checkAccount(sourceId: string, reason: "schedule" | "manual") {
   const [source] = await sql<MpSource[]>`SELECT id, name, config, cursor, enabled, participation_mode FROM sources WHERE id = ${sourceId} AND kind = 'mp_account'`;
   if (!source) return { sourceId, status: "missing" as const };
   if (!source.enabled && reason !== "manual") return { sourceId, status: "paused" as const };
