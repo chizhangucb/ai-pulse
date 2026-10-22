@@ -1,7 +1,7 @@
 // AI Pulse on Railway (docs/deploy.md, "On Railway"): web, api, worker and Postgres, managed with
 // `railway config plan` and `railway config apply`. Secrets are preserve(): they are entered in Railway and
 // never written here.
-import { defineRailway, postgres, preserve, project, service, volume, type SourceConfig } from "railway/iac";
+import { defineRailway, image, preserve, project, service, volume, type SourceConfig } from "railway/iac";
 
 // `railway up` uploads the code while Railway's GitHub app cannot see this private repository. Once it can,
 // use github("chizhangucb/ai-pulse", { branch: "main", checkSuites: true }) to deploy each push to main
@@ -11,7 +11,27 @@ const source: SourceConfig | undefined = undefined;
 const dockerfile = { builder: "DOCKERFILE", dockerfilePath: "Dockerfile" } as const;
 
 export default defineRailway(() => {
-  const db = postgres("Postgres");
+  // A service, not postgres(): postgres() pins Railway's newest image and drops the variables and volume the
+  // live database already has. The image's pg_dump is 17, which refuses to back up a newer server.
+  const dbData = volume("postgres-volume", { region: "sfo", sizeMB: 5000 });
+  const db = service("Postgres", {
+    source: image("postgres:17"),
+    volumeMounts: { "/var/lib/postgresql/data": dbData },
+    env: {
+      DATABASE_URL: preserve(),
+      DATABASE_PUBLIC_URL: preserve(),
+      PGDATA: preserve(),
+      PGDATABASE: preserve(),
+      PGHOST: preserve(),
+      PGPASSWORD: preserve(),
+      PGPORT: preserve(),
+      PGUSER: preserve(),
+      POSTGRES_DB: preserve(),
+      POSTGRES_PASSWORD: preserve(),
+      POSTGRES_USER: preserve(),
+      SSL_CERT_DAYS: preserve(),
+    },
+  });
   const data = volume("api-volume");
 
   // The settings .env.example gives, for both backend processes.
@@ -102,5 +122,5 @@ export default defineRailway(() => {
     },
   });
 
-  return project("ai-pulse", { resources: [db, data, api, worker, web] });
+  return project("ai-pulse", { resources: [dbData, db, data, api, worker, web] });
 });

@@ -271,14 +271,16 @@ Sessions found invalid during authentication are deleted, and restoring the old 
 
 ## On Railway
 
-Railway is the first host. `.railway/railway.ts` describes the whole Railway project in Railway's infrastructure-as-code format: the four services, the api's volume and every variable name. The Railway CLI's `railway config plan` previews what applying it would change, and `railway config apply` makes those changes. It replaces per-service `railway.json` config files: Railway deprecated those, new services cannot use them, and Railway stops reading them on 2026-12-01.
+Railway is the first host. `.railway/railway.ts` describes the whole Railway project in Railway's infrastructure-as-code format: the four services, their two volumes and every variable name. The Railway CLI's `railway config plan` previews what applying it would change, and `railway config apply` makes those changes. It replaces per-service `railway.json` config files: Railway deprecated those, new services cannot use them, and Railway stops reading them on 2026-12-01.
 
 | Service | Role |
 |---|---|
 | `web` | Pages, RSS and the public API; the only service with a public domain |
 | `api` | The backend, with the volume `api-volume` at `/data`; also runs the jobs that read or write `/data` |
 | `worker` | Collection, model calls, grouping, reports and the other scheduled jobs; no volume |
-| `Postgres` | Railway's PostgreSQL 17 |
+| `Postgres` | PostgreSQL 17 from the `postgres:17` image, with the volume `postgres-volume` at `/var/lib/postgresql/data` |
+
+The file declares `Postgres` with `service()`, not Railway's `postgres()` database helper. `postgres()` always uses Railway's newest PostgreSQL image (18 in the `railway` package 3.16.0) and declares neither the volume nor the variables, so planning it against the live database would upgrade the server, detach its volume and delete its 12 variables. As a service it keeps the `postgres:17` image, mounts `postgres-volume` at `/var/lib/postgresql/data`, and marks every variable the database set (`DATABASE_URL`, `DATABASE_PUBLIC_URL`, `PG*`, `POSTGRES_*`, `SSL_CERT_DAYS`) `preserve()`, so `apply` keeps the values Railway generated. Stay on 17: the image's `pg_dump` is version 17 and refuses to back up a newer server.
 
 All three app services build the repository's `Dockerfile` and differ in start command, health check, restart policy and stop window, as the file sets them. The api also runs `sh -c 'node scripts/migrate.ts && node scripts/seed.ts'` as its pre-deploy step.
 
@@ -294,8 +296,8 @@ The api is the only service with the volume, so it runs the jobs that use `/data
 ### Creating the project
 
 1. Create an empty project in the workspace and `railway link` to it.
-2. Run `railway config plan`. It should list the creation of `Postgres`, `api-volume`, `api`, `worker` and `web`, and nothing else. Then run `railway config apply`.
-3. Open the `Postgres` service and check that it runs PostgreSQL 17. The file cannot pin a version, and the image's `pg_dump` is version 17, which refuses to back up a newer server.
+2. Run `railway config plan`. It should list the creation of `Postgres`, `postgres-volume`, `api-volume`, `api`, `worker` and `web`, and nothing else. Then run `railway config apply`.
+3. Set the `Postgres` service's variables. A plain `postgres:17` service gets none by itself, and the file only preserves them. Set `POSTGRES_USER`, `POSTGRES_DB` and a random `POSTGRES_PASSWORD`; `PGDATA` to `/var/lib/postgresql/data/pgdata`, a directory below the mount; the `PG*` variables to the matching values with `PGHOST` `${{RAILWAY_PRIVATE_DOMAIN}}` and `PGPORT` `5432`; and `DATABASE_URL` to `postgresql://${{POSTGRES_USER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{POSTGRES_DB}}`.
 4. Enter the **by hand** values below in each service's Variables. The file declares them with `preserve()`, so `apply` keeps whatever Railway holds and never writes a secret.
 5. Deploy the code as in [Deploying a release](#deploying-a-release).
 6. Generate a domain for `web` with target port 3000, or add a custom domain, and set `SITE_URL` to that address in all three services.
@@ -305,10 +307,11 @@ The api is the only service with the volume, so it runs the jobs that use `/data
 Railway refuses to plan for services that still read a `railway.json` or `railway.toml`. The services Engineering Lead created from the earlier JSON files need one cutover:
 
 1. Run `railway config migrate status` to list the services still on config-as-code, then `railway config migrate cutover`. It saves the old config-file paths, so `railway config migrate undo` reverses it.
-2. Run `railway config plan` and read it before applying. The file names the services `web`, `api` and `worker`, the database `Postgres` and the volume `api-volume`.
+2. Run `railway config plan` and read it before applying. The file names the services `web`, `api`, `worker` and `Postgres`, and the volumes `api-volume` and `postgres-volume`.
    - If the plan would create or delete any of these, the live name differs. Change the name in the file to the live one; `railway config pull` in a scratch clone shows the live names.
    - If the plan would delete a variable you set by hand that the file does not list (an optional one such as `DB_BACKUP_STORE_*`), add it to that service's `env` as `NAME: preserve()`.
-   - A volume must never be deleted or recreated: that loses uploads and feedback screenshots.
+   - A volume must never be deleted or recreated: `api-volume` holds uploads and feedback screenshots, and `postgres-volume` holds the database. The plan must not change `Postgres`'s image either.
+   - If the plan would delete a `Postgres` variable, add it to the `Postgres` service's `env` as `NAME: preserve()`.
 3. Run `railway config apply` once the plan shows only the setting changes you expect.
 
 ### Deploying a release
