@@ -98,5 +98,5 @@ export class UnsupportedConfig extends Error {
 /** Refuses a config with entries its kind does not implement (admin create, edit and preview). */
 export function assertSupportedConfig(kind: SourceRow["kind"], config: Record<string, unknown>): void {
   const bad = unsupportedConfig(kind, config);
-  if (bad.length) throw new UnsupportedConfig(`不支持的配置项：${bad.join("、")}`);
+  if (bad.length) throw new UnsupportedConfig(`Unsupported config entries: ${bad.join(", ")}`);
 }

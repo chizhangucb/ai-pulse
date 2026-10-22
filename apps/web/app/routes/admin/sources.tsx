@@ -14,7 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return adminGet<AdminSources>(request, `/api/admin/sources${url.search}`);
 }
 
-export const meta: Route.MetaFunction = () => [{ title: `信源 · ${SITE.name} 后台` }];
+export const meta: Route.MetaFunction = () => [{ title: `Sources · ${SITE.name} admin` }];
 
 export default function Sources({ loaderData }: Route.ComponentProps) {
   const { rows, totals, page } = loaderData;
@@ -22,26 +22,26 @@ export default function Sources({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   return (
     <AdminPage
-      title="信源"
-      subtitle="列表按健康度排序：失败的在最前。点进详情可以预览抓取、手动采集、调整频率与参与方式。"
-      actions={<ButtonLink to="/admin/sources/new" tone="primary">新建信源</ButtonLink>}
+      title="Sources"
+      subtitle="Sorted by health, failing first. Open one to preview its fetch, collect now, or change its interval and participation."
+      actions={<ButtonLink to="/admin/sources/new" tone="primary">New source</ButtonLink>}
     >
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="全部" value={num(totals.total)} />
-        <Stat label="启用" value={num(totals.enabled)} />
-        <Stat label="失败" value={num(totals.failing)} tone={totals.failing ? "bad" : "ok"} />
-        <Stat label="不稳定" value={num(totals.degraded)} tone={totals.degraded ? "warn" : undefined} />
+        <Stat label="All" value={num(totals.total)} />
+        <Stat label="Enabled" value={num(totals.enabled)} />
+        <Stat label="Failing" value={num(totals.failing)} tone={totals.failing ? "bad" : "ok"} />
+        <Stat label="Unstable" value={num(totals.degraded)} tone={totals.degraded ? "warn" : undefined} />
       </div>
       <Card pad={false}>
         <div className="flex flex-col gap-3 border-b border-line p-3 lg:flex-row lg:items-center lg:justify-between">
           <Form method="get" className="flex w-full max-w-md gap-2" preventScrollReset>
             {["kind", "health", "mode"].map((k) => sp.get(k) && <input key={k} type="hidden" name={k} value={sp.get(k)!} />)}
-            <Input name="q" defaultValue={sp.get("q") ?? ""} placeholder="名称、ID 或地址" aria-label="搜索信源" />
+            <Input name="q" defaultValue={sp.get("q") ?? ""} placeholder="Name, ID or address" aria-label="Search sources" />
           </Form>
           <div className="flex flex-wrap items-center gap-3">
-            <FilterChips param="health" options={[{ value: "", label: "全部" }, { value: "failing", label: "失败" }, { value: "degraded", label: "不稳定" }, { value: "paused", label: "暂停" }]} />
+            <FilterChips param="health" options={[{ value: "", label: "All" }, { value: "failing", label: "Failing" }, { value: "degraded", label: "Unstable" }, { value: "paused", label: "Paused" }]} />
             <Select
-              aria-label="类型"
+              aria-label="Kind"
               className="!w-auto"
               value={sp.get("kind") ?? ""}
               onChange={(e) => {
@@ -52,7 +52,7 @@ export default function Sources({ loaderData }: Route.ComponentProps) {
                 navigate(`?${next}`, { preventScrollReset: true });
               }}
             >
-              <option value="">全部类型</option>
+              <option value="">All kinds</option>
               {Object.entries(KIND_LABEL).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
               ))}
@@ -66,7 +66,7 @@ export default function Sources({ loaderData }: Route.ComponentProps) {
           columns={[
             {
               key: "name",
-              label: "信源",
+              label: "Source",
               render: (r) => (
                 <div className="min-w-[220px]">
                   <Link to={`/admin/sources/${encodeURIComponent(r.id)}`} className="font-medium text-ink hover:text-accent" onClick={(e) => e.stopPropagation()}>
@@ -77,33 +77,33 @@ export default function Sources({ loaderData }: Route.ComponentProps) {
                 </div>
               ),
             },
-            { key: "kind", label: "类型", render: (r) => <Badge>{KIND_LABEL[r.kind] ?? r.kind}</Badge> },
+            { key: "kind", label: "Kind", render: (r) => <Badge>{KIND_LABEL[r.kind] ?? r.kind}</Badge> },
             {
               key: "mode",
-              label: "参与",
+              label: "Participation",
               render: (r) => (
                 <div className="flex gap-1">
                   <Badge tone={r.participation_mode === "editorial" ? "accent" : "muted"}>{MODE_LABEL[r.participation_mode] ?? r.participation_mode}</Badge>
                   <Badge tone="info">{r.tier.replace("_", ".")}</Badge>
-                  {r.first_party && <Badge tone="ok">一手</Badge>}
+                  {r.first_party && <Badge tone="ok">First party</Badge>}
                 </div>
               ),
             },
             {
               key: "health",
-              label: "健康",
+              label: "Health",
               render: (r) => (
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                   <Dot tone={r.enabled ? healthTone(r.health) : "muted"} />
-                  {r.enabled ? HEALTH_LABEL[r.health] ?? r.health : "已暂停"}
+                  {r.enabled ? HEALTH_LABEL[r.health] ?? r.health : "Paused"}
                   {r.fail_count > 0 && <span className="num text-[11.5px] text-ink-4">×{r.fail_count}</span>}
                 </span>
               ),
             },
-            { key: "ok", label: "上次成功", render: (r) => <Time at={r.last_ok_at} /> },
-            { key: "interval", label: "频率", align: "right", render: (r) => `${r.interval_minutes} 分` },
-            { key: "items", label: "7 天条目", align: "right", render: (r) => num(r.items_7d) },
-            { key: "sel", label: "30 天精选", align: "right", render: (r) => num(r.selected_30d) },
+            { key: "ok", label: "Last success", render: (r) => <Time at={r.last_ok_at} /> },
+            { key: "interval", label: "Interval", align: "right", render: (r) => `${r.interval_minutes} min` },
+            { key: "items", label: "Items, 7 days", align: "right", render: (r) => num(r.items_7d) },
+            { key: "sel", label: "Picks, 30 days", align: "right", render: (r) => num(r.selected_30d) },
           ]}
         />
       </Card>

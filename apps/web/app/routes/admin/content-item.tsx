@@ -6,7 +6,7 @@ import type { Route } from "./+types/content-item";
 import type { AdminContentChain, AdminPresentationRefresh } from "@aihot/contracts/admin";
 import { adminGet } from "../../lib/admin.server";
 import { useAdminAction } from "../../features/admin/action";
-import { bj, money } from "../../features/admin/format";
+import { wallTime, money } from "../../features/admin/format";
 import { KIND_LABEL, MODE_LABEL, VISIBILITY_LABEL } from "../../features/admin/labels";
 import { AdminPage, Badge, Button, Card, Empty, Field, Input, Json, KV, ReasonDialog, Select, Textarea } from "../../features/admin/ui";
 
@@ -15,7 +15,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return adminGet<AdminContentChain>(request, `/api/admin/content/${encodeURIComponent(params.id)}`);
 }
 
-export const meta: Route.MetaFunction = ({ loaderData }) => [{ title: `${loaderData?.publication?.title ?? loaderData?.article.title ?? "内容"} · ${SITE.name} 后台` }];
+export const meta: Route.MetaFunction = ({ loaderData }) => [{ title: `${loaderData?.publication?.title ?? loaderData?.article.title ?? "Item"} · ${SITE.name} admin` }];
 
 function Step({ title, meta, children, tone = "accent", last }: { title: ReactNode; meta?: ReactNode; children: ReactNode; tone?: "accent" | "muted" | "bad"; last?: boolean }) {
   const dot = tone === "bad" ? "bg-hot" : tone === "muted" ? "bg-ink-4" : "bg-accent";
@@ -78,81 +78,81 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
           {p?.visibility !== "withdrawn" && p && (
             <>
               <span>·</span>
-              <a className="text-accent" href={`/items/${a.id}`} target="_blank" rel="noreferrer">公开页</a>
+              <a className="text-accent" href={`/items/${a.id}`} target="_blank" rel="noreferrer">Public page</a>
             </>
           )}
         </span>
       }
       actions={
         <>
-          <Button onClick={() => setDialog("visibility")}>公开范围</Button>
-          {p && <Button onClick={() => setDialog("seo")}>{p.indexable ? "取消收录" : "标记收录"}</Button>}
-          <Button onClick={openOverride}>人工修正</Button>
-          <Button onClick={() => { setPresentation(null); setDialog("presentation"); }}>刷新正文展示</Button>
-          <Button onClick={() => setDialog("analyze")}>重新评估</Button>
+          <Button onClick={() => setDialog("visibility")}>Visibility</Button>
+          {p && <Button onClick={() => setDialog("seo")}>{p.indexable ? "Stop indexing" : "Mark indexable"}</Button>}
+          <Button onClick={openOverride}>Correct by hand</Button>
+          <Button onClick={() => { setPresentation(null); setDialog("presentation"); }}>Refresh body display</Button>
+          <Button onClick={() => setDialog("analyze")}>Re-evaluate</Button>
         </>
       }
     >
       <div className="mb-5 flex flex-wrap gap-1.5">
-        {p ? <Badge tone={p.visibility === "public" ? "ok" : "warn"}>{VISIBILITY_LABEL[p.visibility] ?? p.visibility}</Badge> : <Badge>未公开</Badge>}
-        {p?.selected && <Badge tone="accent">精选</Badge>}
-        {p?.eligible === false && <Badge>不进公开面</Badge>}
-        {a.backfill && <Badge tone="warn">历史回灌</Badge>}
-        <Badge>处理 {a.processing_state}</Badge>
-        {c.override && <Badge tone="info" title={c.override.reason ?? undefined}>有人工设置 v{c.override.version}</Badge>}
+        {p ? <Badge tone={p.visibility === "public" ? "ok" : "warn"}>{VISIBILITY_LABEL[p.visibility] ?? p.visibility}</Badge> : <Badge>Not public</Badge>}
+        {p?.selected && <Badge tone="accent">Pick</Badge>}
+        {p?.eligible === false && <Badge>Not eligible for public pages</Badge>}
+        {a.backfill && <Badge tone="warn">Backfill</Badge>}
+        <Badge>Processing {a.processing_state}</Badge>
+        {c.override && <Badge tone="info" title={c.override.reason ?? undefined}>Manual override v{c.override.version}</Badge>}
       </div>
       {a.processing_error && <div className="mb-5 rounded-card bg-hot-soft px-4 py-3 text-[13px] text-hot ring-1 ring-hot/20">{a.processing_error}</div>}
 
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
-        <Card title="处理链路">
+        <Card title="Pipeline">
           <ol className="pt-1">
-            <Step title="信源" meta={`${KIND_LABEL[a.source_kind] ?? a.source_kind} · ${String(a.tier).replace("_", ".")} · ${MODE_LABEL[a.participation_mode] ?? a.participation_mode}`}>
+            <Step title="Source" meta={`${KIND_LABEL[a.source_kind] ?? a.source_kind} · ${String(a.tier).replace("_", ".")} · ${MODE_LABEL[a.participation_mode] ?? a.participation_mode}`}>
               <Link className="text-ink hover:text-accent" to={`/admin/sources/${encodeURIComponent(a.source_id)}`}>{a.source_name}</Link>
-              <span className="text-ink-4"> · 站内全文 {a.site_fulltext ? "允许" : "不允许"} · 对外全文 {a.syndicate_fulltext ? "允许" : "不允许"}</span>
+              <span className="text-ink-4"> · full text on site {a.site_fulltext ? "allowed" : "not allowed"} · in public outputs {a.syndicate_fulltext ? "allowed" : "not allowed"}</span>
             </Step>
-            <Step title="发现" meta={`${c.discoveries.length} 次`}>
+            <Step title="Found" meta={`${c.discoveries.length} times`}>
               <ul className="space-y-1">
                 {c.discoveries.map((d, i) => (
                   <li key={i} className="flex gap-2">
-                    <span className="num text-ink-4">{bj(d.discovered_at, true)}</span>
+                    <span className="num text-ink-4">{wallTime(d.discovered_at, true)}</span>
                     <span>{d.via}</span>
-                    {d.source_id !== a.source_id && <span className="text-ink-3">经 {d.source_id}</span>}
+                    {d.source_id !== a.source_id && <span className="text-ink-3">via {d.source_id}</span>}
                   </li>
                 ))}
               </ul>
               <div className="mt-1.5 text-[12px] text-ink-4">
-                原文时间 {a.published_at ? bj(a.published_at, true) : "未知"}{a.published_at_claim && !a.published_at ? `（声称 ${a.published_at_claim}，未采信）` : ""} · 时间轴 {bj(a.timeline_at, true)}
+                Published {a.published_at ? wallTime(a.published_at, true) : "unknown"}{a.published_at_claim && !a.published_at ? ` (claimed ${a.published_at_claim}, not accepted)` : ""} · timeline {wallTime(a.timeline_at, true)}
               </div>
             </Step>
-            <Step title="正文与修订" meta={`第 ${a.revision} 版 · 正文 ${a.body_status} · ${a.body_chars ?? 0} 字符`}>
+            <Step title="Body and revisions" meta={`revision ${a.revision} · body ${a.body_status} · ${a.body_chars ?? 0} characters`}>
               {c.revisions.length ? (
                 <ul className="space-y-1">
                   {c.revisions.map((r) => (
                     <li key={r.revision} className="flex gap-2">
                       <span className="num text-ink-4">v{r.revision}</span>
                       <span className="min-w-0 flex-1 truncate">{r.title}</span>
-                      <span className="num shrink-0 text-ink-4">{bj(r.created_at)}</span>
+                      <span className="num shrink-0 text-ink-4">{wallTime(r.created_at)}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <span className="text-ink-4">只有初始版本</span>
+                <span className="text-ink-4">Only the first revision</span>
               )}
               <div className="mt-2 flex gap-2">
-                <Button size="sm" onClick={() => setDialog("extract")}>重新抽取正文</Button>
+                <Button size="sm" onClick={() => setDialog("extract")}>Extract body again</Button>
               </div>
             </Step>
-            <Step title="模型判断" meta={`${c.analyses.length} 次`} tone={c.analyses.length ? "accent" : "muted"}>
+            <Step title="Model judgment" meta={`${c.analyses.length} times`} tone={c.analyses.length ? "accent" : "muted"}>
               {c.analyses.length ? (
                 <div className="space-y-3">
                   {c.analyses.map((an) => (
                     <div key={an.id} className="rounded-control bg-bg-sunk/60 p-3 ring-1 ring-line">
                       <div className="flex flex-wrap items-center gap-1.5 text-[12px]">
                         <Badge tone={an.relevance === "pass" ? "ok" : "muted"}>{an.relevance}</Badge>
-                        {an.selected && <Badge tone="accent">入选</Badge>}
-                        <Badge tone="info">分数 {an.score}</Badge>
+                        {an.selected && <Badge tone="accent">Picked</Badge>}
+                        <Badge tone="info">Score {an.score}</Badge>
                         {an.category && <Badge>{CATEGORY_LABELS[an.category as keyof typeof CATEGORY_LABELS] ?? an.category}</Badge>}
-                        <span className="text-ink-4">{an.model} · {an.prompt_version} · 输入 v{an.input_revision} · {an.origin} · {bj(an.created_at)}</span>
+                        <span className="text-ink-4">{an.model} · {an.prompt_version} · input v{an.input_revision} · {an.origin} · {wallTime(an.created_at)}</span>
                       </div>
                       {an.title_zh && <div className="mt-2 font-medium text-ink">{an.title_zh}</div>}
                       {an.reason_zh && <div className="mt-1 text-[12.5px] leading-relaxed text-ink-3">{an.reason_zh}</div>}
@@ -160,7 +160,7 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                         <div className="mt-2 flex flex-wrap gap-1.5 text-[11.5px]">
                           {an.receipts.map((r) => (
                             <span key={r.id} className="num rounded-mark bg-surface px-1.5 py-0.5 text-ink-3 ring-1 ring-line">
-                              回执 #{r.id} · {r.status} · {r.model ?? r.service}{r.cost !== null ? ` · ${money(r.cost)}` : ""}
+                              Receipt #{r.id} · {r.status} · {r.model ?? r.service}{r.cost !== null ? ` · ${money(r.cost, r.currency)}` : ""}
                             </span>
                           ))}
                         </div>
@@ -169,61 +169,61 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                   ))}
                 </div>
               ) : (
-                <span className="text-ink-4">{a.participation_mode === "editorial" ? "还没有判断（等待队列或失败）" : "氛围信源不做编辑判断"}</span>
+                <span className="text-ink-4">{a.participation_mode === "editorial" ? "Not judged yet (queued or failed)" : "Heat-only sources get no editorial judgment"}</span>
               )}
             </Step>
-            <Step title="公开" tone={p ? (p.visibility === "withdrawn" ? "bad" : "accent") : "muted"} meta={p ? `更新于 ${bj(p.updated_at, true)}` : undefined}>
+            <Step title="Public" tone={p ? (p.visibility === "withdrawn" ? "bad" : "accent") : "muted"} meta={p ? `updated ${wallTime(p.updated_at, true)}` : undefined}>
               {p ? (
                 <KV
                   items={[
-                    ["范围", VISIBILITY_LABEL[p.visibility] ?? p.visibility],
-                    ["精选", p.selected ? `是 · 可见于 ${p.visible_after ? bj(p.visible_after, true) : "立即"}` : "否"],
-                    ["栏目", p.category ? CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category : null],
-                    ["标签", (p.tags as string[] | null)?.join("、")],
-                    ["摘要", p.summary],
-                    ["推荐理由", p.reason],
+                    ["Visibility", VISIBILITY_LABEL[p.visibility] ?? p.visibility],
+                    ["Pick", p.selected ? `yes · visible ${p.visible_after ? wallTime(p.visible_after, true) : "now"}` : "no"],
+                    ["Category", p.category ? CATEGORY_LABELS[p.category as keyof typeof CATEGORY_LABELS] ?? p.category : null],
+                    ["Tags", (p.tags as string[] | null)?.join(", ")],
+                    ["Summary", p.summary],
+                    ["Why it matters", p.reason],
                     [
-                      "正文展示",
-                      `${p.body_mode}${p.syndicate ? " · 对外可带全文" : ""}${
-                        p.indexable ? (p.seo_indexed_at ? " · 可收录（手动标记）" : " · 可收录（精选自动）") : p.seo_excluded_at ? " · 不收录（手动排除）" : " · 不收录"
+                      "Body display",
+                      `${p.body_mode}${p.syndicate ? " · full text in public outputs" : ""}${
+                        p.indexable ? (p.seo_indexed_at ? " · indexable (marked by hand)" : " · indexable (pick)") : p.seo_excluded_at ? " · not indexed (excluded by hand)" : " · not indexed"
                       }`,
                     ],
                   ]}
                 />
               ) : (
-                <span className="text-ink-4">没有公开投影（未通过相关性或仍在处理）</span>
+                <span className="text-ink-4">No public projection (failed relevance or still processing)</span>
               )}
               {c.override && (
                 <div className="mt-3 rounded-control bg-accent-softer p-3 ring-1 ring-accent/15">
-                  <div className="text-[12px] text-ink-3">人工设置 v{c.override.version} · {c.override.updated_by} · {bj(c.override.updated_at, true)}{c.override.reason ? ` · ${c.override.reason}` : ""}</div>
-                  <Json value={{ visibility: c.override.visibility, ...c.override.fields }} label="覆盖字段" collapsed={false} />
+                  <div className="text-[12px] text-ink-3">Manual override v{c.override.version} · {c.override.updated_by} · {wallTime(c.override.updated_at, true)}{c.override.reason ? ` · ${c.override.reason}` : ""}</div>
+                  <Json value={{ visibility: c.override.visibility, ...c.override.fields }} label="Overridden fields" collapsed={false} />
                 </div>
               )}
             </Step>
-            <Step title="精选同步流水" meta={`${c.ledger.length} 条`} tone={c.ledger.length ? "accent" : "muted"}>
+            <Step title="Picks sync ledger" meta={`${c.ledger.length} entries`} tone={c.ledger.length ? "accent" : "muted"}>
               {c.ledger.length ? (
                 <ul className="space-y-1">
                   {c.ledger.map((l) => (
                     <li key={l.seq} className="flex gap-2">
                       <span className="num text-ink-4">#{l.seq}</span>
                       <Badge tone={l.op === "remove" ? "warn" : "ok"}>{l.op}</Badge>
-                      <span className="num text-ink-4">可见 {bj(l.visible_at)} · 写入 {bj(l.changed_at)}</span>
+                      <span className="num text-ink-4">visible {wallTime(l.visible_at)} · written {wallTime(l.changed_at)}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <span className="text-ink-4">没有进入过精选同步流</span>
+                <span className="text-ink-4">Never entered the picks sync stream</span>
               )}
             </Step>
-            <Step title="事件归组" tone={story ? "accent" : "muted"} meta={a.grouped_at ? `归组于 ${bj(a.grouped_at, true)}` : "未归组"}>
+            <Step title="Story grouping" tone={story ? "accent" : "muted"} meta={a.grouped_at ? `grouped ${wallTime(a.grouped_at, true)}` : "not grouped"}>
               {c.membership.map((m) => (
                 <div key={m.fact_id} className="mb-2">
                   <div>
-                    事实 <span className="font-mono text-[12px]">#{m.fact_id}</span> {m.fact_title} <Badge>{m.role}</Badge> {m.manual && <Badge tone="info">人工</Badge>}
+                    Fact <span className="font-mono text-[12px]">#{m.fact_id}</span> {m.fact_title} <Badge>{m.role}</Badge> {m.manual && <Badge tone="info">manual</Badge>}
                   </div>
                   {m.story_public_id && (
                     <div className="mt-0.5">
-                      事件 <a className="text-accent" href={`/story/${m.story_public_id}`} target="_blank" rel="noreferrer">{m.story_title}</a> <span className="font-mono text-[12px] text-ink-4">#{m.story_id}</span>
+                      Story <a className="text-accent" href={`/story/${m.story_public_id}`} target="_blank" rel="noreferrer">{m.story_title}</a> <span className="font-mono text-[12px] text-ink-4">#{m.story_id}</span>
                     </div>
                   )}
                 </div>
@@ -232,61 +232,61 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
                 <ul className="mt-2 space-y-1 text-[12.5px]">
                   {c.decisions.map((d, i) => (
                     <li key={i} className="flex flex-wrap gap-2">
-                      <span className="num text-ink-4">{bj(d.created_at)}</span>
+                      <span className="num text-ink-4">{wallTime(d.created_at)}</span>
                       <Badge>{d.verdict}</Badge>
-                      {d.fact_id && <span>事实 #{d.fact_id}</span>}
-                      {d.receipt_id && <span className="text-ink-4">回执 #{d.receipt_id}</span>}
+                      {d.fact_id && <span>Fact #{d.fact_id}</span>}
+                      {d.receipt_id && <span className="text-ink-4">Receipt #{d.receipt_id}</span>}
                     </li>
                   ))}
                 </ul>
               )}
               <div className="mt-2 flex flex-wrap gap-2">
-                <Button size="sm" onClick={() => setDialog("group")}>重新归组</Button>
-                {c.membership.length > 0 && <Button size="sm" onClick={() => setDialog("detach")}>移出事件</Button>}
-                {story?.story_id && <Button size="sm" onClick={() => setDialog("merge")}>把这个事件并入…</Button>}
+                <Button size="sm" onClick={() => setDialog("group")}>Group again</Button>
+                {c.membership.length > 0 && <Button size="sm" onClick={() => setDialog("detach")}>Detach from story</Button>}
+                {story?.story_id && <Button size="sm" onClick={() => setDialog("merge")}>Merge this story into…</Button>}
               </div>
             </Step>
-            <Step title="投递" last meta={`${c.deliveries.length} 条`} tone={c.deliveries.some((d) => d.status === "unknown") ? "bad" : c.deliveries.length ? "accent" : "muted"}>
+            <Step title="Deliveries" last meta={`${c.deliveries.length} entries`} tone={c.deliveries.some((d) => d.status === "unknown") ? "bad" : c.deliveries.length ? "accent" : "muted"}>
               {c.deliveries.length ? (
                 <ul className="space-y-1">
                   {c.deliveries.map((d, i) => (
                     <li key={i} className="flex flex-wrap gap-2">
                       <span>{d.target_key}</span>
                       <Badge tone={d.status === "sent" ? "ok" : d.status === "unknown" ? "bad" : "muted"}>{d.status}</Badge>
-                      <span className="num text-ink-4">{bj(d.created_at)}{d.sent_at ? ` → ${bj(d.sent_at)}` : ""}</span>
+                      <span className="num text-ink-4">{wallTime(d.created_at)}{d.sent_at ? ` → ${wallTime(d.sent_at)}` : ""}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <span className="text-ink-4">没有推送记录</span>
+                <span className="text-ink-4">No pushes</span>
               )}
             </Step>
           </ol>
         </Card>
 
         <div className="space-y-5">
-          <Card title="原始信息">
+          <Card title="Original data">
             <KV
               items={[
-                ["原标题", a.title],
-                ["作者", a.author],
-                ["语言", a.language],
-                ["身份键", <span className="break-all font-mono text-[11.5px]">{a.identity_key}</span>],
+                ["Original title", a.title],
+                ["Author", a.author],
+                ["Language", a.language],
+                ["Identity key", <span className="break-all font-mono text-[11.5px]">{a.identity_key}</span>],
               ]}
             />
           </Card>
-          <Card title="修改记录">
+          <Card title="Changes">
             {c.history.length ? (
               <ul className="space-y-3 text-[12.5px]">
                 {c.history.map((h, i) => (
                   <li key={i}>
-                    <div className="text-ink-2"><span className="font-medium">{h.action}</span> · {h.actor} · {bj(h.created_at)}</div>
+                    <div className="text-ink-2"><span className="font-medium">{h.action}</span> · {h.actor} · {wallTime(h.created_at)}</div>
                     {h.reason && <div className="text-ink-3">{h.reason}</div>}
                   </li>
                 ))}
               </ul>
             ) : (
-              <Empty>没有人工操作</Empty>
+              <Empty>No manual actions</Empty>
             )}
           </Card>
         </div>
@@ -294,33 +294,33 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
 
       <ReasonDialog
         open={dialog === "seo"}
-        title={p?.indexable ? "取消搜索收录" : "标记为可收录"}
+        title={p?.indexable ? "Stop search indexing" : "Mark as indexable"}
         description={
           p?.indexable
-            ? "详情页改回 noindex 并移出站点地图；即使是精选，也不再自动收录，直到重新标记。"
-            : "详情页默认 noindex，精选内容自动收录。标记后（仅在公开状态下）改为 index、进入站点地图，并在下一次 IndexNow 提交。适合有独立价值、摘要与正文完整的内容。"
+            ? "The detail page goes back to noindex and leaves the sitemap; even as a pick it is not indexed until marked again."
+            : "Detail pages are noindex unless picked. Marked (while public), it becomes index, joins the sitemap and goes out in the next IndexNow submission. Use it for items of their own value with a full summary and body."
         }
-        confirmLabel={p?.indexable ? "取消收录" : "标记收录"}
+        confirmLabel={p?.indexable ? "Stop indexing" : "Mark indexable"}
         busy={pending === "seo"}
         onClose={() => setDialog(null)}
-        onSubmit={async (reason) => (await run("POST", `${base}/seo`, { indexed: !p?.indexable, reason }, { label: "seo", success: p?.indexable ? "已取消收录" : "已标记为可收录" })) !== null}
+        onSubmit={async (reason) => (await run("POST", `${base}/seo`, { indexed: !p?.indexable, reason }, { label: "seo", success: p?.indexable ? "No longer indexed" : "Marked indexable" })) !== null}
       />
 
       <ReasonDialog
         open={dialog === "visibility"}
-        title="公开范围"
-        description="改动会同时作用于网页、API、RSS、MCP、同步流和搜索索引，并刷新缓存。来源方要求下架时，先核实身份与范围。"
+        title="Visibility"
+        description="Applies at once to pages, API, RSS, MCP, the sync stream and search indexing, and refreshes caches. When a publisher asks for a takedown, verify who they are and what it covers first."
         danger={visibility === "withdrawn"}
-        confirmLabel="应用"
+        confirmLabel="Apply"
         busy={pending === "visibility"}
         onClose={() => setDialog(null)}
-        onSubmit={async (reason) => (await run("POST", `${base}/visibility`, { visibility, reason, version }, { label: "visibility", success: "公开范围已更新" })) !== null}
+        onSubmit={async (reason) => (await run("POST", `${base}/visibility`, { visibility, reason, version }, { label: "visibility", success: "Visibility updated" })) !== null}
       >
         <div className="grid gap-2 sm:grid-cols-3">
           {([
-            ["public", "公开", "正常展示"],
-            ["summary-only", "仅摘要", "不展示正文，保留标题摘要"],
-            ["withdrawn", "下架", "所有出口移除，链接 404"],
+            ["public", "Public", "Shown normally"],
+            ["summary-only", "Summary only", "No body; title and summary stay"],
+            ["withdrawn", "Withdrawn", "Removed from every output; links return 404"],
           ] as const).map(([v, label, hint]) => (
             <label key={v} className={`cursor-pointer rounded-card p-3 ring-1 transition-colors ${visibility === v ? "bg-accent-soft ring-accent" : "ring-line-strong hover:bg-bg-sunk"}`}>
               <input type="radio" name="visibility" className="sr-only" checked={visibility === v} onChange={() => setVisibility(v)} />
@@ -333,9 +333,9 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
 
       <ReasonDialog
         open={dialog === "override"}
-        title="人工修正"
-        description="人工值优先于模型输出，之后的重处理不会覆盖；留空表示不修正该字段（清除已有修正请选“清除”）。"
-        confirmLabel="保存修正"
+        title="Correct by hand"
+        description="Manual values win over model output and survive reprocessing. Leave a field empty to keep it as is (to remove an existing correction, choose “Clear”)."
+        confirmLabel="Save correction"
         busy={pending === "override"}
         onClose={() => setDialog(null)}
         onSubmit={async (reason) => {
@@ -356,40 +356,40 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
             if (fields[k] === "true" || fields[k] === "false") next[k] = fields[k] === "true";
             else if (c.override?.fields[k] !== undefined) clear.push(k);
           }
-          return (await run("POST", `${base}/override`, { fields: next, clear, reason, version }, { label: "override", success: "修正已保存并重新发布" })) !== null;
+          return (await run("POST", `${base}/override`, { fields: next, clear, reason, version }, { label: "override", success: "Correction saved and republished" })) !== null;
         }}
       >
-        <Field label="标题"><Input value={fields.title} placeholder={p?.title ?? ""} onChange={(e) => setFields({ ...fields, title: e.target.value })} /></Field>
-        <Field label="摘要"><Textarea rows={3} value={fields.summary} placeholder={p?.summary ?? ""} onChange={(e) => setFields({ ...fields, summary: e.target.value })} /></Field>
-        <Field label="推荐理由"><Textarea rows={2} value={fields.reason} placeholder={p?.reason ?? ""} onChange={(e) => setFields({ ...fields, reason: e.target.value })} /></Field>
+        <Field label="Title"><Input value={fields.title} placeholder={p?.title ?? ""} onChange={(e) => setFields({ ...fields, title: e.target.value })} /></Field>
+        <Field label="Summary"><Textarea rows={3} value={fields.summary} placeholder={p?.summary ?? ""} onChange={(e) => setFields({ ...fields, summary: e.target.value })} /></Field>
+        <Field label="Why it matters"><Textarea rows={2} value={fields.reason} placeholder={p?.reason ?? ""} onChange={(e) => setFields({ ...fields, reason: e.target.value })} /></Field>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="栏目">
+          <Field label="Category">
             <Select value={fields.category} onChange={(e) => setFields({ ...fields, category: e.target.value })}>
-              <option value="">不修正</option>
+              <option value="">Keep</option>
               {CATEGORY_KEYS.map((k) => <option key={k} value={k}>{CATEGORY_LABELS[k]}</option>)}
             </Select>
           </Field>
-          <Field label="标签（逗号分隔）"><Input value={fields.tags} onChange={(e) => setFields({ ...fields, tags: e.target.value })} /></Field>
-          <Field label="评分">
+          <Field label="Tags (comma separated)"><Input value={fields.tags} onChange={(e) => setFields({ ...fields, tags: e.target.value })} /></Field>
+          <Field label="Score">
             <Select value={fields.scoreMode} onChange={(e) => setFields({ ...fields, scoreMode: e.target.value })}>
-              <option value="">按模型</option>
-              <option value="none">撤销评分</option>
-              <option value="value">人工评分</option>
+              <option value="">From the model</option>
+              <option value="none">Withdraw score</option>
+              <option value="value">Manual score</option>
             </Select>
           </Field>
-          {fields.scoreMode === "value" && <Field label="分数（0–100）"><Input type="number" min={0} max={100} step="any" required value={fields.score} onChange={(e) => setFields({ ...fields, score: e.target.value })} /></Field>}
-          <Field label="精选">
+          {fields.scoreMode === "value" && <Field label="Score (0–100)"><Input type="number" min={0} max={100} step="any" required value={fields.score} onChange={(e) => setFields({ ...fields, score: e.target.value })} /></Field>}
+          <Field label="Pick">
             <Select value={fields.selected} onChange={(e) => setFields({ ...fields, selected: e.target.value })}>
-              <option value="">按模型</option>
-              <option value="true">强制入选</option>
-              <option value="false">强制不选</option>
+              <option value="">From the model</option>
+              <option value="true">Always pick</option>
+              <option value="false">Never pick</option>
             </Select>
           </Field>
-          <Field label="推送">
+          <Field label="Push">
             <Select value={fields.silent} onChange={(e) => setFields({ ...fields, silent: e.target.value })}>
-              <option value="">正常</option>
-              <option value="true">静默（入选也不推送）</option>
-              <option value="false">取消静默</option>
+              <option value="">Normal</option>
+              <option value="true">Silent (no push even when picked)</option>
+              <option value="false">Not silent</option>
             </Select>
           </Field>
         </div>
@@ -397,82 +397,82 @@ export default function ContentItem({ loaderData }: Route.ComponentProps) {
 
       <ReasonDialog
         open={dialog === "analyze"}
-        title="对当前修订重新评估"
-        description="会发起一次新的模型调用（计费并记录回执）。同一次提交重复点击不会重复收费。"
+        title="Re-evaluate the current revision"
+        description="Starts new model calls (billed, with receipts). Pressing again for the same submission is not billed twice."
         requireReason={false}
-        confirmLabel="重新评估"
+        confirmLabel="Re-evaluate"
         busy={pending === "analyze"}
         onClose={() => setDialog(null)}
-        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "analyze" }, { label: "analyze", success: "已加入评估队列" })) !== null}
+        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "analyze" }, { label: "analyze", success: "Queued for evaluation" })) !== null}
       />
       <ReasonDialog
         open={dialog === "presentation"}
-        title="刷新正文展示"
-        description="先检查原网页的图片、链接和排版变化。文字内容相同时保留现有摘要、译文、精选和事件归属。"
+        title="Refresh body display"
+        description="Checks the original page for changed images, links and layout first. When the text is the same, the summary, translation, pick and story stay."
         requireReason={false}
-        confirmLabel={presentation?.ready && presentation.changed ? "应用展示更新" : "预览变化"}
+        confirmLabel={presentation?.ready && presentation.changed ? "Apply display update" : "Preview changes"}
         busy={pending === "presentation"}
         onClose={() => setDialog(null)}
         onSubmit={async () => {
           const apply = presentation?.ready && presentation.changed;
           const result = await run<AdminPresentationRefresh>("POST", `${base}/rerun`,
             { step: "presentation", ...(apply ? { version: presentation.version } : { preview: true }) },
-            { label: "presentation", revalidate: !!apply, ...(apply ? { success: "正文展示已更新" } : {}) });
+            { label: "presentation", revalidate: !!apply, ...(apply ? { success: "Body display updated" } : {}) });
           if (!result) { setPresentation(null); return false; }
           setPresentation(result);
           return result.applied;
         }}
       >
         {presentation && <div className="space-y-2 text-[13px] text-ink-2">
-          <p>图片 {presentation.images.before} → {presentation.images.after}，链接 {presentation.links.before} → {presentation.links.after}。</p>
-          <p>{presentation.reason ?? (presentation.changed ? "可以应用本次展示更新。" : "当前正文展示无需更新。")}</p>
-          {presentation.translation === "reused" && <p>中文译文会保留原有文字，并同步图片和链接。</p>}
+          <p>Images {presentation.images.before} → {presentation.images.after}, links {presentation.links.before} → {presentation.links.after}.</p>
+          <p>{presentation.reason ?? (presentation.changed ? "This display update can be applied." : "The body display needs no update.")}</p>
+          {presentation.translation === "reused" && <p>The translation keeps its text and takes the new images and links.</p>}
         </div>}
       </ReasonDialog>
       <ReasonDialog
         open={dialog === "extract"}
-        title="重新抽取正文"
+        title="Extract body again"
         requireReason={false}
-        confirmLabel="重新抽取"
+        confirmLabel="Extract again"
         busy={pending === "extract"}
         onClose={() => setDialog(null)}
-        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "extract" }, { label: "extract", success: "已加入抽取队列" })) !== null}
+        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "extract" }, { label: "extract", success: "Queued for extraction" })) !== null}
       />
       <ReasonDialog
         open={dialog === "group"}
-        title="重新归组"
-        description="人工归组的成员关系不会被覆盖。"
+        title="Group again"
+        description="Memberships set by hand are not overwritten."
         requireReason={false}
-        confirmLabel="重新归组"
+        confirmLabel="Group again"
         busy={pending === "group"}
         onClose={() => setDialog(null)}
-        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "group" }, { label: "group", success: "已加入归组队列" })) !== null}
+        onSubmit={async () => (await run("POST", `${base}/rerun`, { step: "group" }, { label: "group", success: "Queued for grouping" })) !== null}
       />
       <ReasonDialog
         open={dialog === "detach"}
-        title="移出事件"
-        description="这条内容会作为独立内容展示，事件页随之更新。"
+        title="Detach from story"
+        description="This item is shown on its own, and the story page updates."
         danger
-        confirmLabel="移出"
+        confirmLabel="Detach"
         busy={pending === "detach"}
         onClose={() => setDialog(null)}
-        onSubmit={async (reason) => (await run("POST", `${base}/detach`, { reason }, { label: "detach", success: "已移出事件" })) !== null}
+        onSubmit={async (reason) => (await run("POST", `${base}/detach`, { reason }, { label: "detach", success: "Detached from the story" })) !== null}
       />
       <ReasonDialog
         open={dialog === "merge"}
-        title="合并事件"
-        description={`把事件 #${story?.story_id}（${story?.story_title ?? ""}）并入另一个事件；旧链接会跳转到新事件。`}
+        title="Merge stories"
+        description={`Merge story #${story?.story_id} (${story?.story_title ?? ""}) into another story; its old links redirect to the other one.`}
         danger
-        confirmLabel="合并"
+        confirmLabel="Merge"
         busy={pending === "merge"}
         onClose={() => setDialog(null)}
         onSubmit={async (reason) => {
           if (!/^\d+$/.test(mergeInto.trim())) return false;
-          return (await run("POST", "/api/admin/stories/merge", { from: story!.story_id, into: Number(mergeInto), reason }, { label: "merge", success: "事件已合并" })) !== null;
+          return (await run("POST", "/api/admin/stories/merge", { from: story!.story_id, into: Number(mergeInto), reason }, { label: "merge", success: "Stories merged" })) !== null;
         }}
       >
-        <Field label="并入的目标事件编号" hint="在目标事件任一内容的诊断页里可以看到 #编号">
-          <Input inputMode="numeric" value={mergeInto} onChange={(e) => setMergeInto(e.target.value)} placeholder="例如 1234" />
+        <Field label="Target story number" hint="Shown as #number on the content page of any item in that story">
+          <Input inputMode="numeric" value={mergeInto} onChange={(e) => setMergeInto(e.target.value)} placeholder="e.g. 1234" />
         </Field>
       </ReasonDialog>
     </AdminPage>
