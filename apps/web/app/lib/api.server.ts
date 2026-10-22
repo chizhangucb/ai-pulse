@@ -4,8 +4,10 @@
 import { data, redirect, type HeadersArgs } from "react-router";
 import { logError } from "./errors.server.ts";
 
-/** Where the api listens (API_BASE_URL, set by the deployment); development uses the default. */
-export const API_BASE_URL = process.env.API_BASE_URL || "http://127.0.0.1:3001";
+/** Where the api listens (API_BASE_URL, set by the deployment); development uses the default. Railway
+ * gives a full URL; a bare host:port, as Render gives a private service's address, is plain http. */
+const apiAddress = process.env.API_BASE_URL || "http://127.0.0.1:3001";
+export const API_BASE_URL = /^[a-z][a-z\d+.-]*:\/\//i.test(apiAddress) ? apiAddress : `http://${apiAddress}`;
 
 /** An api answer other than 2xx. A merged story answers 308 with the story it now lives in. */
 class ApiError extends Error {

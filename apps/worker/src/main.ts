@@ -19,7 +19,7 @@ installModules(SERVER_MODULES);
 assertModelChoices();
 assertProductionSecrets([["auth", "IMG_PROXY_SIGN_SECRET"]]);
 
-// Railway may start this worker before the api's pre-deploy step has migrated the database.
+// Railway and Render may start this worker before the api's pre-deploy step has migrated the database.
 let pending: string[];
 while ((pending = await pendingMigrations(sql, REPO_ROOT)).length) {
   console.log(JSON.stringify({ level: "info", msg: "waiting for migrations", pending: pending.length }));
