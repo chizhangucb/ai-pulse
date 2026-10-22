@@ -135,7 +135,7 @@ const evalCase = (caseId: string, title: string) => ({
   knownArticleIds: [],
   reports: [{
     id: `${caseId}-r1`,
-    publishedAt: "2026-09-01T09:00:00+08:00",
+    publishedAt: "2026-09-01T09:00:00-07:00",
     source: "Acme",
     firstParty: true,
     title: `${title}的报道`,

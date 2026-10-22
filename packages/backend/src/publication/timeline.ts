@@ -65,7 +65,7 @@ async function queryGroupedAnchors(q: TimelineQuery, now: Date) {
   return rows;
 }
 
-/** Counts requested Beijing days over anchors already sorted newest first. */
+/** Counts requested days (site zone) over anchors already sorted newest first. */
 export function countTimelineDays(grouped: readonly { anchor: number }[], days: ReadonlySet<string>): Record<string, number> {
   const firstBelow = (bound: number) => {
     let lo = 0, hi = grouped.length;

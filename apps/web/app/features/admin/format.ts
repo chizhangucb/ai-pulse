@@ -1,4 +1,4 @@
-// Admin display helpers: Beijing wall-clock times, relative ages, compact numbers.
+// Admin display helpers: wall-clock times in the site's zone, relative ages, compact numbers.
 import { siteDate, siteTime } from "@aihot/contracts/time";
 
 export function bj(iso: string | Date | null | undefined, withYear = false): string {

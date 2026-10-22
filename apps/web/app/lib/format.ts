@@ -1,7 +1,7 @@
 import { siteDate, siteTime, siteWeekday, monthDay } from "@aihot/contracts/time";
 
 /** A list cut into runs of the same day in the site's zone, in the list's own order. */
-export function byBeijingDay<T>(list: readonly T[], at: (entry: T) => string): Array<{ day: string; entries: T[] }> {
+export function bySiteDay<T>(list: readonly T[], at: (entry: T) => string): Array<{ day: string; entries: T[] }> {
   const days: Array<{ day: string; entries: T[] }> = [];
   for (const entry of list) {
     const day = siteDate(at(entry));

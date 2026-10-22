@@ -24,7 +24,7 @@ function offsetMinutes(instant: Date | string | number): number {
   return Math.round((wallClock(instant).getTime() - new Date(instant).getTime()) / 60000);
 }
 
-/** "+08:00" / "-07:00" for an offset in minutes. */
+/** "-07:00" / "+05:30" for an offset in minutes. */
 function offsetLabel(minutes: number): string {
   const a = Math.abs(minutes);
   return `${minutes < 0 ? "-" : "+"}${String(Math.floor(a / 60)).padStart(2, "0")}:${String(a % 60).padStart(2, "0")}`;

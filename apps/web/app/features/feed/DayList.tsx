@@ -1,11 +1,11 @@
-// A page of reports grouped by Beijing day with the same rail and rows as the home timeline
+// A page of reports grouped by day in the site's zone with the same rail and rows as the home timeline
 // (All news, topics, search results).
 import { IntentLink } from "../../components/ui/IntentLink";
 import { useMemo } from "react";
 import type { FeedItemSummary } from "@aihot/contracts/site";
 import { IconChevronRight } from "../../components/icons";
 import { siteDate } from "@aihot/contracts/time";
-import { byBeijingDay } from "../../lib/format";
+import { bySiteDay } from "../../lib/format";
 import { markRead, useReadSet } from "../../lib/local-state";
 import { DayHeader, TimelineSlot } from "./Timeline";
 import { FeedItem } from "./FeedItem";
@@ -13,7 +13,7 @@ import { FeedItem } from "./FeedItem";
 export function DayList({ items, todayCount = null, headerAside }: { items: FeedItemSummary[]; todayCount?: number | null; headerAside?: React.ReactNode }) {
   const readSet = useReadSet();
   const today = siteDate(Date.now());
-  const days = useMemo(() => byBeijingDay(items, (it) => it.timelineAt), [items]);
+  const days = useMemo(() => bySiteDay(items, (it) => it.timelineAt), [items]);
   return (
     <div>
       {days.map(({ day, entries: list }, i) => (

@@ -263,7 +263,7 @@ test("a manual detach during a discussion judgement wins just as it does for an 
   assert.equal((await sql`SELECT 1 FROM story_signals WHERE article_id = ${articleId}`).length, 0);
 });
 
-// Facts store date-only input at Beijing midnight: a UTC conversion must not shift it a day back,
+// Facts store date-only input at midnight in the site's zone: a UTC conversion must not shift it a day back,
 // and a malformed or impossible model date must neither abort grouping nor silently roll forward.
 test("fact dates survive candidate recall without a timezone shift and invalid dates stay unknown", async () => {
   hold = gate(); hold.open();

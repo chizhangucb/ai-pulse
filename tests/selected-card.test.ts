@@ -1,5 +1,5 @@
 // Failure cases: the card shows no publication date, so a weeks-old launch pushed today reads as
-// today's news; the date is taken in UTC and lands a day early around Beijing midnight; the title is no
+// today's news; the date is taken in UTC and lands a day late on a Pacific evening; the title is no
 // larger than the summary, or the source and date read as body text; markdown characters in a model's
 // words break the card; the reason reads as body text.
 import { tag } from "./setup.ts";
@@ -33,8 +33,8 @@ async function selected(category: string, reason: string | null, copy = SPACE) {
     VALUES (${articleId},1,'rule','pass',${category},${copy.title},${copy.summary},${reason},90,true)`;
   await sql`UPDATE articles SET grouping_status='complete',grouped_at=now(),selection_adds_value=true WHERE id=${articleId}`;
   await publishArticle(articleId);
-  // 00:30 in Beijing on the 15th is still the 14th in UTC.
-  await sql`UPDATE publications SET published_at='2026-10-14T16:30:00Z' WHERE article_id=${articleId}`;
+  // 20:30 Pacific on the 14th is already the 15th in UTC.
+  await sql`UPDATE publications SET published_at='2026-10-15T03:30:00Z' WHERE article_id=${articleId}`;
   const content = await selectedContent(articleId);
   assert.equal(content.status, "ready");
   return (content as Extract<typeof content, { status: "ready" }>).card as any;

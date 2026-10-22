@@ -1,12 +1,16 @@
 import { useId, useMemo, useState, type ReactNode } from "react";
 import type { HeatPoint } from "@aihot/contracts/site";
+import { siteDay, siteIso, siteTime } from "@aihot/contracts/time";
 import { monthDayTime } from "../../lib/format";
 import { useEntrance } from "../../lib/hydration";
 import { PillTabs } from "../../components/ui/Tabs";
 import { areaPath, curvePath, type Pt } from "../hot/curve";
 
 const HOUR = 3600 * 1000;
-const BEIJING = 8 * HOUR;
+const QUARTER = HOUR / 4;
+
+/** The instant's wall clock in the site's zone, as milliseconds read as if it were UTC. */
+const wallClock = (t: number) => Date.parse(`${siteIso(t).slice(0, 23)}Z`);
 
 function niceStep(max: number): number {
   const raw = max / 4;
@@ -45,16 +49,19 @@ function distinctRanges(points: HeatPoint[]) {
 }
 
 /**
- * Time labels on whole Beijing hours: the finest step that leaves at most six; midnight reads as the
- * date. Beyond four, a phone shows every other one (`wide`: only from sm up).
+ * Time labels on whole hours in the site's zone: the finest step that leaves at most six; midnight reads as
+ * the date. Beyond four, a phone shows every other one (`wide`: only from sm up). The zone's offset can change
+ * inside the range (daylight saving) and need not be whole hours, so candidates go by quarter hours.
  */
 function timeTicks(t0: number, t1: number): Array<{ t: number; label: string; wide: boolean }> {
   const span = (t1 - t0) / HOUR;
   const step = ([1, 2, 3, 6, 12, 24, 48].find((s) => span / s <= 6) ?? 72) * HOUR;
   const out: Array<{ t: number; label: string; wide: boolean }> = [];
-  for (let t = Math.ceil((t0 + BEIJING) / step) * step - BEIJING; t <= t1; t += step) {
-    const [day, time] = monthDayTime(new Date(t).toISOString()).split(" ");
-    out.push({ t, label: time === "00:00" ? day! : time!, wide: Math.round((t + BEIJING) / step) % 2 === 1 });
+  for (let t = Math.ceil(t0 / QUARTER) * QUARTER; t <= t1; t += QUARTER) {
+    const wall = wallClock(t);
+    if (wall % step) continue;
+    const time = siteTime(t);
+    out.push({ t, label: time === "00:00" ? siteDay(t) : time, wide: (wall / step) % 2 === 1 });
   }
   if (out.length <= 4) for (const tick of out) tick.wide = false;
   return out;

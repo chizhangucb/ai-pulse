@@ -8,7 +8,7 @@ import { cachedPage, loadOr404 } from "../lib/api.server";
 import { pageReuse } from "../lib/page-reuse";
 import { breadcrumbLd, pageMeta, storyLd, titled } from "../lib/seo";
 import { siteTime, monthDay } from "@aihot/contracts/time";
-import { byBeijingDay, monthDayTime, relativeTime } from "../lib/format";
+import { bySiteDay, monthDayTime, relativeTime } from "../lib/format";
 import { useCurrentSection } from "../lib/motion";
 import { HeatChart } from "../features/story/HeatChart";
 import { sessionCache } from "../lib/session-cache";
@@ -163,7 +163,7 @@ export default function StoryPage() {
   const days = useMemo(() => {
     const list = story.timeline.filter((r) => (filter === "official" ? r.source.firstParty : filter === "selected" ? r.selected : true));
     const sorted = [...list].sort((a, b) => (order === "desc" ? Date.parse(b.publishedAt) - Date.parse(a.publishedAt) : Date.parse(a.publishedAt) - Date.parse(b.publishedAt)));
-    return byBeijingDay(sorted, (r) => r.publishedAt);
+    return bySiteDay(sorted, (r) => r.publishedAt);
   }, [story.timeline, filter, order]);
   const developments = useMemo(() => [...story.developments].sort((a, b) =>
     order === "desc" ? Date.parse(b.firstReportAt) - Date.parse(a.firstReportAt) : Date.parse(a.firstReportAt) - Date.parse(b.firstReportAt)

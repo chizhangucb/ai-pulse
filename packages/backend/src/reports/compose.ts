@@ -1,4 +1,4 @@
-// Daily, weekly and monthly reports. Windows are Beijing calendar based and written into the report;
+// Daily, weekly and monthly reports. Windows follow the site's calendar (SITE.timeZone) and are written into the report;
 // missed schedule points are caught up; regeneration creates a revision. What every issue carries is
 // decided by rule: a daily from edition.ts without a model; a weekly or monthly is compiled from its
 // dailies and a model only writes its overview and introductions, from the brief in the industry pack
@@ -80,7 +80,7 @@ function windowPoint(at: Date): string {
 }
 
 /**
- * Daily report for Beijing date D covers the 24 hours up to the site's edition time on D (EDITION_TIMES).
+ * Daily report for site date D covers the 24 hours up to the site's edition time on D (EDITION_TIMES).
  * Its most important entry leads, in its own words, and the next three are today's highlights. A window
  * the editors judged with nothing new in it still has its issue: no entries, and a lead that says so
  * (REPORTS.quiet).
@@ -272,7 +272,7 @@ export async function composeMonthly(label: string, reason?: string) {
   return composePeriod("monthly", label, range.start, range.end, reason);
 }
 
-/** The newest daily due by `now`: today's from its edition time (Beijing), yesterday's before. */
+/** The newest daily due by `now`: today's from its edition time (site zone), yesterday's before. */
 export function dueDaily(now = new Date()): string {
   const today = siteDate(now);
   return siteTime(now) >= EDITION_TIMES.daily ? today : addDays(today, -1);

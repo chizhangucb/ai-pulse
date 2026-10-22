@@ -106,5 +106,5 @@ export function gate<T = void>() {
 /** A short unique tag for the rows a test creates. */
 export const tag = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
-/** `seconds` after the site's edition time of a report kind on a Beijing date (EDITION_TIMES), so tests follow the site's schedule. */
+/** `seconds` after the site's edition time of a report kind on a site date (EDITION_TIMES), so tests follow the site's schedule. */
 export const editionAt = (kind: keyof typeof EDITION_TIMES, date: string, seconds = 0) => new Date(siteAt(date, EDITION_TIMES[kind]).getTime() + seconds * 1000);

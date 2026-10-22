@@ -345,7 +345,7 @@ interface AlertState {
 const DAILY_PREFIX = "report.daily:";
 const dailyDate = (key: string) => key.startsWith(DAILY_PREFIX) && isValidDate(key.slice(DAILY_PREFIX.length))
   ? key.slice(DAILY_PREFIX.length) : undefined;
-/** Missing dailies are looked for, and announced ones followed, over the last seven Beijing calendar days. */
+/** Missing dailies are looked for, and announced ones followed, over the last seven calendar days in the site's zone. */
 const dailyScanFrom = (now: number) => addDays(siteDate(now), -6);
 
 async function alertState(): Promise<AlertState> {

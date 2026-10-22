@@ -1,6 +1,6 @@
 // The upstream budget of image fetches. The image proxy is the one path where the origin fetches
 // third-party bytes on a reader's behalf (vision analysis shares it), so a site may cap them per minute
-// and per Beijing day (site.ts DEPLOYMENT.imageUpstreamBudget; IMGPROXY_UPSTREAM_MB_PER_MINUTE and
+// and per day in the site's zone (site.ts DEPLOYMENT.imageUpstreamBudget; IMGPROXY_UPSTREAM_MB_PER_MINUTE and
 // IMGPROXY_UPSTREAM_GB_PER_DAY win). Past it, uncached images get 503 until the window resets (cached ones
 // are still served); a spent day goes into the alerts' digest.
 import { siteDate } from "@aihot/contracts/time";
