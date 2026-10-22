@@ -62,6 +62,16 @@ MCP 默认接受 `SITE_URL` 的主机以及 `localhost`、`127.0.0.1`、`[::1]`�
 
 ### 更新
 
+**AI Pulse (English site, Pacific Time).** This fork moves the site to English and to `America/Los_Angeles`:
+
+- Every date, brief window, schedule and time shown to readers uses `SITE.timeZone` in `site/site.ts` (America/Los_Angeles, daylight saving included) instead of a fixed UTC+8. The daily brief comes out at 08:00 PT and covers the 24 hours (23 or 25 on a daylight-saving change) before it. Briefs already generated keep their windows.
+- A source date without a zone and without `publishedAtUtcOffset` is read in the site's zone on that date, not `+08:00`. A source that prints China time sets `"publishedAtUtcOffset": "+08:00"`.
+- The reader language is English: English bodies and posts are not translated (no model call), and other languages are translated into English. Titles, summaries and briefs are written in English by the prompts in `industry/prompts/`.
+- Categories add `compute` and `policy`, and the tag vocabulary is English. A database that already holds analyses with the old Chinese tags keeps them; re-run analysis to retag.
+- The MCP tool prefix is `aipulse_`. `.env.example` defaults to OpenRouter (`anthropic/claude-haiku-5.5`); `site/models.ts` adds OpenRouter presets for per-step overrides.
+- `scripts/seed.ts` also creates one editorial `external` source per account in `industry/x-accounts.json`, for posts pushed to `POST /api/ingest/items` (see [X posts through the ingest endpoint](ingest-x.md)). Run it again after upgrading. `scripts/check-sources.ts` fetches every demo source the way the admin preview does.
+- No database migration.
+
 新增选填的 `PRIVATE_FEED_HOSTS`：信源订阅或列表地址用自建在内网的服务（比如 RSSHub）时，把它的主机名写进去，不必再打开整站的 `ALLOW_PRIVATE_NETWORK_FETCH`，用法见 [信源](sources.md)。不设置时行为不变；无需数据库迁移。
 
 周报、月报的周期内，应有日报齐全且原始正文条目全部为空时，自动跳过该期，避免每半小时重复报错；归档里不会新增空周报或月报。首个周期从全站最早日报开始检查；没有可汇总条目时，若缺失日报、原有条目后来无法公开或正在人工更正，仍保留原有错误。无需数据库迁移或配置修改，升级后下次定时检查生效。
@@ -142,8 +152,8 @@ MCP 的 `subscriptions/listen` 现在立即返回 HTTP 404 和 JSON-RPC `-32601 
 
 - **首次导入之后不再收信源的存档**：以前新信源首次导入后，第二次抓取会把订阅里剩下的旧条目全部当历史内容收进来，逐条付费分析（示范源一次就有上千条）。现在之后的抓取只收发布时间在信源第一次导入前 48 小时以内或之后的条目；没有日期的照收，X 账号不受影响，见 [信源](sources.md#规则旧文不刷屏) 的“旧文不刷屏”。升级前已经收进来的旧条目按原文时间归档，不进“今天”和日报，分析也早已跑完，不用处理。
 - **没有可信发布时间的新资料先不公开**：先不进公开列表、精选、报告、热点和推送，从原信源或原文页读到日期后再判断新旧。日期未知时，文章页、结构化数据和 Agent Markdown 标“收录时间”，RSS 不写 `pubDate`；OpenAPI 注明事件时间线和日报快讯的 `publishedAt` 这时是收录时间。
-- **JSON 接口里不带时区的时间**（如 `2026-09-30 17:43:58`）按信源的 `publishedAtUtcOffset` 读，默认 `+08:00`。以前按服务器时区读，Docker 里是 UTC，所以已有这类信源的新条目时间会提前 8 小时，变成正确值。
-- **文章页日期使用同一来源时区**：详情页补日期与正文提取先用 `detail.publishedAtUtcOffset`，未设则继承信源的 `publishedAtUtcOffset`，再默认 `+08:00`。只作用于之后的采集和补日期，不批量重写已有发布时间。
+- **JSON 接口里不带时区的时间**（如 `2026-09-30 17:43:58`）按信源的 `publishedAtUtcOffset` 读，未设时按站点时区（`SITE.timeZone`）在那一天的偏移读。以前按服务器时区读，Docker 里是 UTC，所以已有这类信源的新条目时间会提前 8 小时，变成正确值。
+- **文章页日期使用同一来源时区**：详情页补日期与正文提取先用 `detail.publishedAtUtcOffset`，未设则继承信源的 `publishedAtUtcOffset`，再按站点时区读。只作用于之后的采集和补日期，不批量重写已有发布时间。
 - **详情补全**：失败或超出本轮次数限制的日期、标题、摘要会在后续采集中补齐，已确认的正文保持原样；信源请求成功却漏掉日期、标题或正文时也会补全，并记进信源健康。Jina 详情规则要与实际返回格式匹配；固定采集起点、Intercom 日期章节及视频描述的配置见 [信源](sources.md)。
 - **视频播放页不当正文**：对所有信源生效，YouTube、Vimeo 播放页不再作为文章正文抓取，YouTube 视频页也不再被当成图片。RSS 的视频描述只作摘要，订阅直接提供的真实文字保留。升级不会批量删除或重新分析已有正文；旧视频记录混入播放器导航的，先逐条核实，可在后台“内容诊断”的详情页设为仅摘要，停止展示错误正文。
 - **RSS**：确认摘要就是全文的文字订阅可以设 `summaryIsBody`（Atom 的 `summary` 也算）。没有网页的播客单集，原文链接改为音频或视频文件，不再去抓网页。
