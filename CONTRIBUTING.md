@@ -1,31 +1,31 @@
-# 参与贡献
+# Contributing
 
-欢迎提交可复现的问题、文档修正，以及对其他行业也有用的改进。中文或英文都可以。
+Reproducible issues, documentation fixes and improvements that are useful for other industries too are welcome, in English or Chinese.
 
-## 去哪里交流
+## Where to talk
 
-- [Issues](https://github.com/KKKKhazix/AIHOT/issues/new/choose)：可复现的 Bug 和有明确场景的功能建议。
-- [部署与使用问答](https://github.com/KKKKhazix/AIHOT/discussions/categories/q-a)：安装、配置、部署和使用问题；问题解决后可以标记答案。
-- [想法交流](https://github.com/KKKKhazix/AIHOT/discussions/categories/ideas)：先讨论方向和使用场景。
-- [作品展示](https://github.com/KKKKhazix/AIHOT/discussions/categories/show-and-tell)：分享你搭建的行业热点站和实践经验。
-- 安全漏洞请按 [安全报告说明](SECURITY.md) 私密提交。
+- [Issues](https://github.com/KKKKhazix/AIHOT/issues/new/choose): reproducible bugs and feature requests with a clear scenario.
+- [Deployment and usage Q&A](https://github.com/KKKKhazix/AIHOT/discussions/categories/q-a): installation, configuration, deployment and usage questions; mark the answer once a question is solved.
+- [Ideas](https://github.com/KKKKhazix/AIHOT/discussions/categories/ideas): discuss direction and use cases first.
+- [Show and tell](https://github.com/KKKKhazix/AIHOT/discussions/categories/show-and-tell): share the industry news site you built and what you learned.
+- Report security vulnerabilities privately, as described in [Security reports](SECURITY.md).
 
-## 贡献范围
+## What to contribute
 
-优先欢迎部署体验、通用采集能力、处理流程、公开接口、可访问性、文档和可复现故障的改进。大幅调整架构或产品行为前，先在 Issue 或讨论区说明场景和方案，避免投入后才发现方向不合适。
+Improvements to the deployment experience, general collection capabilities, the processing pipeline, public interfaces, accessibility, documentation and reproducible failures are especially welcome. Before a large change to the architecture or product behavior, describe the scenario and the plan in an Issue or a discussion, so you do not find out the direction does not fit after the work is done.
 
-只适合你所在行业的信源和精选标准，在自己的仓库里改 `industry/`；站名、品牌和页面改 `site/`；只有你的站需要的功能做成模块放进 `modules/`（见 [架构](docs/architecture.md#模块)）。步骤参考 [定制文档](docs/customize.md)。出于合规和风险考虑，完整运营信源名单暂不分享；本仓库也不持续维护微博、小红书等平台的专用采集适配，可以按 [信源文档](docs/sources.md) 接入你自行维护的外部采集结果。
+Sources and selection criteria that suit only your industry belong in `industry/` in your own repository; the site name, brand and pages belong in `site/`; a feature only your site needs becomes a module in `modules/` (see [Architecture](docs/architecture.md#modules)). The steps are in [Customizing](docs/customize.md). For compliance and risk reasons, the full list of sources in operation is not shared for now; this repository also does not maintain dedicated collection adapters for platforms such as Weibo and Xiaohongshu. You can bring in the results of an external collector you maintain yourself as described in [Sources](docs/sources.md).
 
-## 提交改动
+## Submitting a change
 
-1. Fork 本仓库，从最新的 `main` 创建自己的分支。若只是搭建一个独立站点，可以用 [Use this template](https://github.com/KKKKhazix/AIHOT/generate)；模板生成的项目没有共享提交历史，后续贡献代码或合并上游更新更适合用 Fork。
-2. 阅读 [AGENTS.md](AGENTS.md) 和改动对应的文档。保持一次 PR 解决一个清楚的问题，不夹带无关重构，也不夹带重装依赖带来的 `package-lock.json` 改动。依赖升级、Agent 规则文件（`AGENTS.md`、`CLAUDE.md`、`.agents/`、`.claude/`）和二进制文件不接受外部 PR 修改，需要时先开 Issue，由维护者来改。
-3. 按 [部署文档](docs/deploy.md) 配置本地环境。使用独立测试库，开发时关闭采集、模型调用和外部推送；不使用生产数据库或真实付费服务做测试。
-4. 验证改动涉及的行为，在 PR 中写明运行结果；来自 Fork 的 CI 要维护者批准后才运行，不能代替本地检查。代码改动执行 `npm run typecheck`、`npm test`、网页构建与网页测试；后端测试库名必须以 `_test` 或 `_ci` 结尾（没有会自动创建并迁移），每个测试文件在它的副本上并行运行，所以测试数据库账号要有 `CREATEDB` 权限。运行中的站点可用 `node scripts/smoke.ts --base http://localhost:3000` 检查。纯文档或模板改动核对链接、语法和实际展示即可，不需要为了凑数量新增测试。
-   改数据库时，已经发布的迁移不改，修正放进新文件；新文件只放一条允许在线执行的语句，PR 会自动检查，本地可以先跑 `node scripts/check-migrations.ts --base main`。规则见 [迁移约定](docs/architecture.md#数据库迁移)。
-   备份恢复测试还需要 `tar` 和与服务端版本兼容的 `pg_dump`/`pg_restore`；测试会创建并清理独立的临时恢复库和文件目录，不访问真实对象存储。
-5. 向本仓库 `main` 提交 PR，关联相关 Issue，并勾选 “Allow edits by maintainers”：小问题维护者可以直接在你的分支上改好再合并，不用你再跑一趟。还在改就开草稿，改好再标为就绪。页面改动附截图；涉及配置或升级步骤时同步更新文档，已部署的站点升级时要做的事写进 [部署文档](docs/deploy.md) 的“更新”一节。
+1. Fork this repository and create your branch from the latest `main`. If you only want to set up an independent site, you can use [Use this template](https://github.com/KKKKhazix/AIHOT/generate); a project generated from the template shares no commit history, so a fork suits contributing code or merging upstream updates better.
+2. Read [AGENTS.md](AGENTS.md) and the documents for the area you change. Keep each PR to one clear problem, without unrelated refactoring and without `package-lock.json` changes from reinstalling dependencies. Dependency upgrades, agent rule files (`AGENTS.md`, `CLAUDE.md`, `.agents/`, `.claude/`) and binary files are not changed by external PRs; open an Issue when one needs changing, and a maintainer will change it.
+3. Set up a local environment as in [Deployment](docs/deploy.md). Use a separate test database, and keep collection, model calls and external pushes off during development; do not test against a production database or real paid services.
+4. Verify the behavior your change touches and write the results in the PR; CI from a fork runs only after a maintainer approves it and does not replace local checks. For code changes, run `npm run typecheck`, `npm test`, and the web build and web tests. The backend test database name must end in `_test` or `_ci` (it is created and migrated if missing), and each test file runs in parallel on its own copy, so the test database account needs the `CREATEDB` privilege. A running site can be checked with `node scripts/smoke.ts --base http://localhost:3000`. A documentation or template change only needs its links, syntax and rendering checked; do not add tests just to add them.
+   When you change the database, do not change a released migration; put the fix in a new file. A new file holds one statement that is safe to run online, and the PR checks this automatically; you can run `node scripts/check-migrations.ts --base main` locally first. The rules are in the [migration rules](docs/architecture.md#database-migrations).
+   The backup and restore tests also need `tar` and a `pg_dump`/`pg_restore` compatible with the server version; the tests create and clean up their own temporary restore database and file directories, and do not access real object storage.
+5. Open the PR against `main` of this repository, link the related Issue, and tick "Allow edits by maintainers": for a small problem a maintainer can fix it on your branch and merge, without another round trip. Open a draft while you are still working and mark it ready when done. Attach screenshots for page changes; when configuration or upgrade steps are involved, update the documents too, and put what deployed sites must do when upgrading in the "Updating" section of [Deployment](docs/deploy.md).
 
-`main` 通过 PR 合并。准备合并时，请把 PR 分支整理成一个提交，保留正确的作者署名；更新已经推送的分支用 `git push --force-with-lease`。分支要包含最新的 `main`，GitHub 的 `check` 和 `docker` 在这个提交上通过后，维护者用 rebase 方式合并，保留你的作者信息。
+`main` is merged through PRs. When it is ready to merge, squash the PR branch into one commit with the correct authorship; update a branch you already pushed with `git push --force-with-lease`. The branch must include the latest `main`; after GitHub's `check` and `docker` pass on that commit, a maintainer merges it with rebase, keeping your authorship.
 
-请勿提交 `.env`、密钥、管理员密码、Cookie、生产数据或未获授权的素材；日志和截图也要先移除敏感信息。代码沿用 [MIT 许可证](LICENSE)，品牌和第三方素材说明见 [NOTICE](NOTICE)。
+Do not commit `.env`, secrets, admin passwords, cookies, production data or material you are not authorized to use; remove sensitive information from logs and screenshots too. The code is under the [MIT License](LICENSE); brand and third-party material are described in [NOTICE](NOTICE).

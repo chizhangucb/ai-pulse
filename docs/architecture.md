@@ -59,8 +59,6 @@ Business code is in `packages/backend/`; types and constants shared by front and
 | `scripts/` | Setup, migration, seed data, evaluation and check scripts |
 | `tests/` | Backend tests (the database name must end in `_test` or `_ci`; see below) |
 
-<a id="模块"></a>
-
 ## Modules
 
 A feature the framework lacks and only your site needs (a dedicated leaderboard or monitoring page, say) is a module: one folder per feature, `modules/<name>/`, an npm package named `@aihot/<name>` holding its own backend, endpoints, pages, styles, database migrations and tests.
@@ -77,8 +75,6 @@ A feature the framework lacks and only your site needs (a dedicated leaderboard 
 Once written, list it in the three lists in `site/modules/`: `index.ts` for addresses, `server.ts` for the backend, `web.ts` for the web, leaving out any it lacks; then add it to `dependencies` in `site/package.json`. With Docker, add a line `COPY modules/<name>/package.json modules/<name>/` to the `Dockerfile` like the other packages. The framework imports no module and reads only those three lists, so merging later updates of this repository rarely conflicts with your own features. When the hooks are not enough, add a general hook to the framework rather than putting the feature into it.
 
 Modules provide MCP tools through `agent.abilities`. `scripts/mcp-check.ts` always checks the full tool set; a module can give arguments in `mcp.checkArgs` that succeed on an empty database. Without them, only tools whose input schema accepts `{}` are really called with `{}`; the others are checked for discovery only, with no guessed arguments. A module tool's business behavior is tested by the module's own tests.
-
-<a id="数据库迁移"></a>
 
 ## Database migrations
 
