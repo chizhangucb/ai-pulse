@@ -1,5 +1,6 @@
 // Process heartbeats for the runs view and the watchdog: one settings row per process role.
 import { hostname } from "node:os";
+import { currentRelease } from "@aihot/contracts/release";
 import { sql } from "../db.ts";
 
 const startedAt = new Date().toISOString();
@@ -14,7 +15,7 @@ export type Heartbeat = {
 };
 
 async function beat(role: string) {
-  const value: Heartbeat = { pid: process.pid, host: hostname(), release: process.env.AIHOT_RELEASE ?? "dev", startedAt, at: new Date().toISOString() };
+  const value: Heartbeat = { pid: process.pid, host: hostname(), release: currentRelease(), startedAt, at: new Date().toISOString() };
   await sql`INSERT INTO settings (key, value, updated_by) VALUES (${`heartbeat.${role}`}, ${sql.json(value)}, ${role})
             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_by = EXCLUDED.updated_by, updated_at = now()`;
 }
