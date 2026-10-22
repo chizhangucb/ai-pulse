@@ -214,7 +214,7 @@ function assertReplacementConfig(kind: string, config: Record<string, unknown>):
 
 const CreateSchema = z
   .object({
-    id: z.string().regex(/^[a-z0-9][a-z0-9-]{2,79}$/),
+    id: z.string().regex(/^[a-z0-9][a-z0-9_-]{2,79}$/),
     name: z.string().min(1).max(200),
     kind: z.enum(["rss", "web_list", "json_list", "x_search", "mp_account", "external"]),
     config: z.record(z.string(), z.unknown()),

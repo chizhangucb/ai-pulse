@@ -44,7 +44,7 @@ export default function NewSource() {
       <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
         <Card title="Source">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="ID" hint="Lower-case letters, digits and hyphens; cannot change later">
+            <Field label="ID" hint="Lower-case letters, digits, hyphens and underscores; cannot change later">
               <Input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value.toLowerCase() })} placeholder="openai-blog" />
             </Field>
             <Field label="Name">
