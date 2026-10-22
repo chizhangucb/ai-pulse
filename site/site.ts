@@ -69,7 +69,7 @@ export const SITE = {
   /** Public contact email (optional), written into llms.txt and the agent guide. */
   contactEmail: null as string | null,
   /** Small line at the bottom of the about page (optional). */
-  footerNote: "Built on the open-source AIHOT framework (MIT)",
+  footerNote: null as string | null,
   /** Mainland China ICP filing number (optional); not used by this site. */
   icp: null as string | null,
   /** Mainland China public security filing (optional); not used by this site. */

@@ -1,12 +1,20 @@
-AIHOT
-Copyright (c) 2026 数字生命卡兹克. The code is licensed under the MIT License (LICENSE).
+AI Pulse
+Copyright (c) 2026 the AI Pulse authors. The code is licensed under the MIT License (LICENSE).
 
-The name "AIHOT" and the AIHOT logo are not licensed under the MIT License. Please use your own name
-and logo for your site.
+AI Pulse is built on AIHOT, an open-source AI news engine:
+  https://github.com/KKKKhazix/AIHOT
+  Copyright (c) 2026 数字生命卡兹克 (Digital Life Khazix), released under the MIT License.
+The MIT License text in LICENSE covers the AIHOT code this project is derived from; keep it with any copy.
+
+The name "AIHOT" and the AIHOT logo are not licensed under the MIT License, and AI Pulse does not use them.
+AI Pulse is an independent site and is not affiliated with AIHOT. The AI Pulse name, wordmark and icons are
+in site/brand/.
 
 This repository also contains third-party material under its own terms:
 
 - assets/og-fonts/: Noto Sans SC, SIL Open Font License 1.1 (assets/og-fonts/LICENSE).
+- site/brand/nameplates/ and site/brand/wordmark*.svg: glyph outlines from Noto Sans SC Black, SIL Open Font
+  License 1.1.
 
 The demo sources in industry/sources.json are public feeds of their publishers. Their content belongs
 to them; by default the site shows only a summary and a link to the original.
