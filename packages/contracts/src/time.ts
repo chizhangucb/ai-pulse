@@ -14,6 +14,8 @@ const WALL = new Intl.DateTimeFormat("en-US", {
 function wallClock(instant: Date | string | number): Date {
   const t = new Date(instant).getTime();
   const p = Object.fromEntries(WALL.formatToParts(t).map((x) => [x.type, x.value]));
+  // Intl drops the era, so a year outside 1–9999 would read as some other date: none is displayable.
+  if (!(Number(p.year) >= 1 && Number(p.year) <= 9999)) throw new RangeError(`date out of range: ${t}`);
   return new Date(Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), Number(p.hour), Number(p.minute), Number(p.second), t % 1000 < 0 ? t % 1000 + 1000 : t % 1000));
 }
 
