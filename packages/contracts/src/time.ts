@@ -71,6 +71,7 @@ export const siteStamp = (instant: Date | string | number) => `${siteDay(instant
 /** UTC instant of an HH:mm wall-clock time in the site's zone on the given calendar day. */
 export function siteAt(date: string, time: string): Date {
   const wall = Date.parse(`${date}T${time}:00Z`);
+  if (Number.isNaN(wall)) return new Date(NaN);
   // The offset at the wall time read as UTC is off by at most one transition; one more pass settles it.
   const first = wall - offsetMinutes(wall) * 60000;
   return new Date(wall - offsetMinutes(first) * 60000);

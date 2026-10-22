@@ -107,7 +107,7 @@ test("content incidents survive restarts, pauses, aging failures and partial rec
 // environment choice, else the site default. Failed calls a step made before it moved do not list it;
 // module steps count alike, and a step with nothing to do (an empty word list) is left out.
 test("refusal and spent-budget alerts name the steps currently routed to the provider", async () => {
-  const label = CAPABILITIES.score.label.split("（")[0]!;
+  const label = CAPABILITIES.score.label.split(" (")[0]!;
   const fallback = CAPABILITIES.score.default;
   const other = Object.keys(MODELS).find((key) => MODELS[key]!.service !== MODELS[fallback]!.service)!;
   const services = [MODELS[fallback]!.service, MODELS[other]!.service];
@@ -144,7 +144,7 @@ test("refusal and spent-budget alerts name the steps currently routed to the pro
     installModules([...installed, { name: "alert-test", models: { alertTest: { label: "模块测试步骤（说明）", env: "ALERT_TEST_MODEL", purposes: [] } } }]);
     process.env.ALERT_TEST_MODEL = other;
     assert.ok((await providerStops(services[1]!)).includes("模块测试步骤"));
-    const wording = CAPABILITIES.wording.label.split("（")[0]!;
+    const wording = CAPABILITIES.wording.label.split(" (")[0]!;
     assert.equal((await providerStops(MODELS[await modelFor("wording")]!.service)).includes(wording), READER_WORDING.length > 0);
   } finally {
     installModules(installed);
@@ -356,7 +356,7 @@ test("provider recovery follows the refused model and current routing", async ()
       VALUES(${r!.id},4,'dashscope','qwen3.8-flash','received')`;
     assert.ok((await checkAlerts(now+2*3600_000)).open.includes('provider.refused.dashscope:qwen3.7-flash'), 'another model cannot prove recovery');
     let finding=(await collectFindings(now+2*3600_000)).find(f=>f.key==='provider.refused.dashscope:qwen3.7-flash')!;
-    assert.match(finding.impact!, /精选预筛/);
+    assert.match(finding.impact!, /Pick prefilter/);
     assert.doesNotMatch(finding.impact!, /结构抽取/);
     process.env.PREFILTER_MODEL = "qwen3.8-flash";
     invalidateModelCache();
@@ -385,8 +385,8 @@ test("provider impact includes the same evaluated fallback as modelRoute", async
     const route = await modelRoute("summarize");
     assert.equal(route.fallbackModel, "test-backup");
     const steps = await stepsOnService("zhipu", new Set(["glm-5.3-flash"]));
-    assert.ok(steps.includes("标题摘要"), "the fallback can fail and stop articles even without a primary on this supplier");
-    assert.ok(!steps.includes("精选评分"), "an unevaluated fallback is not invented for other steps");
+    assert.ok(steps.includes("Title and summary"), "the fallback can fail and stop articles even without a primary on this supplier");
+    assert.ok(!steps.includes("Pick scoring"), "an unevaluated fallback is not invented for other steps");
   } finally {
     for (const [key, value] of Object.entries(envs)) if (value === undefined) delete process.env[key]; else process.env[key] = value;
     delete MODELS["test-primary"];

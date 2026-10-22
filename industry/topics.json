@@ -105,7 +105,7 @@
       "definition": "Popular open models, datasets, tools and leaderboards on Hugging Face."
     },
     {
-      "slug": "agents",
+      "slug": "agent",
       "name": "AI agents",
       "group": "field",
       "tags": [

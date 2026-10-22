@@ -15,16 +15,16 @@ test("topic lists and pool counts share the exact membership predicate", async (
   const at = new Date("2026-01-01T00:00:00Z");
   const now = new Date(+at + 1000);
   const cases = [
-    { title: "", original: null, tags: ["Agent"], topics: ["agent"] },
+    { title: "", original: null, tags: ["Agents"], topics: ["agent"] },
     { title: "Anthropic Agent", original: null, tags: [], topics: [] },
     { title: "", original: null, tags: ["entity:anthropic"], topics: ["anthropic"] },
     { title: "Unrelated", original: null, tags: ["entity:anthropic", "entity:openai"], topics: [] },
     { title: "Unrelated", original: "ANTHROPIC launches a model", tags: ["entity:anthropic", "entity:openai"], topics: ["anthropic"] },
     { title: "Metadata", original: null, tags: ["entity:meta", "entity:openai"], topics: [] },
     { title: "发布Meta的新模型", original: null, tags: ["entity:meta", "entity:openai"], topics: ["meta"] },
-    { title: "Unselected", original: null, tags: ["Agent", "entity:anthropic"], topics: ["agent", "anthropic"], selected: false },
-    { title: "Withdrawn", original: null, tags: ["Agent", "entity:anthropic"], topics: ["agent", "anthropic"], visibility: "withdrawn" },
-    { title: "Future", original: null, tags: ["Agent", "entity:anthropic"], topics: ["agent", "anthropic"], future: true },
+    { title: "Unselected", original: null, tags: ["Agents", "entity:anthropic"], topics: ["agent", "anthropic"], selected: false },
+    { title: "Withdrawn", original: null, tags: ["Agents", "entity:anthropic"], topics: ["agent", "anthropic"], visibility: "withdrawn" },
+    { title: "Future", original: null, tags: ["Agents", "entity:anthropic"], topics: ["agent", "anthropic"], future: true },
   ];
   await sql`INSERT INTO sources (id, name, kind, tier) VALUES (${prefix}, ${prefix}, 'rss', 'T1')`;
   for (const [i, row] of cases.entries()) {
