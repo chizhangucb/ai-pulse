@@ -26,7 +26,6 @@ export default defineRailway(() => {
     volumeMounts: { "/var/lib/postgresql/data": dbData },
     env: {
       DATABASE_URL: preserve(),
-      DATABASE_PUBLIC_URL: preserve(),
       PGDATA: preserve(),
       PGDATABASE: preserve(),
       PGHOST: preserve(),
