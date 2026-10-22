@@ -171,6 +171,33 @@ test("a bare-number answer is a score, and stays unusable where an object is ask
   }
 });
 
+async function answerWith<S extends z.ZodType>(content: string, schema: S) {
+  answer = () => content;
+  try {
+    const subject = `json-answer-${tag()}`;
+    return (await chatJson({ model: "deepseek-flash", purpose: "invariant_test", subject, promptVersion: "t1", system: "s", user: `input ${subject}`, schema })).data;
+  } finally {
+    answer = () => '{"ok":true}';
+  }
+}
+
+test("an answer the model corrects after a first object is read from the corrected object", async () => {
+  const content = '{"itemType":"product_launch","titleZh":"初稿","summaryZh":"第一版","extra_note": null}\n'
+    + "Correction: the answer must have exactly six fields.\n"
+    + '{"itemType":"product_launch","titleZh":"定稿","summaryZh":"第二版"}';
+  const data = await answerWith(content, z.object({ itemType: z.string(), titleZh: z.string(), summaryZh: z.string() }));
+  assert.deepEqual(data, { itemType: "product_launch", titleZh: "定稿", summaryZh: "第二版" });
+});
+
+test("when the last object does not fit the schema, an earlier one that fits is the answer", async () => {
+  assert.deepEqual(await answerWith('{"ok":true}\nOr, if a word is wanted:\n{"ok":"yes"}', z.object({ ok: z.boolean() })), { ok: true });
+});
+
+test("braces and escaped quotes inside a string value do not split or end an object", async () => {
+  const data = await answerWith('{"ok":true,"note":"opens { here, says \\"}\\" there"} (that brace } closes it)', z.object({ ok: z.boolean(), note: z.string() }));
+  assert.deepEqual(data, { ok: true, note: 'opens { here, says "}" there' });
+});
+
 test("the charge a provider reports with an answer (OpenRouter's usage.cost) is logged as its actual cost", async () => {
   const billed = await stub((hit) => ({ id: `stub-billed-${hit}`, choices: [{ message: { content: '{"ok":true}' } }], usage: { ...usage, cost: 0.000425 } }));
   const original = process.env.DEEPSEEK_BASE_URL;

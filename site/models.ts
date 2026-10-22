@@ -16,6 +16,10 @@ export const PRESETS: Record<string, ModelPreset> = {
     service: "openrouter", model: "anthropic/claude-haiku-5.5", baseUrlEnv: "LLM_BASE_URL", apiKeyEnv: "LLM_API_KEY",
     extra: { reasoning: { enabled: false } }, jsonMode: true, vision: true,
   },
+  // No `extra`: OpenRouter rejects reasoning: { enabled: false } for Sonnet 5.5.
+  "or-claude-sonnet": {
+    service: "openrouter", model: "anthropic/claude-sonnet-5.5", baseUrlEnv: "LLM_BASE_URL", apiKeyEnv: "LLM_API_KEY", jsonMode: true, vision: true,
+  },
   "or-gpt-luna": {
     service: "openrouter", model: "openai/gpt-6-luna", baseUrlEnv: "LLM_BASE_URL", apiKeyEnv: "LLM_API_KEY", jsonMode: true, vision: true,
   },

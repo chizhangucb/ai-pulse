@@ -1,6 +1,7 @@
 import { assertProductionSecrets, config } from "@aihot/backend/config";
 import { closeDb } from "@aihot/backend/db";
 import { installModules } from "@aihot/backend/modules";
+import { assertModelChoices } from "@aihot/backend/editorial/models";
 import { SERVER_MODULES } from "@aihot/site/modules/server";
 import { DEPLOYMENT } from "@aihot/site";
 import { feishuLoginConfigured } from "@aihot/backend/admin/auth";
@@ -9,6 +10,7 @@ import { startWorkerWatchdog } from "@aihot/backend/operations/watch";
 import { buildApp } from "./app.ts";
 
 installModules(SERVER_MODULES);
+assertModelChoices();
 assertProductionSecrets([
   ["auth", "SESSION_SECRET"],
   ["auth", "IMG_PROXY_SIGN_SECRET"],

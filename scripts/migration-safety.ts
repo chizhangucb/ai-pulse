@@ -65,6 +65,14 @@ function singleAction(tokens: string[]) {
   return depth === 0;
 }
 
+// A string literal may itself contain " , ", so the list is read item by item rather than split.
+function listLength(list: string, item: string): number | undefined {
+  const next = new RegExp(`${item}(?: , |$)`, "iy");
+  let count = 0;
+  for (; next.lastIndex < list.length; count++) if (!next.test(list)) return undefined;
+  return count;
+}
+
 export function migrationPlan(text: string): MigrationPlan {
   const all = statements(text);
   if (all.length !== 1) throw new Error("use one statement per online migration so strong table locks cannot accumulate");
@@ -104,5 +112,16 @@ export function migrationPlan(text: string): MigrationPlan {
   }
   if (alterDefault.test(sql)) return { kind: "transaction" };
   if (new RegExp(`^alter table ${RELATION} add constraint ${IDENT} (?:check \\(.*\\)|foreign key \\(.*\\) references .*) not valid$`, "i").test(sql)) return { kind: "transaction" };
+  // Seeding one row of constants takes ROW EXCLUSIVE, which permits ordinary reads and writes, and reads no
+  // rows; DO NOTHING keeps a row an operator already set. Only budgets, whose rows are configuration.
+  const seed = new RegExp(`^insert into (?:public \\. )?budgets \\( (.+) \\) values \\( (.+) \\) on conflict \\( ${IDENT}(?: , ${IDENT})* \\) do nothing$`, "i").exec(sql);
+  if (seed) {
+    const columns = listLength(seed[1], IDENT);
+    const values = listLength(seed[2], LITERAL);
+    if (columns !== undefined && values !== undefined) {
+      if (columns !== values) throw new Error("an INSERT needs exactly one value per column");
+      return { kind: "transaction" };
+    }
+  }
   throw new Error(`not safe for an online migration: ${sql.slice(0, 180)}. Use constant-default columns, NOT VALID then separate validation, concurrent indexes, column MCV statistics with separate column ANALYZE, bounded per-table vacuum scale factors, or DROP TABLE IF EXISTS / DROP COLUMN IF EXISTS / DROP CONSTRAINT IF EXISTS for one object nothing uses; backfill data in bounded batches outside release migrations.`);
 }

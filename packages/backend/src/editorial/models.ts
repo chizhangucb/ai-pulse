@@ -1,5 +1,6 @@
 // Model per capability: the code default (the site's choice in site/models.ts, else `default`, the deployment's
-// own model), an environment override, and an admin switch kept in settings (every switch is audited).
+// own model), an environment override, and an admin switch kept in settings (every switch is audited). A name
+// no model registers stops the api and worker at startup (assertModelChoices) rather than running another model.
 // Read at call time and cached for a minute, so a switch applies to the next call without a restart; a
 // changed model only affects work done from then on (history is not re-judged).
 import { READER_WORDING } from "@aihot/industry/wording";
@@ -85,12 +86,34 @@ export function capabilityAcceptsModel(capability: Capability, model: { vision?:
   return !capability.vision || model.vision === true;
 }
 
+/** A step's environment choice; an empty value counts as unset. */
+function envChoice(c: Capability): string | undefined {
+  return process.env[c.env] || undefined;
+}
+
+function unknownModel(where: string, model: string): string | undefined {
+  return MODELS[model] ? undefined : `Unknown model in ${where}=${model}; use default or a preset name from site/models.ts`;
+}
+
+/** Throws one error naming every step whose environment choice or site default is not a registered model. */
+export function assertModelChoices(): void {
+  const problems = Object.entries(capabilities()).flatMap(([key, c]) => {
+    const env = envChoice(c);
+    return [env && unknownModel(c.env, env), unknownModel(`DEFAULTS.${key}`, c.default)].filter((p): p is string => !!p);
+  });
+  if (problems.length) throw new Error(problems.join("\n"));
+}
+
 /** The model a capability uses now: admin switch, else environment, else the code default. */
 export async function modelFor(capability: CapabilityKey | (string & {})): Promise<string> {
   const c = capabilities()[capability];
   if (!c) throw new Error(`unknown model step: ${capability}`);
-  const chosen = (await overrides())[capability] ?? process.env[c.env] ?? c.default;
-  return MODELS[chosen] ? chosen : c.default;
+  const admin = (await overrides())[capability];
+  if (admin) return admin;
+  const env = envChoice(c);
+  const problem = env ? unknownModel(c.env, env) : unknownModel(`DEFAULTS.${capability}`, c.default);
+  if (problem) throw new Error(problem);
+  return env ?? c.default;
 }
 
 /** Where the current choice comes from, for the admin page. */
@@ -98,8 +121,9 @@ export async function modelSources(): Promise<Record<string, { model: string; so
   const o = await overrides();
   const out: Record<string, { model: string; source: "admin" | "env" | "default" }> = {};
   for (const [key, c] of Object.entries(capabilities())) {
+    const env = envChoice(c);
     if (o[key]) out[key] = { model: o[key]!, source: "admin" };
-    else if (process.env[c.env] && MODELS[process.env[c.env]!]) out[key] = { model: process.env[c.env]!, source: "env" };
+    else if (env) out[key] = { model: env, source: "env" };
     else out[key] = { model: c.default, source: "default" };
   }
   return out;

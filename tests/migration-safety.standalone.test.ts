@@ -45,6 +45,24 @@ test("online migrations permit metadata changes and split constraint validation"
   assert.throws(() => migrationPlan("ALTER TABLE articles ADD COLUMN flag text; ALTER TABLE articles VALIDATE CONSTRAINT positive;"));
 });
 
+// A default row (a budget for a new service) is one row of constants that leaves an existing row alone.
+test("online migrations seed one constant row and refuse any other insert", () => {
+  assert.equal(migrationPlan("INSERT INTO budgets (service, per_minute, note) VALUES ('example', 300, 'it''s a note') ON CONFLICT (service) DO NOTHING;").kind, "transaction");
+  assert.equal(migrationPlan("INSERT INTO public.budgets (service, note) VALUES ('example', 'one , two, and it''s three') ON CONFLICT (service) DO NOTHING;").kind, "transaction");
+  for (const statement of [
+    "INSERT INTO budgets (service, per_minute) VALUES ('example', 300);",
+    "INSERT INTO budgets (service, per_minute) VALUES ('example', 300) ON CONFLICT (service) DO UPDATE SET per_minute = 300;",
+    "INSERT INTO budgets (service, per_minute) VALUES ('a', 1), ('b', 2) ON CONFLICT (service) DO NOTHING;",
+    "INSERT INTO budgets (service, per_minute) SELECT id, 1 FROM sources ON CONFLICT (service) DO NOTHING;",
+    "INSERT INTO budgets (service, per_minute) VALUES ((SELECT max(id) FROM sources), 1) ON CONFLICT (service) DO NOTHING;",
+    "INSERT INTO budgets (service, updated_at) VALUES ('example', now()) ON CONFLICT (service) DO NOTHING;",
+    "INSERT INTO budgets VALUES ('example', 300) ON CONFLICT (service) DO NOTHING;",
+    "INSERT INTO sources (id, name) VALUES ('example', 'Example') ON CONFLICT (id) DO NOTHING;",
+    "INSERT INTO budgets (service, per_minute, note) VALUES ('example', 300) ON CONFLICT (service) DO NOTHING;",
+    "INSERT INTO budgets (service, note) VALUES ('example', 300, 'a , b') ON CONFLICT (service) DO NOTHING;",
+  ]) assert.throws(() => migrationPlan(statement), statement);
+});
+
 test("online vacuum tuning accepts only bounded insert and dead-tuple scale factors", () => {
   const statement = "ALTER TABLE analytics_events SET (autovacuum_vacuum_scale_factor = 0.02, autovacuum_vacuum_insert_scale_factor = 0.02);";
   assert.equal(migrationPlan(statement).kind, "transaction");

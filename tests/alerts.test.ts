@@ -103,7 +103,7 @@ test("content incidents survive restarts, pauses, aging failures and partial rec
   }
 });
 
-// F20: alerts about a paid service name the steps currently routed to it: the admin choice, else a valid
+// F20: alerts about a paid service name the steps currently routed to it: the admin choice, else the
 // environment choice, else the site default. Failed calls a step made before it moved do not list it;
 // module steps count alike, and a step with nothing to do (an empty word list) is left out.
 test("refusal and spent-budget alerts name the steps currently routed to the provider", async () => {
@@ -130,7 +130,6 @@ test("refusal and spent-budget alerts name the steps currently routed to the pro
       ["an environment choice", other, undefined, services[1]],
       ["the admin choice over the environment", other, fallback, services[0]],
       ["a valid environment choice over an unknown admin choice", other, "unknown-model", services[1]],
-      ["the default over an unknown environment choice", "unknown-model", undefined, services[0]],
     ] as const) {
       if (env === undefined) delete process.env.SCORE_MODEL; else process.env.SCORE_MODEL = env;
       await sql`DELETE FROM settings WHERE key = 'models.score'`;

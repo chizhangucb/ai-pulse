@@ -75,21 +75,48 @@ export interface ChatJsonResult<T> {
   usage: Record<string, unknown> | null;
 }
 
-function extractJson(text: string): unknown {
+/** Every complete top-level JSON object in the answer, in order; objects that do not parse are skipped. */
+function jsonCandidates(text: string): unknown[] {
   let t = text.trim();
   const fence = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(t);
   if (fence) t = fence[1]!;
   // A one-number answer ("81"): the schema of a step that asks for one number decides whether it may stand alone.
-  if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
-  const start = t.indexOf("{");
-  const end = t.lastIndexOf("}");
-  if (start === -1 || end === -1) throw new ModelOutputError("No JSON object in model output");
-  const body = t.slice(start, end + 1);
-  try {
-    return JSON.parse(body);
-  } catch {
-    return JSON.parse(escapeControlCharsInStrings(body));
+  if (/^-?\d+(\.\d+)?$/.test(t)) return [Number(t)];
+  const found: unknown[] = [];
+  let depth = 0, start = 0, inString = false, escaped = false;
+  for (let i = 0; i < t.length; i++) {
+    const ch = t[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+    } else if (ch === '"') inString = depth > 0; // quotes in prose between objects need not pair up
+    else if (ch === "{") { if (depth++ === 0) start = i; }
+    else if (ch === "}" && depth > 0 && --depth === 0) {
+      const body = t.slice(start, i + 1);
+      try {
+        found.push(JSON.parse(body));
+      } catch {
+        try { found.push(JSON.parse(escapeControlCharsInStrings(body))); } catch { /* not JSON after all */ }
+      }
+    }
   }
+  if (!found.length) throw new ModelOutputError("No JSON object in model output");
+  return found;
+}
+
+/**
+ * A model sometimes corrects itself after a first answer ("Correction: ... exactly six fields"), so the last
+ * object that fits the schema is its answer. If none fits, the last object's schema error says why.
+ */
+function lastFitting<S extends z.ZodType>(schema: S, candidates: unknown[]): z.infer<S> {
+  let failure: unknown;
+  for (let i = candidates.length - 1; i >= 0; i--) {
+    const result = schema.safeParse(candidates[i]);
+    if (result.success) return result.data;
+    failure ??= result.error;
+  }
+  throw failure;
 }
 
 /** Models sometimes emit raw newlines or tabs inside JSON strings (multi-line posts); escape only those. */
@@ -233,7 +260,7 @@ async function chatOnce<S extends z.ZodType>(opts: ChatJsonOptions<S>, circuit =
   const content = response.choices?.[0]?.message?.content ?? "";
   let parsed: z.infer<S>;
   try {
-    parsed = opts.schema.parse(opts.parse ? opts.parse(content) : extractJson(content));
+    parsed = opts.parse ? opts.schema.parse(opts.parse(content)) : lastFitting(opts.schema, jsonCandidates(content));
   } catch (error) {
     // Unusable output: record it and let a later attempt pay for a fresh answer. A reasoning model that
     // reasoned up to the output limit leaves an empty or cut-off answer; say so, and where to give it room.
