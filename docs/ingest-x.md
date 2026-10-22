@@ -13,6 +13,8 @@ Push each account under its own `sourceId`, so its posts are judged at its tier.
 
 One request per account, at most 50 posts. Put the post text in `title`, the post address in `url`, and the post time with its zone in `publishedAt`.
 
+The model judges a post on its text, and the site cannot fetch x.com or twitter.com pages. For those addresses the `title` is the text, so the payload below is judged as it is. Send the full text in `text` (or `body`) when it is longer than the title you want to store. Items from other sites can carry `text` or `body` too; without it they wait until the site has fetched the page.
+
 ```bash
 curl -X POST "$SITE_URL/api/ingest/items" \
   -H "Authorization: Bearer $INGEST_TOKEN" \

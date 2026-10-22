@@ -1,13 +1,27 @@
 // A paused external source must not accept new reports or look healthy after a rejected push.
-import "./setup.ts";
+import { pointModels, stub, tag } from "./setup.ts";
+import { analysisStep, SELECTING_SCORE } from "./analysis-steps.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import { closeDb, sql } from "@aihot/backend/db";
 import { IngestError, ingestItems } from "@aihot/backend/ingest/items";
+import { processArticle } from "@aihot/backend/jobs/content";
 import { stopBoss } from "@aihot/backend/jobs/queue";
-import { tag } from "./setup.ts";
+
+const steps: string[] = [];
+const provider = await stub((_hit, request) => {
+  const step = analysisStep(request.body);
+  steps.push(step);
+  const output = step === "prefilter" ? { label: "PASS", reason: "fixture" }
+    : step === "score" ? { attentionScore: SELECTING_SCORE }
+    : step === "structure" ? { scope: "single", category: "model", tags: [], subjects: [], fact: null }
+    : { itemType: "model_release", authorRole: "principal", titleZh: "OpenAI releases a new API model", summaryZh: "OpenAI says the new API model is faster and cheaper.", bodyZh: "OpenAI says the new API model is faster and cheaper.", tags: [], editorialJudgment: "fixture" };
+  return { choices: [{ message: { content: JSON.stringify(output) } }] };
+});
+pointModels(provider.url);
 
 after(async () => {
+  await provider.close();
   await stopBoss();
   await closeDb();
 });
@@ -52,4 +66,35 @@ test("a pushed X post from a seeded account goes to the same analysis queue as c
   const [article] = await sql<{ id: string }[]>`SELECT id FROM articles WHERE source_id = ${sourceId}`;
   const jobs = await sql<{ name: string }[]>`SELECT name FROM pgboss.job WHERE data->>'articleId' = ${article!.id}`;
   assert.deepEqual(jobs.map((j) => j.name), ["content.analyze"]);
+});
+
+test("the documented X payload, a post URL with only a title, is judged by the model without a page fetch", async () => {
+  const sourceId = `x-docs-${tag()}`;
+  await sql`
+    INSERT INTO sources (id, name, kind, config, tier, participation_mode, enabled, health)
+    VALUES (${sourceId}, 'X: OpenAI (@OpenAI)', 'external', '{}'::jsonb, 'T1', 'editorial', true, 'ok')`;
+  const title = "We are releasing a new model in the API today. It is faster and cheaper than the last one.";
+  await ingestItems({ sourceId, items: [{ title, url: `https://x.com/OpenAI/status/${Date.now()}`, publishedAt: new Date().toISOString(), author: "OpenAI" }] });
+  const [article] = await sql<{ id: string; body_text: string }[]>`SELECT id, body_text FROM articles WHERE source_id = ${sourceId}`;
+  assert.equal(article!.body_text, title);
+
+  steps.length = 0;
+  assert.deepEqual(await processArticle(article!.id, { attemptTag: tag() }), { state: "pass" });
+  assert.equal(steps.filter((step) => step === "score").length, 2);
+});
+
+test("pushed text or body is the article text; a title alone off X still waits for its page", async () => {
+  const sourceId = `test-text-ingest-${tag()}`;
+  await ingestItems({ sourceId, items: [
+    { title: "Launch post", text: "The full launch post.", url: `https://example.org/${sourceId}/text` },
+    { title: "Paper", body: "The paper's abstract.", url: `https://example.org/${sourceId}/body` },
+    { title: "Title only", url: `https://example.org/${sourceId}/title` },
+  ] });
+  const rows = await sql<{ title: string; body_text: string | null; body_status: string }[]>`
+    SELECT title, body_text, body_status FROM articles WHERE source_id = ${sourceId} ORDER BY title`;
+  assert.deepEqual(rows.map((r) => [r.title, r.body_text, r.body_status]), [
+    ["Launch post", "The full launch post.", "ok"],
+    ["Paper", "The paper's abstract.", "ok"],
+    ["Title only", null, "pending"],
+  ]);
 });
