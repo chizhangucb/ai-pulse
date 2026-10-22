@@ -769,6 +769,7 @@
         "feedUrl": "https://www.databricks.com/feed"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -788,6 +789,7 @@
         "feedUrl": "https://pytorch.org/feed/"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -840,6 +842,7 @@
         "publishedAtSelector": "[data-testid='post-date']"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -905,6 +908,7 @@
         "feedUrl": "https://news.mit.edu/rss/topic/artificial-intelligence2"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -936,6 +940,7 @@
         "publishedAtSelector": "p"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -975,6 +980,7 @@
         "feedUrl": "https://tessl.io/blog/rss.xml"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1040,6 +1046,7 @@
         "publishedAtSelector": "span > p"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1059,6 +1066,7 @@
         "feedUrl": "https://blog.n8n.io/rss/"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1135,6 +1143,7 @@
         "feedUrl": "https://modal.com/blog/atom.xml"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1168,6 +1177,7 @@
         "publishedAtSelector": "time"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1199,6 +1209,7 @@
         "publishedAtSelector": ".date-color"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1219,6 +1230,7 @@
         "feedUrl": "https://ampcode.com/news.rss"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1258,6 +1270,7 @@
         "feedUrl": "https://research.ibm.com/rss"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1289,6 +1302,7 @@
         "publishedAtSelector": "time"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1309,6 +1323,7 @@
         "feedUrl": "https://metr.org/feed.xml"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1329,6 +1344,7 @@
         "feedUrl": "https://sierra.ai/rss.xml"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1349,6 +1365,7 @@
         "sortByPublishedAt": true
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1368,6 +1385,7 @@
         "feedUrl": "https://sakana.ai/feed.xml"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1400,6 +1418,7 @@
         "publishedAtSelector": "p.PostDate"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1431,6 +1450,7 @@
         "publishedAtSelector": "p[class*='_postDate_']"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1461,6 +1481,7 @@
         ]
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1480,6 +1501,7 @@
         "feedUrl": "https://blog.redwoodresearch.org/feed"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1511,6 +1533,7 @@
         "publishedAtSelector": "time"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1544,6 +1567,7 @@
         "publishedAtPath": "date"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1617,6 +1641,7 @@
         "publishedAtSelector": "p"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1637,6 +1662,7 @@
         "feedUrl": "https://openclaw.ai/rss.xml"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1694,6 +1720,7 @@
         "publishedAtSelector": "p:first-child"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1735,6 +1762,7 @@
         "feedUrl": "https://www.sarvam.ai/rss.xml"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1764,6 +1792,7 @@
         "publishedAtRegex": "href=\\\"/research/papers/[^\\\"]*-(\\d{4}-\\d{2}-\\d{2})\\\""
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1824,6 +1853,7 @@
         ]
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1885,6 +1915,7 @@
         "publishedAtSelector": "time"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1937,6 +1968,7 @@
         "publishedAtSelector": "time"
       },
       "tier": "T1",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -1972,6 +2004,7 @@
         "publishedAtSelector": "div.text-xxs"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -1991,6 +2024,7 @@
         "feedUrl": "https://www.oreilly.com/radar/feed/"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
@@ -2010,6 +2044,7 @@
         "feedUrl": "https://tomtunguz.com/index.xml"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2029,6 +2064,7 @@
         "feedUrl": "https://www.chinatalk.media/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2049,6 +2085,7 @@
         "feedUrl": "https://www.a16z.news/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2068,6 +2105,7 @@
         "feedUrl": "https://garymarcus.substack.com/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2087,6 +2125,7 @@
         "feedUrl": "https://www.newcomer.co/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2106,6 +2145,7 @@
         "feedUrl": "https://www.exponentialview.co/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2125,6 +2165,7 @@
         "feedUrl": "https://newsletter.pragmaticengineer.com/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2144,6 +2185,7 @@
         "feedUrl": "https://www.platformer.news/rss/"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2163,6 +2205,7 @@
         "feedUrl": "https://www.bigtechnology.com/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2182,6 +2225,7 @@
         "feedUrl": "https://www.wheresyoured.at/rss/"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2201,6 +2245,7 @@
         "feedUrl": "https://recodechinaai.substack.com/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2220,6 +2265,7 @@
         "feedUrl": "https://www.understandingai.org/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2239,6 +2285,7 @@
         "feedUrl": "https://hamel.dev/index.xml"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2258,6 +2305,7 @@
         "feedUrl": "https://www.dwarkesh.com/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
@@ -2277,6 +2325,7 @@
         "feedUrl": "https://press.airstreet.com/feed"
       },
       "tier": "T2",
+      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 240,
       "tags": [
