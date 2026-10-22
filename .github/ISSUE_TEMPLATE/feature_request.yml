@@ -5,9 +5,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Ideas still being explored can go to the [Ideas discussions](https://github.com/KKKKhazix/AIHOT/discussions/categories/ideas) first.
-        This repository does not provide a full list of production sources, and does not maintain dedicated collectors for platforms such as Weibo or Xiaohongshu; see the [sources documentation](https://github.com/KKKKhazix/AIHOT/blob/main/docs/sources.md) to bring in results from an outside collector.
-        A feature only your site needs can be built as a module in `modules/` in your own repository; see the [architecture documentation](https://github.com/KKKKhazix/AIHOT/blob/main/docs/architecture.md#模块).
+        Ideas still being explored can go to the [Ideas discussions](https://github.com/chizhangucb/ai-pulse/discussions/categories/ideas) first.
+        This repository does not provide a full list of production sources, and does not maintain dedicated collectors for platforms such as Weibo or Xiaohongshu; see the [sources documentation](https://github.com/chizhangucb/ai-pulse/blob/main/docs/sources.md) to bring in results from an outside collector.
+        A feature only your site needs can be built as a module in `modules/` in your own repository; see the [architecture documentation](https://github.com/chizhangucb/ai-pulse/blob/main/docs/architecture.md).
   - type: textarea
     id: problem
     attributes:

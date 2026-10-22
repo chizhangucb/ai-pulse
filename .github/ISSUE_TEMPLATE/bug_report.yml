@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Questions about deploying and using the site can go to the [Q&A discussions](https://github.com/KKKKhazix/AIHOT/discussions/categories/q-a) first.
-        Report security vulnerabilities through a [private vulnerability report](https://github.com/KKKKhazix/AIHOT/security/advisories/new).
+        Questions about deploying and using the site can go to the [Q&A discussions](https://github.com/chizhangucb/ai-pulse/discussions/categories/q-a) first.
+        Report security vulnerabilities through a [private vulnerability report](https://github.com/chizhangucb/ai-pulse/security/advisories/new).
         Do not upload a full .env, API keys, the admin password, cookies or a production database.
   - type: input
     id: revision

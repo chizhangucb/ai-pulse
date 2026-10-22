@@ -1,14 +1,14 @@
 blank_issues_enabled: true
 contact_links:
   - name: Deployment and usage Q&A
-    url: https://github.com/KKKKhazix/AIHOT/discussions/categories/q-a
+    url: https://github.com/chizhangucb/ai-pulse/discussions/categories/q-a
     about: Questions about installing, configuring, deploying and using the site.
   - name: Ideas
-    url: https://github.com/KKKKhazix/AIHOT/discussions/categories/ideas
+    url: https://github.com/chizhangucb/ai-pulse/discussions/categories/ideas
     about: Discuss ideas that are not yet a concrete development task.
   - name: Show and tell
-    url: https://github.com/KKKKhazix/AIHOT/discussions/categories/show-and-tell
+    url: https://github.com/chizhangucb/ai-pulse/discussions/categories/show-and-tell
     about: Share the industry news site you built and what you learned.
   - name: Report a security vulnerability privately
-    url: https://github.com/KKKKhazix/AIHOT/security/advisories/new
+    url: https://github.com/chizhangucb/ai-pulse/security/advisories/new
     about: Report security vulnerabilities here; do not disclose exploit details in a public issue.
