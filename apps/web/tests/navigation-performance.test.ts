@@ -91,11 +91,11 @@ test('SSR list and visited query variants return offline without another read',a
     await page.goBack();
     await expect(page.getByRole('link',{name:'性能检查文章',exact:true})).toBeVisible({timeout:1500});
     await context.setOffline(false);
-    await page.getByRole('button',{name:/^筛选/}).click();
-    await page.getByRole('link',{name:'模型',exact:true}).click();
+    await page.getByRole('button',{name:/^Filter/}).click();
+    await page.getByRole('link',{name:'Models',exact:true}).click();
     await expect(page.getByRole('link',{name:'分类 ai-models',exact:true})).toBeVisible();
-    await page.getByRole('button',{name:/^筛选/}).click();
-    await page.getByRole('link',{name:'产品',exact:true}).click();
+    await page.getByRole('button',{name:/^Filter/}).click();
+    await page.getByRole('link',{name:'Products & agents',exact:true}).click();
     await expect(page.getByRole('link',{name:'分类 ai-products',exact:true})).toBeVisible();
     await context.setOffline(true);
     await page.goBack();
@@ -114,7 +114,7 @@ test('hover downloads nothing, a press fetches article data once for its click, 
     // In one task, as a scroll moves within the hold that makes a still touch a press; two calls can be further apart.
     await link.evaluate(a=>{for(const type of ['touchstart','touchmove'])a.dispatchEvent(new TouchEvent(type,{bubbles:true,cancelable:true,composed:true}));});
     await link.hover();await page.waitForTimeout(300);
-    await page.getByRole('heading',{name:'精选',exact:true}).click();
+    await page.getByRole('heading',{name:'Picks',exact:true}).click();
     assert.equal(hits.slice(start).filter(x=>x.startsWith('/api/site/items/')).length,0);
     await link.click();await expect(page.getByText('固定正文',{exact:true})).toBeVisible();
     assert.equal(hits.slice(start).filter(x=>x.startsWith('/api/site/items/')).length,1,'the click reuses the prefetch its press started');
@@ -123,7 +123,7 @@ test('hover downloads nothing, a press fetches article data once for its click, 
       await visit(freshPage,origin+'/');failing='/api/site/items/navigation-fixture';
       const failed=freshPage.waitForResponse(r=>r.url().includes('/items/navigation-fixture.data')&&r.status()===503);
       await freshPage.getByRole('link',{name:'性能检查文章',exact:true}).dispatchEvent('pointerdown',press);await failed;
-      await expect(freshPage.getByRole('heading',{name:'精选',exact:true})).toBeVisible();
+      await expect(freshPage.getByRole('heading',{name:'Picks',exact:true})).toBeVisible();
     }finally{await fresh.close();}
   }finally{failing='';await context.close();}
 });
@@ -137,10 +137,10 @@ test('SSR all-pages and report kinds return offline with their own content',asyn
     await context.setOffline(true);await page.goBack();
     await expect(page.getByRole('link',{name:'全部第 1 页',exact:true})).toBeVisible({timeout:1500});
     await context.setOffline(false);await visit(page,origin+'/daily');
-    await page.getByRole('link',{name:'周报',exact:true}).click();
-    await expect(page.locator('#report-start')).toContainText('周报');
-    await context.setOffline(true);await page.getByRole('link',{name:'日报',exact:true}).click();
-    await expect(page.locator('#report-start')).toContainText('日报',{timeout:1500});
+    await page.getByRole('link',{name:'Weekly',exact:true}).click();
+    await expect(page.locator('#report-start')).toContainText('Weekly');
+    await context.setOffline(true);await page.getByRole('link',{name:'Daily',exact:true}).click();
+    await expect(page.locator('#report-start')).toContainText('Daily',{timeout:1500});
   }finally{await context.close();}
 });
 
@@ -153,16 +153,16 @@ test('a press on a selected link preserves visited data and the next revisit sta
   page.on('request',request=>{if(request.url().includes('.data'))requests.push(request.url());});
   try{
     await visit(page,origin+'/');
-    await page.getByRole('link',{name:'模型',exact:true}).click();
+    await page.getByRole('link',{name:'Models',exact:true}).click();
     await expect(page.getByRole('link',{name:'分类 ai-models',exact:true})).toBeVisible();
-    await page.getByRole('link',{name:'模型',exact:true}).dispatchEvent('pointerdown',{button:0,pointerType:'mouse',isPrimary:true});
+    await page.getByRole('link',{name:'Models',exact:true}).dispatchEvent('pointerdown',{button:0,pointerType:'mouse',isPrimary:true});
     await page.waitForTimeout(150);
-    await page.getByRole('link',{name:'产品',exact:true}).click();
+    await page.getByRole('link',{name:'Products & agents',exact:true}).click();
     await expect(page.getByRole('link',{name:'分类 ai-products',exact:true})).toBeVisible();
-    await page.getByRole('link',{name:'产品',exact:true}).dispatchEvent('pointerdown',{button:0,pointerType:'mouse',isPrimary:true});
+    await page.getByRole('link',{name:'Products & agents',exact:true}).dispatchEvent('pointerdown',{button:0,pointerType:'mouse',isPrimary:true});
     await page.waitForTimeout(150);
     const before=requests.length;
-    await page.getByRole('link',{name:'模型',exact:true}).click();
+    await page.getByRole('link',{name:'Models',exact:true}).click();
     await expect(page.getByRole('link',{name:'分类 ai-models',exact:true})).toBeVisible();
     assert.deepEqual(requests.slice(before),[],'neither prefetch nor navigation may evict and reload a still-valid visited page');
   }finally{await context.close();}
@@ -176,7 +176,7 @@ test('a revisit never renews the original deadline; an expired read shows an err
     await page.getByRole('link',{name:'性能检查文章',exact:true}).click();await expect(page.getByText('固定正文',{exact:true})).toBeVisible();
     failing='/api/site/timeline';
     await page.clock.runFor(1500);
-    await page.goBack();await expect(page.getByRole('heading',{name:'暂时无法加载',exact:true})).toBeVisible();
+    await page.goBack();await expect(page.getByRole('heading',{name:'Could not load',exact:true})).toBeVisible();
     failing='';ttl=60;
     await page.reload();await expect(page.getByRole('link',{name:'性能检查文章',exact:true})).toBeVisible();
   }finally{ttl=60;failing='';await context.close();}
@@ -198,7 +198,7 @@ test('Agent tabs finish offline with matching canonical; invalid direct tabs and
   try{
     await visit(page,origin+'/agent');
     await context.setOffline(true);
-    await page.getByRole('tablist',{name:'接入方式'}).getByRole('tab',{selected:true}).click();
+    await page.getByRole('tablist',{name:'Ways to connect'}).getByRole('tab',{selected:true}).click();
     await expect(page.locator('#agent-panel')).not.toBeEmpty();
     for(const [tab,name] of [['mcp',/^MCP/],['rss',/^RSS/],['api',/^REST API/]] as const){
       const choice=page.getByRole('tab',{name});
@@ -226,19 +226,19 @@ test('phone suggestions load only on opening, use one small read, retry failures
     suggestionsVersion=1;await visit(page,origin+'/');
     assert.equal(hits.filter(x=>x==='/api/site/search/suggestions').length,0);
     let start=hits.length;
-    await page.getByRole('button',{name:'搜索',exact:true}).click();
+    await page.getByRole('button',{name:'Search',exact:true}).click();
     await expect(page.getByRole('link',{name:'1 建议版本 1',exact:true})).toBeVisible();
     assert.deepEqual(hits.slice(start),['/api/site/search/suggestions']);
-    await page.getByRole('button',{name:'取消',exact:true}).click();
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();
     suggestionsVersion=2;start=hits.length;
-    await page.getByRole('button',{name:'搜索',exact:true}).click();
+    await page.getByRole('button',{name:'Search',exact:true}).click();
     await expect(page.getByRole('link',{name:'1 建议版本 2',exact:true})).toBeVisible();
     assert.deepEqual(hits.slice(start),['/api/site/search/suggestions']);
-    await page.getByRole('button',{name:'取消',exact:true}).click();
-    failing='/api/site/search/suggestions';await page.getByRole('button',{name:'搜索',exact:true}).click();
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();
+    failing='/api/site/search/suggestions';await page.getByRole('button',{name:'Search',exact:true}).click();
     await expect(page.getByRole('link',{name:'1 建议版本 2',exact:true})).not.toBeVisible();
-    await page.getByRole('button',{name:'取消',exact:true}).click();failing='';suggestionsVersion=3;
-    await page.getByRole('button',{name:'搜索',exact:true}).click();
+    await page.getByRole('button',{name:'Cancel',exact:true}).click();failing='';suggestionsVersion=3;
+    await page.getByRole('button',{name:'Search',exact:true}).click();
     await expect(page.getByRole('link',{name:'1 建议版本 3',exact:true})).toBeVisible();
   }finally{failing='';await context.close();}
 });
@@ -260,7 +260,7 @@ test('reader enhancements wait for visible code and update only the picture that
     assert.equal(await source.textContent(),codeSource,'colouring preserves the copyable text');
     assert.equal(scripts.length,1);
     await page.locator('.code-block-copy').first().click();
-    await expect(page.locator('.code-block-copy').first()).toHaveText('已复制');
+    await expect(page.locator('.code-block-copy').first()).toHaveText('Copied');
     assert.equal(await page.locator('.prose pre code').nth(1).textContent(),'x = 1');
     for(let i=0;i<12;i++){
       const picture=page.locator(`.prose img[alt="正文配图 ${i}"]`);
@@ -270,7 +270,7 @@ test('reader enhancements wait for visible code and update only the picture that
     const tiny=page.locator('.prose img[alt="小图标"]');await tiny.scrollIntoViewIfNeeded();
     await expect(tiny).not.toHaveAttribute('role','button');
     await expect(page.locator('.prose a img')).not.toHaveAttribute('role','button');
-    await page.getByRole('navigation',{name:'正文语言'}).getByRole('link',{name:'原文',exact:true}).click();
+    await page.getByRole('navigation',{name:'Text language'}).getByRole('link',{name:'Original',exact:true}).click();
     await expect(page.getByText('Original reader text',{exact:true})).toBeVisible();
     assert.equal(await page.locator('.code-block-copy').count(),0);
   }finally{await context.close();}
@@ -282,7 +282,7 @@ test('deep reading returns to its anchor, including folded dates',async()=>{
   try{
     await visit(page,origin+'/?tag=long-reading');
     await expect(page.locator('[data-card-key]')).toHaveCount(180);
-    await page.getByRole('button',{name:'收起10月4日',exact:true}).click();
+    await page.getByRole('button',{name:'Collapse Oct 4',exact:true}).click();
     await expect(page.locator('[data-card-key]')).toHaveCount(120);
     await page.getByRole('link',{name:'长列表文章 160',exact:true}).scrollIntoViewIfNeeded();
     const before=await page.evaluate(()=>{
@@ -294,6 +294,6 @@ test('deep reading returns to its anchor, including folded dates',async()=>{
     await page.goBack();
     await expect(page.locator('[data-card-key]')).toHaveCount(120);
     await expect.poll(()=>page.locator(`[data-card-key="${before.key}"]`).evaluate((e,top)=>Math.abs(e.getBoundingClientRect().top-top),before.top)).toBeLessThan(2);
-    await expect(page.getByRole('button',{name:'展开10月4日',exact:true})).toBeVisible();
+    await expect(page.getByRole('button',{name:'Expand Oct 4',exact:true})).toBeVisible();
   }finally{await context.close();}
 });

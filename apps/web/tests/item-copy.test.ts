@@ -1,4 +1,4 @@
-// Failure mode: WeChat's in-app browser cannot save downloads, so the article offers "复制 Markdown" there
+// Failure mode: WeChat's in-app browser cannot save downloads, so the article offers "Copy Markdown" there
 // instead; it copied with the async clipboard, which that browser does not have, and always failed.
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -7,7 +7,7 @@ import { fakeApi, itemDetail, startWebServer, visit, type WebServer } from "./we
 
 const markdown = "# 复制检查\n\n固定正文";
 
-test("in WeChat, 复制 Markdown copies the article without the async clipboard", async () => {
+test("in WeChat, Copy Markdown copies the article without the async clipboard", async () => {
   const api = fakeApi((url, res) => {
     if (url.pathname === "/api/site/items/wechat-copy") return itemDetail({ id: "wechat-copy", title: "复制检查" });
     if (url.pathname === "/items/wechat-copy/markdown") {
@@ -34,9 +34,9 @@ test("in WeChat, 复制 Markdown copies the article without the async clipboard"
     });
     const page = await context.newPage();
     await visit(page, web.origin + "/items/wechat-copy");
-    await page.getByRole("button", { name: "更多操作" }).filter({ visible: true }).click();
-    await page.getByRole("menuitem", { name: "复制 Markdown" }).click();
-    await expect(page.getByRole("status")).toHaveText("Markdown 已复制");
+    await page.getByRole("button", { name: "More actions" }).filter({ visible: true }).click();
+    await page.getByRole("menuitem", { name: "Copy Markdown" }).click();
+    await expect(page.getByRole("status")).toHaveText("Markdown copied");
     assert.equal(await page.evaluate(() => (window as { copied?: string }).copied), markdown);
   } finally {
     await browser.close();

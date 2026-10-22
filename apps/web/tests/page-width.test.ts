@@ -1,5 +1,5 @@
 // Failures: an unbroken URL in a report's lead widened the phone layout and pushed the fifth tab off
-// screen; an open "另外 N 家也报道了" took its longest title's width and scrolled a narrow desktop window
+// screen; an open "N more sources reported this" took its longest title's width and scrolled a narrow desktop window
 // sideways (2026-10-16). Pages must fit the window at phone, narrow-phone and narrow-desktop widths.
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
@@ -56,7 +56,7 @@ const PAGES: Array<{ path: string; ready: (page: Page, width: number) => Promise
     ready: async (page: Page, width: number) => {
       // Desktop opens the group in place; phones open it in a sheet.
       if (width < 961) return expect(page.getByRole("link", { name: "代表文章", exact: true })).toBeVisible();
-      await page.getByRole("button", { name: "另外 1 家也报道了" }).filter({ visible: true }).click();
+      await page.getByRole("button", { name: "1 more source reported this" }).filter({ visible: true }).click();
       await expect(page.getByRole("link", { name: longTitle })).toBeVisible();
     },
   },
