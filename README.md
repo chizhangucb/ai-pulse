@@ -6,7 +6,7 @@ AI Pulse is built on [AIHOT](https://github.com/KKKKhazix/AIHOT), an open-source
 
 ## What it does
 
-1. **Collect.** The demo configuration watches 36 feeds (official blogs, research labs, news sites, newsletters and GitHub release feeds) and 32 X accounts. Busy sources are checked more often, as often as every 15 minutes.
+1. **Collect.** The demo configuration watches 36 feeds (official blogs, research labs, news sites, newsletters and GitHub release feeds) and 98 X accounts. Busy sources are checked more often, as often as every 15 minutes.
 2. **Store.** Everything collected is kept. Reports of the same story from different sources are grouped into one story, and the trending list is built from those stories.
 3. **Pick.** A model first checks that an item is about AI and has real news in it. Items that might matter are scored twice, independently, against a threshold set by the source's tier. The model then writes a plain title, a short summary and why it matters. Marketing and reposts do not get in.
 4. **Publish.** A daily brief every day at 08:00 PT, a weekly brief every Monday at 10:00 PT and a monthly brief on the 1st at 10:30 PT. The daily brief covers the 24 hours before it.
