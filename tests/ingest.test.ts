@@ -40,3 +40,16 @@ test("an externally reported calendar day stays date-only through storage", asyn
   assert.equal(row!.publication_time, "2026-10-13");
   assert.equal(row!.published_at_claim.toISOString(), "2026-10-13T00:00:00.000Z");
 });
+
+test("a pushed X post from a seeded account goes to the same analysis queue as collected items", async () => {
+  const sourceId = `x-test-${tag()}`;
+  await sql`
+    INSERT INTO sources (id, name, kind, config, tier, owner_entity_id, participation_mode, enabled, health)
+    VALUES (${sourceId}, 'X: Test Lab (@testlab)', 'external', '{"publisherRole":"organization"}'::jsonb, 'T1_5', 'openai', 'editorial', true, 'ok')`;
+  const url = `https://x.com/testlab/status/${Date.now()}`;
+  assert.deepEqual(await ingestItems({ sourceId, items: [{ title: "We are releasing a new open-weights model today.", url, publishedAt: new Date().toISOString(), author: "testlab" }] }), { ok: true, created: 1 });
+
+  const [article] = await sql<{ id: string }[]>`SELECT id FROM articles WHERE source_id = ${sourceId}`;
+  const jobs = await sql<{ name: string }[]>`SELECT name FROM pgboss.job WHERE data->>'articleId' = ${article!.id}`;
+  assert.deepEqual(jobs.map((j) => j.name), ["content.analyze"]);
+});

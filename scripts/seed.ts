@@ -1,5 +1,6 @@
-// Seeds a fresh site from the industry pack: the demo sources (industry/sources.json, only the ones not
-// there yet, so admin edits are never undone). Topics need no seeding: they are read from industry/topics.json.
+// Seeds a fresh site from the industry pack: the demo sources (industry/sources.json) and one external source per
+// X account in industry/x-accounts.json (its posts are pushed through POST /api/ingest/items), only the ones not
+// there yet, so admin edits are never undone. Topics need no seeding: they are read from industry/topics.json.
 // Re-runnable:  node --env-file=.env scripts/seed.ts
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -22,7 +23,29 @@ interface SeedSource {
   enabled?: boolean;
 }
 
-const { sources } = JSON.parse(readFileSync(path.join(REPO_ROOT, "industry/sources.json"), "utf8")) as { sources: SeedSource[] };
+interface XAccount {
+  handle: string;
+  name: string;
+  tier: string;
+  owner_entity_id?: string;
+  publisherRole?: "organization" | "person";
+}
+
+const read = <T>(file: string): T => JSON.parse(readFileSync(path.join(REPO_ROOT, file), "utf8")) as T;
+const { accounts } = read<{ accounts: XAccount[] }>("industry/x-accounts.json");
+// Pushed accounts are editorial from the start; an unknown sourceId pushed to the endpoint is created isolated.
+const xSources: SeedSource[] = accounts.map((a) => ({
+  id: `x-${a.handle.toLowerCase()}`,
+  name: `X: ${a.name} (@${a.handle})`,
+  kind: "external",
+  config: a.publisherRole ? { publisherRole: a.publisherRole } : {},
+  tier: a.tier,
+  owner_entity_id: a.owner_entity_id ?? null,
+  participation_mode: "editorial",
+  interval_minutes: 60,
+  tags: ["X"],
+}));
+const sources = [...read<{ sources: SeedSource[] }>("industry/sources.json").sources, ...xSources];
 let added = 0;
 for (const s of sources) {
   assertSupportedConfig(s.kind, s.config);

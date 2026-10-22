@@ -1,0 +1,213 @@
+{
+  "$comment": "X accounts whose posts an external job pushes hourly through POST /api/ingest/items (docs/ingest-x.md). scripts/seed.ts creates one editorial external source per account, id x-<handle in lower case>, so pushed posts are picked like any other source at the account's tier. T1_5: official accounts and company leaders (with owner_entity_id and publisherRole); T2: independent researchers and writers.",
+  "accounts": [
+    {
+      "handle": "OpenAI",
+      "name": "OpenAI",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "OpenAIDevs",
+      "name": "OpenAI Developers",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "AnthropicAI",
+      "name": "Anthropic",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "claudeai",
+      "name": "Claude",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "GoogleDeepMind",
+      "name": "Google DeepMind",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "GoogleAI",
+      "name": "Google AI",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "AIatMeta",
+      "name": "AI at Meta",
+      "tier": "T1_5",
+      "owner_entity_id": "meta",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "MistralAI",
+      "name": "Mistral AI",
+      "tier": "T1_5",
+      "owner_entity_id": "mistral",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "xai",
+      "name": "xAI",
+      "tier": "T1_5",
+      "owner_entity_id": "xai",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "huggingface",
+      "name": "Hugging Face",
+      "tier": "T1_5",
+      "owner_entity_id": "hugging-face",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "NVIDIAAI",
+      "name": "NVIDIA AI",
+      "tier": "T1_5",
+      "owner_entity_id": "nvidia",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "MSFTResearch",
+      "name": "Microsoft Research",
+      "tier": "T1_5",
+      "owner_entity_id": "microsoft",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "deepseek_ai",
+      "name": "DeepSeek",
+      "tier": "T1_5",
+      "owner_entity_id": "deepseek",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "Alibaba_Qwen",
+      "name": "Qwen",
+      "tier": "T1_5",
+      "owner_entity_id": "qwen",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "sama",
+      "name": "Sam Altman",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "gdb",
+      "name": "Greg Brockman",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "demishassabis",
+      "name": "Demis Hassabis",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "JeffDean",
+      "name": "Jeff Dean",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "OfficialLoganK",
+      "name": "Logan Kilpatrick",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "sundarpichai",
+      "name": "Sundar Pichai",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "satyanadella",
+      "name": "Satya Nadella",
+      "tier": "T1_5",
+      "owner_entity_id": "microsoft",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "mustafasuleyman",
+      "name": "Mustafa Suleyman",
+      "tier": "T1_5",
+      "owner_entity_id": "microsoft",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "ClementDelangue",
+      "name": "Clément Delangue",
+      "tier": "T1_5",
+      "owner_entity_id": "hugging-face",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "jackclarkSF",
+      "name": "Jack Clark",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "karpathy",
+      "name": "Andrej Karpathy",
+      "tier": "T2"
+    },
+    {
+      "handle": "ylecun",
+      "name": "Yann LeCun",
+      "tier": "T2"
+    },
+    {
+      "handle": "AndrewYNg",
+      "name": "Andrew Ng",
+      "tier": "T2"
+    },
+    {
+      "handle": "simonw",
+      "name": "Simon Willison",
+      "tier": "T2"
+    },
+    {
+      "handle": "emollick",
+      "name": "Ethan Mollick",
+      "tier": "T2"
+    },
+    {
+      "handle": "natolambert",
+      "name": "Nathan Lambert",
+      "tier": "T2"
+    },
+    {
+      "handle": "swyx",
+      "name": "swyx",
+      "tier": "T2"
+    },
+    {
+      "handle": "_akhaliq",
+      "name": "AK",
+      "tier": "T2"
+    }
+  ]
+}
