@@ -4,10 +4,10 @@ This is the template that comes with the open-source framework. Before launch, r
 
 | Item | Value |
 |---|---|
-| Version | To be filled in |
-| Effective date | To be filled in |
-| Operator | To be filled in |
-| Contact | To be filled in |
+| Version | TBD |
+| Effective date | TBD |
+| Operator | TBD |
+| Contact | TBD |
 
 Page intro:
 
