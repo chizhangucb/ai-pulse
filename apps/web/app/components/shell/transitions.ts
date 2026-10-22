@@ -1,4 +1,4 @@
-// Phones: a page opened one level deeper (an article, an event, a model, a sub-page of 我的) slides in from
+// Phones: a page opened one level deeper (an article, an event, a model, a sub-page of Me) slides in from
 // the right over the page it came from, and the bar's back button slides it away again. Such links opt in
 // with React Router's `viewTransition`; the router then wraps the page change in a view transition, and
 // this marks on <html data-vt> which way it goes for app.css. The browser's own back (a swipe, a button)

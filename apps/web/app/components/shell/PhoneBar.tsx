@@ -12,7 +12,7 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 export interface BackTarget {
   /** Where back goes when this page was opened directly (no page of ours behind it). */
   to: string;
-  /** What the button says then; otherwise it names the page behind, or reads "返回". */
+  /** What the button says then; otherwise it names the page behind, or reads "Back". */
   label: string;
 }
 
@@ -25,7 +25,7 @@ export function PhoneBar({ back, title, large = false, sub, leading, center, act
   /** A line under the large title. */
   sub?: ReactNode;
   leading?: ReactNode;
-  /** Always shown in the middle instead of the title (精选 | 全部). */
+  /** Always shown in the middle instead of the title (Picks | All). */
   center?: ReactNode;
   actions?: ReactNode;
 }) {
@@ -68,7 +68,7 @@ export function PhoneBar({ back, title, large = false, sub, leading, center, act
   );
 }
 
-/** "‹ 精选": back through the reader's history, or to the page's parent when it was opened directly. */
+/** "‹ Picks": back through the reader's history, or to the page's parent when it was opened directly. */
 function BackButton({ to, label }: BackTarget) {
   const navigate = useNavigate();
   const { key } = useLocation();
@@ -76,7 +76,7 @@ function BackButton({ to, label }: BackTarget) {
   useIsoLayoutEffect(() => {
     if (historyIndex() === 0) return setText(label);
     const behind = previousScreen();
-    setText(behind ? behind : "返回");
+    setText(behind ? behind : "Back");
   }, [key, label]);
   return (
     <button

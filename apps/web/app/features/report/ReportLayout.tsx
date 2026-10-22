@@ -7,7 +7,7 @@ import { KindSwitch, ReportArchive, ReportPhoneNav } from "./ReportNav";
 
 /**
  * Report pages sit beside their own archive column (desktop), flush against the site sidebar. Phones get
- * a bar with the kind switch and the issue's outline (本期目录), the recent issues under it; a page below
+ * a bar with the kind switch and the issue's outline (Contents), the recent issues under it; a page below
  * the reports (the archive) gets a bar leading back instead. The paper is centred beside the archive, on
  * a faintly toned paper in the light theme, up to 1160px.
  */
@@ -36,14 +36,14 @@ export function ReportLayout({ kind, index, current, today, outline = [], back, 
               center={<KindSwitch kind={kind} phone />}
               actions={
                 outline.length > 0 && (
-                  <BarButton label="本期目录" onClick={() => setOutlineOpen(true)}>
+                  <BarButton label="Contents" onClick={() => setOutlineOpen(true)}>
                     <IconList size={21} />
                   </BarButton>
                 )
               }
             />
             <ReportPhoneNav kind={kind} index={index} current={current} today={today} />
-            {outline.length > 0 && <OutlineSheet title="本期目录" open={outlineOpen} onClose={() => setOutlineOpen(false)} outline={outline} />}
+            {outline.length > 0 && <OutlineSheet title="Contents" open={outlineOpen} onClose={() => setOutlineOpen(false)} outline={outline} />}
           </>
         )}
         <div className="w-full lg:max-w-[1160px]">{children}</div>

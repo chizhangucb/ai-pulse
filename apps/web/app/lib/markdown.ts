@@ -95,15 +95,15 @@ export interface CopyDocument {
 
 /**
  * Splits a page copy file (site/pages/) into its page parts: the first heading (title), the meta table,
- * the page-top statement (页首说明) and the verbatim body starting at the first "## " section.
+ * the page-top statement ("Page intro:") and the verbatim body starting at the first "## " section.
  */
 export function parseCopyFile(md: string, firstSection = /^## /m): CopyDocument {
-  const title = (/^#\s+(.+)$/m.exec(md)?.[1] ?? "").replace(/（现行版）|（现网）/g, "").trim();
+  const title = (/^#\s+(.+)$/m.exec(md)?.[1] ?? "").replace(/\s*\((?:current|live) version\)/gi, "").trim();
   const meta: Record<string, string> = {};
   for (const m of md.matchAll(/^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|$/gm)) {
-    if (m[1] !== "项" && !/^-+$/.test(m[1]!)) meta[m[1]!] = m[2]!;
+    if (m[1] !== "Item" && !/^-+$/.test(m[1]!)) meta[m[1]!] = m[2]!;
   }
-  const introMatch = /页首说明：\s*\n+((?:>.*\n?)+)/.exec(md);
+  const introMatch = /Page intro:\s*\n+((?:>.*\n?)+)/.exec(md);
   const intro = introMatch ? introMatch[1]!.replace(/^>\s?/gm, "").replace(/\n/g, "").trim() : null;
   const start = md.search(firstSection);
   return { title, meta, intro, body: start >= 0 ? md.slice(start) : md };
