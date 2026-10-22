@@ -79,6 +79,8 @@ function extractJson(text: string): unknown {
   let t = text.trim();
   const fence = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(t);
   if (fence) t = fence[1]!;
+  // A one-number answer ("81"): the schema of a step that asks for one number decides whether it may stand alone.
+  if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
   const start = t.indexOf("{");
   const end = t.lastIndexOf("}");
   if (start === -1 || end === -1) throw new ModelOutputError("No JSON object in model output");

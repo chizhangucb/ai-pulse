@@ -71,7 +71,10 @@ const scoreCall = (model: string) => MODELS[model]?.scoreCall ?? { temperature: 
 /** The score prompt: the industry's taste (industry/prompts/selection-score.md). */
 export const SCORE_SYSTEM = promptText("selection-score");
 
-export const ScoreSchema = z.object({ attentionScore: z.coerce.number().int().min(0).max(100) });
+export const ScoreSchema = z.preprocess(
+  (value) => typeof value === "number" ? { attentionScore: value } : value,
+  z.object({ attentionScore: z.coerce.number().int().min(0).max(100) }),
+);
 
 /** The score input's time: the site's zone, ISO 8601 with its offset, milliseconds only when present. */
 export function scoreInputTime(at: Date): string {

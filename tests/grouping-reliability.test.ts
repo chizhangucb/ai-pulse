@@ -66,6 +66,14 @@ before(async () => {
 });
 after(async () => { await provider.close(); await embeddings.close(); await stopBoss(); await closeDb(); });
 
+test("a reading-value reason over 400 characters is cut to 400, not a failed grouping answer", () => {
+  const reason = `${"Adds the benchmark table. ".repeat(20)}Tail beyond the limit.`;
+  const parsed = BatchSchema.parse({ query: "q", decisions: [], selection: { addsValue: true, reason } });
+  assert.equal(parsed.selection.reason, reason.slice(0, 400));
+  assert.equal(parsed.selection.reason.length, 400);
+  assert.equal(BatchSchema.safeParse({ query: "q", decisions: [], selection: { addsValue: true, reason: " " } }).success, false);
+});
+
 test("missing and invalid identity answers cannot silently assert unrelated", () => {
   assert.equal(BatchSchema.safeParse({}).success, false);
   assert.equal(BatchSchema.safeParse({ decisions: [{ id: "C1", relation: "TYPO", confidence: 0.99 }] }).success, false);

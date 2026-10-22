@@ -8,6 +8,7 @@ import { z } from "zod";
 import { config } from "@aihot/backend/config";
 import { closeDb, sql } from "@aihot/backend/db";
 import { chatJson } from "@aihot/backend/providers/llm";
+import { ScoreSchema } from "@aihot/backend/editorial/analyze";
 import { embeddingsAvailable } from "@aihot/backend/providers/embeddings";
 import { assertAccepted, failureKind, ProviderRejectedError, BudgetExceededError, logicalKeyFor, markStalePendingReceipts, ModelOutputError, paidRequest, providerStopKey, ReceiptUnknownError } from "@aihot/backend/providers/receipts";
 import { autoReleaseUnknownReceipts } from "@aihot/backend/operations/recover";
@@ -155,6 +156,18 @@ test("a fully received non-object model response is unusable output, not an unkn
   } finally {
     process.env.DEEPSEEK_BASE_URL = original;
     await malformed.close();
+  }
+});
+
+test("a bare-number answer is a score, and stays unusable where an object is asked for", async () => {
+  answer = () => " 81\n";
+  try {
+    const subject = `bare-score-${tag()}`;
+    const scored = await chatJson({ model: "deepseek-flash", purpose: "invariant_test", subject, promptVersion: "t1", system: "s", user: `input ${subject}`, schema: ScoreSchema });
+    assert.deepEqual(scored.data, { attentionScore: 81 });
+    await assert.rejects(ask(`bare-other-${tag()}`), ModelOutputError);
+  } finally {
+    answer = () => '{"ok":true}';
   }
 });
 
