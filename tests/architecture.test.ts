@@ -176,6 +176,7 @@ const convertsSiteTime = (line: string) =>
 const CONVERTS_SITE_TIME: Record<string, string> = {
   "packages/contracts/src/time.ts": "the conversions themselves",
   "site/site.ts": "declares the zone itself (SITE.timeZone) for time.ts to read",
+  "apps/api/src/routes/static.ts": "names the zone in public files ({{timeZone}} in openapi-v1.json), converting nothing",
   "modules/codex-reset/web/admin-monitor.tsx": "sends a date and time typed in the admin with its zone, to the minute",
   "site/changelog/FeatureRelease.tsx": "a changelog entry's date and time with its zone, to the minute, in dateTime",
   "clients/decisions/decisions.mjs": "installed as one file away from the repository, so it cannot import time.ts",

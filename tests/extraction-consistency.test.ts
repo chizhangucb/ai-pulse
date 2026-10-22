@@ -121,8 +121,8 @@ test("an audited presentation refresh previews and applies only the reviewed lay
   presentationHtml = `<p>${body} The actual model price has changed.</p>`;
   const semantic = await rerun(articleId, "presentation", "preview-wording", "test", { preview: true });
   assert.ok(semantic && "ready" in semantic && !semantic.ready);
-  assert.match(semantic.reason ?? "", /文字/);
-  await assert.rejects(rerun(articleId, "presentation", "apply-wording", "test", { version: preview.version }), /预览|变化|文字/);
+  assert.match(semantic.reason ?? "", /body text changed/);
+  await assert.rejects(rerun(articleId, "presentation", "apply-wording", "test", { version: preview.version }), /preview again/);
 });
 
 test("an audited RSS presentation refresh uses the source body without substituting the web-page wording", async () => {
