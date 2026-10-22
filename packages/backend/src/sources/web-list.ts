@@ -29,6 +29,7 @@ export function allowed(url: string, source: SourceRow): boolean {
   const deny: string[] = (source.config.denyUrlPrefixes ?? []).map(overHttps);
   const target = overHttps(url);
   if (deny.some((p) => target.startsWith(p))) return false;
+  if (source.config.denyUrlPattern && new RegExp(source.config.denyUrlPattern).test(url)) return false;
   return allow.length === 0 || allow.some((p) => target.startsWith(p));
 }
 

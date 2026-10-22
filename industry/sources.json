@@ -113,30 +113,14 @@
       "syndicate_fulltext": false
     },
     {
-      "id": "web-meta-ai-blog",
-      "name": "Meta AI Blog",
-      "kind": "web_list",
+      "id": "rss-meta-newsroom-ai",
+      "name": "Meta Newsroom: AI",
+      "kind": "rss",
       "config": {
-        "url": "https://ai.meta.com/blog/",
-        "parseMode": "html",
-        "itemSelector": "a[href^='https://ai.meta.com/blog/']:not(:has(img))",
-        "linkSelector": "a",
-        "titleSelector": "a",
-        "allowUrlPrefixes": [
-          "https://ai.meta.com/blog/"
-        ],
-        "detail": {
-          "maxFetches": 12,
-          "titleSelector": "h1",
-          "titleAuthoritative": true,
-          "publishedAtSelector": "h1 + div > span"
-        },
+        "feedUrl": "https://about.fb.com/news/tag/ai/feed/",
         "_aihot": {
           "initialBackfillLimit": 8
-        },
-        "denyUrlPrefixes": [
-          "https://ai.meta.com/blog/?"
-        ]
+        }
       },
       "tier": "T1",
       "owner_entity_id": "meta",
@@ -701,6 +685,75 @@
       "tags": [
         "Newsletter",
         "Policy"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "gh-vllm",
+      "name": "vLLM releases (GitHub)",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://github.com/vllm-project/vllm/releases.atom",
+        "atomUpdatedIsPublished": true,
+        "denyUrlPattern": "/releases/tag/[^/]*[\\d.-]rc\\.?\\d*$",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "vllm",
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "Releases",
+        "Open source"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "gh-ollama",
+      "name": "Ollama releases (GitHub)",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://github.com/ollama/ollama/releases.atom",
+        "atomUpdatedIsPublished": true,
+        "denyUrlPattern": "/releases/tag/[^/]*[\\d.-]rc\\.?\\d*$",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "ollama",
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "Releases",
+        "Open source"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "gh-transformers",
+      "name": "Transformers releases (GitHub)",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://github.com/huggingface/transformers/releases.atom",
+        "atomUpdatedIsPublished": true,
+        "denyUrlPattern": "/releases/tag/[^/]*[\\d.-]rc\\.?\\d*$",
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "hugging-face",
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "Releases",
+        "Open source"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
