@@ -50,7 +50,6 @@ function Figure({ n, unit }: { n: number; unit: string }) {
 }
 
 const KIND_ORDER: Array<[string, string]> = [
-  ["x_search", "X"],
   ["rss", "RSS"],
   ["web_list", "Web pages"],
   ["mp_account", "WeChat"],
@@ -78,13 +77,14 @@ interface Stage {
 
 function stagesOf(stats: SiteStats | null): Stage[] {
   const kinds = stats ? KIND_ORDER.filter(([k]) => stats.sourceKinds[k]).map(([k, label]) => `${label} ${stats.sourceKinds[k]}`).join(" · ") : null;
+  const xAccounts = stats?.xAccounts ? `${stats.xAccounts} X accounts` : null;
   return [
     {
       no: "01",
       title: "Collect",
-      figure: stats && <Figure n={stats.sources} unit="sources" />,
+      figure: stats && <Figure n={stats.sources} unit="feeds" />,
       text: ABOUT.steps.collect,
-      note: kinds,
+      note: [kinds, xAccounts && `plus ${xAccounts}`].filter(Boolean).join(", ") || null,
     },
     {
       no: "02",
@@ -220,7 +220,10 @@ export default function AboutPage() {
           <p className="mt-5 max-w-[36em] text-[15.5px] leading-[1.85] text-ink-3 xl:text-[17px]">
             {ABOUT.lead.split("{sources}").map((part, i) => (
               <Fragment key={i}>
-                {i > 0 && (stats ? <>{" "}<span className="num font-semibold text-ink">{stats.sources}</span>{" "}</> : ABOUT.sourcesFallback)}
+                {i > 0 && (stats ? <>
+                  <span className="num font-semibold text-ink">{stats.sources}</span> feeds
+                  {stats.xAccounts > 0 && <> and <span className="num font-semibold text-ink">{stats.xAccounts}</span> X accounts</>}
+                </> : ABOUT.sourcesFallback)}
                 {part}
               </Fragment>
             ))}

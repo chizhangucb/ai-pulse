@@ -387,8 +387,10 @@ export interface SiteContact {
 
 /** Figures and samples for the about page (site-only; not part of v1). */
 export interface SiteStats {
-  /** Sources collected from now. */
+  /** Feeds, pages and APIs collected from now: every enabled source but the X accounts. */
   sources: number;
+  /** Enabled X accounts, searched or pushed by the X job. */
+  xAccounts: number;
   /** Enabled sources by kind: x_search, rss, web_list, mp_account, json_list. */
   sourceKinds: Record<string, number>;
   /** Everything collected and not withdrawn, heat-only sources included. */

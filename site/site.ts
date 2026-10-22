@@ -143,9 +143,9 @@ export const ABOUT = {
   description: `About ${SITE.name}: ${SITE.description}`,
   /** Headline: first line in the normal color, second in the accent color. */
   headline: ["Something happens in AI every day.", "Only a few things are worth your time."] as [string, string],
-  /** Paragraph under the headline. {sources} becomes the live source count; sourcesFallback is used when the count is missing. */
-  lead: `${SITE.name} watches {sources} sources for you: it collects, groups, scores and picks, then publishes a daily brief ${EDITION_WHEN.daily}. Free, no sign-up.`,
-  sourcesFallback: "dozens of",
+  /** Paragraph under the headline. {sources} becomes the live counts ("12 feeds and 32 X accounts"); sourcesFallback is used when they are missing. */
+  lead: `${SITE.name} watches {sources} for you: it collects, groups, scores and picks, then publishes a daily brief ${EDITION_WHEN.daily}. Free, no sign-up.`,
+  sourcesFallback: "dozens of sources",
   /** The four steps under the source animation. */
   steps: {
     collect: "We follow official blogs, news sites and newsletters. Busier sources are checked more often, as often as every 15 minutes.",
