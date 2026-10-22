@@ -11,13 +11,13 @@ import type { QueueOptions } from "./jobs/queue.ts";
 import type { Finding } from "./notify/feishu.ts";
 import type { Topic, TopicMember } from "./publication/topics.ts";
 
-/** A cron schedule (the site's time zone), recorded in job_runs like the engine's (apps/worker/src/schedules.ts). */
+/** A cron schedule (the site's time zone), recorded in job_runs like the engine's (jobs/schedules.ts). */
 export interface Scheduled {
   name: string;
   cron: string;
   run: () => Promise<unknown>;
   missed?: "skip" | "once";
-  /** Read when the worker starts, after the modules are installed: false removes the schedule and its execution queue; run history remains. */
+  /** Read when its process starts, after the modules are installed: false removes the schedule and its execution queue; run history remains. */
   when?: () => boolean;
 }
 

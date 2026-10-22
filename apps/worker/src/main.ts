@@ -9,25 +9,21 @@ import { SERVER_MODULES } from "@aihot/site/modules/server";
 import { registerContentJobs } from "@aihot/backend/jobs/content";
 import { registerSourceJobs } from "@aihot/backend/jobs/sources";
 import { registerEventJobs } from "@aihot/backend/jobs/events";
-import { registerNotifyJobs } from "@aihot/backend/jobs/notify";
 import { registerPublicationJobs } from "@aihot/backend/jobs/publication";
-import { registerSchedules } from "./schedules.ts";
-import { ensureContentTargets } from "@aihot/backend/notify/deliver";
+import { registerSchedules } from "@aihot/backend/jobs/schedules";
 import { startHeartbeat } from "@aihot/backend/operations/heartbeat";
 
 installModules(SERVER_MODULES);
 assertModelChoices();
 assertProductionSecrets([["auth", "IMG_PROXY_SIGN_SECRET"]]);
 
-await ensureContentTargets();
 const boss = await getBoss();
 await registerContentJobs(boss);
 if (process.env.COLLECT_ENABLED === "true") await registerSourceJobs(boss);
 await registerEventJobs(boss);
-await registerNotifyJobs(boss);
 await registerPublicationJobs(boss);
 await workModuleQueues(boss);
-await registerSchedules(boss);
+await registerSchedules(boss, "worker");
 const heartbeat = startHeartbeat("worker");
 console.log(JSON.stringify({ level: "info", msg: "worker started", pid: process.pid }));
 

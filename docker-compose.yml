@@ -52,6 +52,10 @@ services:
       <<: *backend-env
       API_HOST: 0.0.0.0
       API_PORT: "3001"
+      # The api runs the jobs that use /data. A short drain keeps its restart short; an interrupted
+      # backup or push is failed and retried.
+      STOP_TIMEOUT_MS: "30000"
+    stop_grace_period: 45s
     depends_on:
       setup:
         condition: service_completed_successfully
@@ -59,7 +63,7 @@ services:
   worker:
     <<: *backend
     command: ["node", "apps/worker/src/main.ts"]
-    # Let the worker drain backups and paid calls (STOP_TIMEOUT_MS, 270 s), then close its database.
+    # Let the worker drain paid calls (STOP_TIMEOUT_MS, 270 s), then close its database.
     # Docker sends SIGTERM to the worker first; after this window it kills the remaining processes.
     stop_grace_period: 315s
     depends_on:
