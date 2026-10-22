@@ -104,5 +104,8 @@ export function migrationPlan(text: string): MigrationPlan {
   }
   if (alterDefault.test(sql)) return { kind: "transaction" };
   if (new RegExp(`^alter table ${RELATION} add constraint ${IDENT} (?:check \\(.*\\)|foreign key \\(.*\\) references .*) not valid$`, "i").test(sql)) return { kind: "transaction" };
+  // Seeding one row of constants takes ROW EXCLUSIVE, which permits ordinary reads and writes, and reads no
+  // rows; DO NOTHING keeps a row an operator already set.
+  if (new RegExp(`^insert into ${RELATION} \\( ${IDENT}(?: , ${IDENT})* \\) values \\( ${LITERAL}(?: , ${LITERAL})* \\) on conflict \\( ${IDENT}(?: , ${IDENT})* \\) do nothing$`, "i").test(sql)) return { kind: "transaction" };
   throw new Error(`not safe for an online migration: ${sql.slice(0, 180)}. Use constant-default columns, NOT VALID then separate validation, concurrent indexes, column MCV statistics with separate column ANALYZE, bounded per-table vacuum scale factors, or DROP TABLE IF EXISTS / DROP COLUMN IF EXISTS / DROP CONSTRAINT IF EXISTS for one object nothing uses; backfill data in bounded batches outside release migrations.`);
 }
