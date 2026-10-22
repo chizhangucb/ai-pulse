@@ -92,16 +92,16 @@ docker compose stop api worker web
 docker compose run --rm setup && docker compose up -d
 ```
 
-Start the services only after the migrations succeed; if they fail, read the error before going on. Sites with HTTPS keep `--profile https`. The old API and worker must stop before migrating: migrations may drop tables or columns, and old code still running would fail; a normal worker shutdown waits for paid calls in progress to finish (up to 270 seconds, `STOP_TIMEOUT_MS`). On Render the old services keep running while migrating; see [Migrations and deploy order](#migrations-and-deploy-order). Without Docker, update in the same order: back up, build, stop API/worker/web, migrate (`scripts/migrate.ts`), seed (`scripts/seed.ts`), start.
+Start the services only after the migrations succeed; if they fail, read the error before going on. Sites with HTTPS keep `--profile https`. The old API and worker must stop before migrating: migrations may drop tables or columns, and old code still running would fail; a normal worker shutdown waits for paid calls in progress to finish (up to 270 seconds, `STOP_TIMEOUT_MS`). On Railway the old services keep running while migrating; see [Migrations and deploy order](#migrations-and-deploy-order). Without Docker, update in the same order: back up, build, stop API/worker/web, migrate (`scripts/migrate.ts`), seed (`scripts/seed.ts`), start.
 
 A new migration that meets a long-held lock reports the file name and the wait timeout; deal with the transaction holding the lock, then run setup again, without skipping the migration or rewriting the migration ledger. An interrupted concurrent index build may leave an invalid index: after checking the object named in the error, remove that failed index with `DROP INDEX CONCURRENTLY <index name>` and run again; a valid index of the same name with a different definition needs its difference checked first. These protections do not change the Docker update order above, and upgrading across old versions may still run historical destructive migrations.
 
 What to watch for in each update follows, newest first.
 
-#### Render Blueprint, and the api runs the jobs that use the data directory (October 22, 2026)
+#### Railway config, and the api runs the jobs that use the data directory (October 22, 2026)
 
-- `render.yaml` deploys the site on Render; see [On Render](#on-render).
-- The api now runs the jobs that read or write the data directory, because on Render only the api has the disk: `ops.retention` (feedback screenshots and the image and share-image caches), `feedback.forward`, `ops.backup`, and the `media.prepare` and `notify.selected` queues. The worker runs everything else. With docker compose both share the `data` volume, so nothing moves; the api now also opens the job queue's own database pool (up to 4 connections). Keep the api running wherever the worker runs.
+- `deploy/railway/` holds Railway config-as-code for web, api and worker; see [On Railway](#on-railway).
+- The api now runs the jobs that read or write the data directory, because on Railway only the api has the volume: `ops.retention` (feedback screenshots and the image and share-image caches), `feedback.forward`, `ops.backup`, and the `media.prepare` and `notify.selected` queues. The worker runs everything else. With docker compose both share the `data` volume, so nothing moves; the api now also opens the job queue's own database pool (up to 4 connections). Keep the api running wherever the worker runs.
 - The worker's stop drain is `STOP_TIMEOUT_MS`, 270 seconds by default (it was a fixed 470). Unfinished jobs are failed at the deadline and retried by their queue. `docker-compose.yml` gives the worker 315 seconds to stop (was 515) and the api a 30-second drain with 45 seconds to stop. Without Docker, change systemd or pm2 as in [Without Docker](#without-docker).
 - A starting worker waits until every migration in its release is applied, so it never runs against an older schema.
 - No database migration.
@@ -269,48 +269,100 @@ Once the effective configuration changes, password sessions no longer accept the
 
 Sessions found invalid during authentication are deleted, and restoring the old configuration does not bring them back. The system keeps no history of global credential changes: a configuration change that no process ever loaded, or that no session check observed before it was reverted, cannot be used to revoke sessions after the fact.
 
-## On Render
+## On Railway
 
-`render.yaml` at the repository root is a Render Blueprint: the same Docker image in three roles, plus Render Postgres, all in Oregon. On a Hobby workspace it comes to about $59 a month:
+`deploy/railway/` holds Railway config-as-code for the three app services: `web.json`, `api.json` and `worker.json`. All three build the repository's `Dockerfile` and differ in start command, health check and stop window. With Railway Postgres 17 that makes four services in one project:
 
-| Resource | Render type and plan | Size | Monthly |
-|---|---|---|---|
-| `ai-pulse-web` | Web service, Starter | 0.5 CPU, 512 MB | $7 |
-| `ai-pulse-api` | Private service, Starter, with the 5 GB disk `ai-pulse-data` at `/data` | 0.5 CPU, 512 MB | $7 + $1.25 |
-| `ai-pulse-worker` | Background worker, Standard | 1 CPU, 2 GB | $25 |
-| `ai-pulse-db` | Postgres 17, Basic-1gb | 1 GB RAM | $19 |
+| Service | Config file | Role |
+|---|---|---|
+| `web` | `/deploy/railway/web.json` | Pages, RSS and the public API; the only service with a public domain |
+| `api` | `/deploy/railway/api.json` | The backend, with a volume at `/data`; also runs the jobs that read or write `/data` |
+| `worker` | `/deploy/railway/worker.json` | Collection, model calls, grouping, reports and the other scheduled jobs; no volume |
+| `Postgres` | Railway's PostgreSQL 17 | The database |
 
-Only `web` is public; it reaches the api at the api's private `host:port` (`API_BASE_URL` from `fromService`). The api is the one service with the disk, so it also runs the jobs that read or write `/data`: housekeeping of feedback screenshots and the image caches, feedback forwarding, backups, image preparation and content pushes. The worker has no disk; the thumbnails it reads for model calls and the source icons it checks are cached on its own short-lived filesystem, which a restart clears.
+The api is the only service with the volume, so it runs the jobs that use `/data`: the 03:30 housekeeping of feedback screenshots and the image caches, feedback forwarding to Feishu every 10 minutes, the 04:10 backup, image preparation and content pushes. The worker caches the thumbnails it sends to models and the source icons it checks in its own container, which a redeploy clears.
 
 ### Creating the services
 
-1. In the Render dashboard, choose **New → Blueprint**, connect `chizhangucb/ai-pulse`, and pick the branch to deploy (`main`).
-2. Render reads `render.yaml` and lists the database, the environment group `ai-pulse-backend` and the three services. It asks for each `sync: false` secret below. Enter them, then **Apply**.
-3. Render creates the database, builds the image, runs the api's pre-deploy step (`node scripts/migrate.ts && node scripts/seed.ts`), and starts the three services.
-4. Open the `ai-pulse-web` address (`https://ai-pulse-web.onrender.com` or similar). `/api/health` answers once the api is up; sign in at `/admin` with `ADMIN_PASSWORD`.
-5. For a custom domain, add it under `ai-pulse-web` → Settings → Custom Domains, then change `SITE_URL` in all three services to `https://<domain>` and redeploy them.
+1. Create a project in the workspace and add **PostgreSQL**, version 17. The image's `pg_dump` is version 17, and it refuses to back up a newer server.
+2. Add three services from the GitHub repository `chizhangucb/ai-pulse`, named exactly `web`, `api` and `worker`. The variables below refer to these names, and the private host names come from them (`api.railway.internal`).
+3. In each service's Settings, set **Config-as-code → Railway config file** to its file in the table above. The file sets the Dockerfile build, the start command, the health check, the restart policy and the stop window. The api's file also sets the pre-deploy step (`node scripts/migrate.ts && node scripts/seed.ts`), and requires a volume at `/data` before it deploys.
+4. Add a volume to `api`, mounted at `/data`, up to 5 GB (the Hobby limit).
+5. Set the variables below, then turn on **Wait for CI** in each service's Settings, so a push deploys only after the GitHub checks pass.
+6. Generate a domain for `web` with target port 3000, or add a custom domain. Set `SITE_URL` to that address in all three services.
+7. Deploy `api` first and wait until it is active, then `worker` and `web`. Open the site; `/api/health` answers once both are up. Sign in at `/admin` with `ADMIN_PASSWORD`.
 
-Secrets Render asks for. Make each one with `openssl rand -hex 32` unless noted. A secret listed under two services must have the same value in both.
+### Variables
 
-| Secret | Services | Value |
-|---|---|---|
-| `SITE_URL` | web, api, worker | The address readers use: the `onrender.com` address at first, later `https://<domain>`, without a trailing slash |
-| `ADMIN_PASSWORD` | api | At least 12 characters |
-| `SESSION_SECRET` | api | Random |
-| `IMG_PROXY_SIGN_SECRET` | api, worker | Random, the same in both: the worker signs image addresses the api checks |
-| `INGEST_TOKEN` | api | At least 16 characters; the hourly X job sends it ([X posts through the ingest endpoint](ingest-x.md)) |
-| `LLM_API_KEY` | api, worker | Your OpenRouter key |
+Values marked **by hand** are secrets or site-specific: enter them yourself in Railway, never in the repository. Make each random secret with `openssl rand -hex 32`. A secret set on two services must be the same in both; define it once under the project's **Shared Variables** and reference it as `${{shared.NAME}}`. `${{...}}` values are Railway reference variables; enter them as written.
 
-The other settings are in `render.yaml` and match `.env.example`. Optional settings from `.env.example` (embeddings, paid collection, Feishu, `DB_BACKUP_STORE_*` backups and so on) go into the `ai-pulse-backend` environment group, or into one service when only it reads them. Backups run in the api, so `DB_BACKUP_STORE_*` belongs in the group or on the api.
+Shared by `api` and `worker` (the settings `.env.example` gives, plus the database):
 
-Shutdown limits: Render waits at most 300 seconds for a stopping service. The worker drains its jobs for `STOP_TIMEOUT_MS` (270 s), then fails what is still running so its queue retries it, inside its `maxShutdownDelaySeconds` of 300. A service with a disk stops before its replacement starts, so the api has a 30-second drain and 45 seconds to stop; an interrupted backup or push is retried the same way.
+| Variable | Value |
+|---|---|
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (the private-network address) |
+| `AIHOT_DATA_DIR` | `/data` |
+| `AIHOT_RELEASE` | `${{RAILWAY_GIT_COMMIT_SHA}}`, shown on `/api/health` and the admin Runs page to confirm a release replaced the processes |
+| `LLM_BASE_URL` | `https://openrouter.ai/api/v1` |
+| `LLM_MODEL` | `anthropic/claude-haiku-5.5` |
+| `LLM_EXTRA_JSON` | `{"reasoning":{"enabled":false}}` |
+| `LLM_VISION` | `true` |
+| `UNDERSTAND_MODEL` | `or-claude-sonnet` |
+| `COLLECT_ENABLED` | `true` |
+| `MODEL_CALLS_ENABLED` | `true` |
+| `FEISHU_CONTENT_PUSH_ENABLED` | `false` |
+| `FEISHU_INTERNAL_ENABLED` | `false` |
+| `INDEXNOW_SUBMIT_ENABLED` | `false` |
+| `LLM_API_KEY` | **by hand**: the OpenRouter key |
+| `IMG_PROXY_SIGN_SECRET` | **by hand**: random, the same in both; the worker signs image addresses the api checks |
+| `SITE_URL` | **by hand**: the address readers use, without a trailing slash |
+
+`api` only:
+
+| Variable | Value |
+|---|---|
+| `API_HOST` | `::` (every IPv4 and IPv6 address; Railway's private network can be IPv6 only) |
+| `API_PORT` | `3001` |
+| `PORT` | `3001`, the port Railway's health check calls |
+| `STOP_TIMEOUT_MS` | `30000` |
+| `INGEST_RATE_LIMIT` | `10` |
+| `RAILWAY_RUN_UID` | `0`: Railway mounts the volume for root, and the image otherwise runs as `node`, which could not write `/data` |
+| `ADMIN_PASSWORD` | **by hand**: at least 12 characters |
+| `SESSION_SECRET` | **by hand**: random |
+| `INGEST_TOKEN` | **by hand**: at least 16 characters; the hourly X job sends it ([X posts through the ingest endpoint](ingest-x.md)) |
+
+`worker` only:
+
+| Variable | Value |
+|---|---|
+| `STOP_TIMEOUT_MS` | `270000` |
+
+`web` (no database, model or admin secrets):
+
+| Variable | Value |
+|---|---|
+| `NODE_ENV` | `production` |
+| `SITE_URL` | **by hand**: as above |
+| `API_BASE_URL` | `http://${{api.RAILWAY_PRIVATE_DOMAIN}}:3001` |
+| `WEB_HOST` | `0.0.0.0` |
+| `WEB_PORT` | `3000`, the port the server reads |
+| `PORT` | `3000`, the port Railway routes the domain and the health check to |
+| `TRUST_PROXY` | `true`: Railway's proxy adds the visitor's address to `X-Forwarded-For` |
+| `AIHOT_RELEASE` | `${{RAILWAY_GIT_COMMIT_SHA}}` |
+
+Optional settings from `.env.example` (embeddings, paid collection, Feishu, `DB_BACKUP_STORE_*` and so on) go on the service that reads them. Backups run in the api, so `DB_BACKUP_STORE_*` belongs on `api`.
+
+### Stopping
+
+Railway sends SIGTERM, waits the config's `drainingSeconds` (`RAILWAY_DEPLOYMENT_DRAINING_SECONDS`), then kills the process. Keep `STOP_TIMEOUT_MS` about 30 seconds under that window, so the queue can fail the jobs still running for retry and close the database. The worker drains for 270 s in a 300 s window. A service with a volume stops before its replacement starts, so the api drains for 30 s in a 45 s window; an interrupted backup or push is failed and retried by its queue.
 
 ### Migrations and deploy order
 
-On every push that passes its checks (`autoDeployTrigger: checksPass`), Render builds and deploys the three services independently:
+Each service deploys on its own when a push passes CI:
 
-1. The api's pre-deploy step migrates and seeds on a separate instance while the old api, worker and web keep running and serving. If it fails, the api deploy stops there and the old api stays.
-2. Then the old api stops and the new one starts; the site answers errors for that short gap, because a service with a disk cannot overlap with its replacement.
+1. The api's pre-deploy step migrates and seeds in a separate container, while the old api, worker and web keep running. If it fails, the api deploy stops and the old api stays.
+2. Then the old api stops and the new one starts; the site answers errors for that short gap, because a service with a volume cannot overlap with its replacement.
 3. The worker and web deploy at the same time, in any order. A new worker that starts before the api's migrations finish waits until they are applied, logging `waiting for migrations`. Web reads the database only through the api.
 
 So every release must work with the previous release's code still running against its new schema, and with web and api one release apart for a few minutes:
@@ -318,7 +370,7 @@ So every release must work with the previous release's code still running agains
 - Migrations only add: new tables, nullable columns or columns with a constant default, `NOT VALID` constraints, concurrent indexes. The online migration check in CI enforces the statement rules from `0055` on ([Database migrations](architecture.md#database-migrations)).
 - Removing or renaming anything (a column, a table, a type change) takes two releases: first a release whose code no longer reads or writes it, deployed to all three services; then the release with the destructive migration.
 - An api route the web calls keeps its old shape for one release.
-- A release that cannot follow these rules is deployed by hand: suspend `ai-pulse-worker` and `ai-pulse-web`, deploy the api, then resume and deploy the other two.
+- A release that cannot follow these rules is deployed by hand: remove the `worker` and `web` deployments, deploy `api`, then redeploy the other two.
 
 The migration waits for a running backup's `pg_dump` for the api's `STOP_TIMEOUT_MS` (30 s) and then fails the deploy. Avoid deploying around the 04:10 backup (site time), or deploy again once it ends.
 
