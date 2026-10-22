@@ -1,5 +1,5 @@
 // Published dates as list pages, articles and JSON lists print them, read the same on every host.
-import { siteDate, siteTime } from "@aihot/contracts/time";
+import { siteDate, siteTime, siteUtcOffset } from "@aihot/contracts/time";
 import type { SourceRow } from "./types.ts";
 
 /** The offset a source's article pages print their dates in: its detail rules' own, else its listing's. */
@@ -30,7 +30,7 @@ function atOffset(y: string | number, mo: string | number, d: string | number, h
  * on every host: a time with its zone. A calendar day always belongs to the source, including ISO date-only text. Anything else it would read
  * in the server's local zone (UTC in Docker), so "2026-09-26 10:00" is read in the source's offset instead.
  */
-export function parseLooseDate(value: string | null | undefined, utcOffset = "+08:00"): Date | null {
+export function parseLooseDate(value: string | null | undefined, utcOffset = siteUtcOffset()): Date | null {
   if (!value) return null;
   // "Sep 26, 2026 at 10:30": "at" joins a date and its time like a space.
   const v = value.trim().replace(/(\d),?\s+at\s+(?=\d{1,2}:\d{2})/gi, "$1 ");
@@ -79,7 +79,7 @@ export interface PublicationDate {
   publicationTime: string | null;
 }
 
-export function readPublicationDate(value: string | null | undefined, utcOffset = "+08:00"): PublicationDate {
+export function readPublicationDate(value: string | null | undefined, utcOffset = siteUtcOffset()): PublicationDate {
   const publishedAt = parseLooseDate(value, utcOffset);
   if (!publishedAt) return { publishedAt: null, publicationTime: null };
   const timed = /\d{1,2}:\d{2}/.test(value!) || /^\d{14}$/.test(value!.trim());

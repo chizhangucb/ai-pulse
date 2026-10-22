@@ -28,6 +28,14 @@ function offsetLabel(minutes: number): string {
   return `${minutes < 0 ? "-" : "+"}${String(Math.floor(a / 60)).padStart(2, "0")}:${String(a % 60).padStart(2, "0")}`;
 }
 
+/**
+ * The site zone's UTC offset now, "-07:00": how a source date without a zone is read unless the source sets its own
+ * publishedAtUtcOffset. Using today's offset can put a date from the other side of a daylight-saving change an hour off.
+ */
+export function siteUtcOffset(): string {
+  return offsetLabel(offsetMinutes(Date.now()));
+}
+
 /** YYYY-MM-DD of the instant in the site's zone. */
 export function siteDate(instant: Date | string | number): string {
   return wallClock(instant).toISOString().slice(0, 10);

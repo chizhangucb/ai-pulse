@@ -1,5 +1,5 @@
 {
-  "$comment": "示范信源：首次启动时导入（scripts/seed.ts），已存在的不会被覆盖。之后在后台“信源”里新建、修改和暂停。字段说明见 docs/customize.md。",
+  "$comment": "Demo sources, imported on first start (scripts/seed.ts); existing ones are never overwritten. Add, edit and pause sources later on the admin Sources page. Fields: docs/customize.md. Check them with node --env-file=.env scripts/check-sources.ts.",
   "sources": [
     {
       "id": "rss-openai-news",
@@ -16,14 +16,44 @@
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "官方"
+        "Official"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-anthropic-news",
+      "name": "Anthropic News",
+      "kind": "web_list",
+      "config": {
+        "url": "https://www.anthropic.com/news",
+        "parseMode": "html",
+        "itemSelector": "a[href^='/news/']:has(h3)",
+        "linkSelector": "a",
+        "titleSelector": "h3",
+        "allowUrlPrefixes": [
+          "https://www.anthropic.com/news/"
+        ],
+        "detail": {
+          "maxFetches": 10
+        },
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "anthropic",
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "Official"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-google-deepmind",
-      "name": "Google DeepMind",
+      "name": "Google DeepMind Blog",
       "kind": "rss",
       "config": {
         "feedUrl": "https://deepmind.google/blog/rss.xml",
@@ -36,14 +66,34 @@
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "官方"
+        "Official"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-google-ai-blog",
+      "name": "Google AI Blog",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://blog.google/technology/ai/rss/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "google",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-google-research",
-      "name": "Google Research",
+      "name": "Google Research Blog",
       "kind": "rss",
       "config": {
         "feedUrl": "https://research.google/blog/rss/",
@@ -56,8 +106,138 @@
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "官方",
-        "研究"
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-meta-ai-blog",
+      "name": "Meta AI Blog",
+      "kind": "web_list",
+      "config": {
+        "url": "https://ai.meta.com/blog/",
+        "parseMode": "html",
+        "itemSelector": "a[href^='https://ai.meta.com/blog/']:not(:has(img))",
+        "linkSelector": "a",
+        "titleSelector": "a",
+        "allowUrlPrefixes": [
+          "https://ai.meta.com/blog/"
+        ],
+        "detail": {
+          "maxFetches": 12,
+          "titleSelector": "h1",
+          "titleAuthoritative": true,
+          "publishedAtSelector": "h1 + div > span"
+        },
+        "_aihot": {
+          "initialBackfillLimit": 8
+        },
+        "denyUrlPrefixes": [
+          "https://ai.meta.com/blog/?"
+        ]
+      },
+      "tier": "T1",
+      "owner_entity_id": "meta",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "web-microsoft-ai-news",
+      "name": "Microsoft AI News",
+      "kind": "web_list",
+      "config": {
+        "url": "https://microsoft.ai/news/",
+        "parseMode": "html",
+        "itemSelector": "a[href^='https://microsoft.ai/news/']",
+        "linkSelector": "a",
+        "titleSelector": "a",
+        "allowUrlPrefixes": [
+          "https://microsoft.ai/news/"
+        ],
+        "detail": {
+          "maxFetches": 10
+        },
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "microsoft",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-microsoft-research",
+      "name": "Microsoft Research Blog",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.microsoft.com/en-us/research/feed/",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "microsoft",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-mistral",
+      "name": "Mistral AI News",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://mistral.ai/news/rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "mistral",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-xai-news",
+      "name": "xAI News (mirror)",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_xainews.xml",
+        "publisherUrlPrefixes": [
+          "https://x.ai/news/"
+        ],
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "xai",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
@@ -77,39 +257,18 @@
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "官方",
-        "开源"
+        "Official",
+        "Open source"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-microsoft-research",
-      "name": "Microsoft Research",
+      "id": "rss-nvidia-genai",
+      "name": "NVIDIA Blog: Generative AI",
       "kind": "rss",
       "config": {
-        "feedUrl": "https://www.microsoft.com/en-us/research/feed/",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T1",
-      "owner_entity_id": "microsoft",
-      "participation_mode": "editorial",
-      "interval_minutes": 120,
-      "tags": [
-        "官方",
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-nvidia-blog",
-      "name": "NVIDIA Blog",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://blogs.nvidia.com/feed/",
+        "feedUrl": "https://blogs.nvidia.com/blog/category/generative-ai/feed/",
         "_aihot": {
           "initialBackfillLimit": 8
         }
@@ -119,7 +278,29 @@
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "官方"
+        "Official",
+        "Chips"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-apple-ml",
+      "name": "Apple Machine Learning Research",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://machinelearning.apple.com/rss.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "apple",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Research"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
@@ -135,19 +316,18 @@
         }
       },
       "tier": "T1",
-      "owner_entity_id": null,
+      "owner_entity_id": "amazon",
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "官方",
-        "教程"
+        "Official"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-github-ai",
-      "name": "GitHub Blog · AI & ML",
+      "name": "GitHub Blog: AI and ML",
       "kind": "rss",
       "config": {
         "feedUrl": "https://github.blog/ai-and-ml/feed/",
@@ -156,38 +336,59 @@
         }
       },
       "tier": "T1",
-      "owner_entity_id": null,
+      "owner_entity_id": "microsoft",
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "官方"
+        "Official"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
-      "id": "rss-mistral",
-      "name": "Mistral AI",
+      "id": "rss-ai2",
+      "name": "Ai2 Blog",
       "kind": "rss",
       "config": {
-        "feedUrl": "https://mistral.ai/news/rss",
+        "feedUrl": "https://allenai.org/rss.xml",
         "_aihot": {
           "initialBackfillLimit": 8
         }
       },
       "tier": "T1",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "官方"
+        "Official",
+        "Research",
+        "Open source"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-together-ai",
+      "name": "Together AI Blog",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.together.ai/blog/rss.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T1",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Official",
+        "Open source"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-bair",
-      "name": "Berkeley AI Research",
+      "name": "Berkeley AI Research Blog",
       "kind": "rss",
       "config": {
         "feedUrl": "https://bair.berkeley.edu/blog/feed.xml",
@@ -196,38 +397,17 @@
         }
       },
       "tier": "T1",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
-      "interval_minutes": 180,
+      "interval_minutes": 120,
       "tags": [
-        "研究"
-      ],
-      "site_fulltext": false,
-      "syndicate_fulltext": false
-    },
-    {
-      "id": "rss-the-verge-ai",
-      "name": "The Verge · AI",
-      "kind": "rss",
-      "config": {
-        "feedUrl": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-        "_aihot": {
-          "initialBackfillLimit": 8
-        }
-      },
-      "tier": "T2",
-      "owner_entity_id": null,
-      "participation_mode": "editorial",
-      "interval_minutes": 60,
-      "tags": [
-        "媒体"
+        "Research"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-techcrunch-ai",
-      "name": "TechCrunch · AI",
+      "name": "TechCrunch AI",
       "kind": "rss",
       "config": {
         "feedUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
@@ -236,18 +416,36 @@
         }
       },
       "tier": "T2",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 60,
       "tags": [
-        "媒体"
+        "Media"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-the-verge-ai",
+      "name": "The Verge AI",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "Media"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-ars-technica-ai",
-      "name": "Ars Technica · AI",
+      "name": "Ars Technica AI",
       "kind": "rss",
       "config": {
         "feedUrl": "https://arstechnica.com/ai/feed/",
@@ -256,18 +454,17 @@
         }
       },
       "tier": "T2",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 60,
       "tags": [
-        "媒体"
+        "Media"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-mit-tech-review-ai",
-      "name": "MIT Technology Review · AI",
+      "name": "MIT Technology Review AI",
       "kind": "rss",
       "config": {
         "feedUrl": "https://www.technologyreview.com/topic/artificial-intelligence/feed",
@@ -276,11 +473,29 @@
         }
       },
       "tier": "T2",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "媒体"
+        "Media"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-wired-ai",
+      "name": "WIRED AI",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.wired.com/feed/tag/ai/latest/rss",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 120,
+      "tags": [
+        "Media"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
@@ -296,18 +511,48 @@
         }
       },
       "tier": "T2",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 60,
       "tags": [
-        "媒体"
+        "Media"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "hn-ai",
+      "name": "Hacker News (AI stories)",
+      "kind": "json_list",
+      "config": {
+        "url": "https://hn.algolia.com/api/v1/search_by_date?query=AI%20LLM%20OpenAI%20Anthropic%20GPT%20Claude%20Gemini%20DeepMind%20Llama%20Mistral&optionalWords=AI%20LLM%20OpenAI%20Anthropic%20GPT%20Claude%20Gemini%20DeepMind%20Llama%20Mistral&restrictSearchableAttributes=title&tags=story&numericFilters=points%3E%3D100&hitsPerPage=50",
+        "mode": "json_api",
+        "itemsPath": "hits",
+        "titlePaths": [
+          "title"
+        ],
+        "urlTemplate": "{raw:url}",
+        "urlTemplateFallback": "https://news.ycombinator.com/item?id={objectID}",
+        "authorPaths": [
+          "author"
+        ],
+        "publishedAtPath": "created_at",
+        "externalIdPath": "objectID",
+        "_aihot": {
+          "initialBackfillLimit": 10
+        }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 60,
+      "tags": [
+        "Community"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-simon-willison",
-      "name": "Simon Willison",
+      "name": "Simon Willison's Weblog",
       "kind": "rss",
       "config": {
         "feedUrl": "https://simonwillison.net/atom/everything/",
@@ -316,18 +561,17 @@
         }
       },
       "tier": "T2",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
       "interval_minutes": 120,
       "tags": [
-        "个人"
+        "Newsletter"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
     },
     {
       "id": "rss-import-ai",
-      "name": "Import AI",
+      "name": "Import AI (Jack Clark)",
       "kind": "rss",
       "config": {
         "feedUrl": "https://importai.substack.com/feed",
@@ -336,12 +580,10 @@
         }
       },
       "tier": "T2",
-      "owner_entity_id": null,
       "participation_mode": "editorial",
-      "interval_minutes": 180,
+      "interval_minutes": 240,
       "tags": [
-        "个人",
-        "周刊"
+        "Newsletter"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
@@ -357,11 +599,264 @@
         }
       },
       "tier": "T2",
-      "owner_entity_id": null,
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-interconnects",
+      "name": "Interconnects (Nathan Lambert)",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.interconnects.ai/feed",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter",
+        "Open source"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-one-useful-thing",
+      "name": "One Useful Thing (Ethan Mollick)",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.oneusefulthing.org/feed",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-semianalysis",
+      "name": "SemiAnalysis",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://newsletter.semianalysis.com/feed",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter",
+        "Chips"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-last-week-in-ai",
+      "name": "Last Week in AI",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://lastweekin.ai/feed",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "rss-ai-snake-oil",
+      "name": "AI as Normal Technology (AI Snake Oil)",
+      "kind": "rss",
+      "config": {
+        "feedUrl": "https://www.aisnakeoil.com/feed",
+        "_aihot": {
+          "initialBackfillLimit": 8
+        }
+      },
+      "tier": "T2",
+      "participation_mode": "editorial",
+      "interval_minutes": 240,
+      "tags": [
+        "Newsletter",
+        "Policy"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "gh-vllm",
+      "name": "vLLM releases (GitHub)",
+      "kind": "json_list",
+      "config": {
+        "url": "https://api.github.com/repos/vllm-project/vllm/releases?per_page=10",
+        "mode": "json_api",
+        "titlePaths": [
+          "name",
+          "tag_name"
+        ],
+        "urlTemplate": "{raw:html_url}",
+        "summaryPaths": [
+          "body"
+        ],
+        "authorPaths": [
+          "author.login"
+        ],
+        "publishedAtPath": "published_at",
+        "externalIdPath": "id",
+        "requireBoolean": {
+          "path": "prerelease",
+          "equals": false
+        },
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "vllm",
       "participation_mode": "editorial",
       "interval_minutes": 180,
       "tags": [
-        "个人"
+        "Releases",
+        "Open source"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "gh-ollama",
+      "name": "Ollama releases (GitHub)",
+      "kind": "json_list",
+      "config": {
+        "url": "https://api.github.com/repos/ollama/ollama/releases?per_page=10",
+        "mode": "json_api",
+        "titlePaths": [
+          "name",
+          "tag_name"
+        ],
+        "urlTemplate": "{raw:html_url}",
+        "summaryPaths": [
+          "body"
+        ],
+        "authorPaths": [
+          "author.login"
+        ],
+        "publishedAtPath": "published_at",
+        "externalIdPath": "id",
+        "requireBoolean": {
+          "path": "prerelease",
+          "equals": false
+        },
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "ollama",
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "Releases",
+        "Open source"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "gh-transformers",
+      "name": "Transformers releases (GitHub)",
+      "kind": "json_list",
+      "config": {
+        "url": "https://api.github.com/repos/huggingface/transformers/releases?per_page=10",
+        "mode": "json_api",
+        "titlePaths": [
+          "name",
+          "tag_name"
+        ],
+        "urlTemplate": "{raw:html_url}",
+        "summaryPaths": [
+          "body"
+        ],
+        "authorPaths": [
+          "author.login"
+        ],
+        "publishedAtPath": "published_at",
+        "externalIdPath": "id",
+        "requireBoolean": {
+          "path": "prerelease",
+          "equals": false
+        },
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "hugging-face",
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "Releases",
+        "Open source"
+      ],
+      "site_fulltext": false,
+      "syndicate_fulltext": false
+    },
+    {
+      "id": "gh-pytorch",
+      "name": "PyTorch releases (GitHub)",
+      "kind": "json_list",
+      "config": {
+        "url": "https://api.github.com/repos/pytorch/pytorch/releases?per_page=10",
+        "mode": "json_api",
+        "titlePaths": [
+          "name",
+          "tag_name"
+        ],
+        "urlTemplate": "{raw:html_url}",
+        "summaryPaths": [
+          "body"
+        ],
+        "authorPaths": [
+          "author.login"
+        ],
+        "publishedAtPath": "published_at",
+        "externalIdPath": "id",
+        "requireBoolean": {
+          "path": "prerelease",
+          "equals": false
+        },
+        "_aihot": {
+          "initialBackfillLimit": 3
+        }
+      },
+      "tier": "T1",
+      "owner_entity_id": "meta",
+      "participation_mode": "editorial",
+      "interval_minutes": 180,
+      "tags": [
+        "Releases",
+        "Open source"
       ],
       "site_fulltext": false,
       "syndicate_fulltext": false
