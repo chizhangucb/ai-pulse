@@ -171,6 +171,25 @@ test("a bare-number answer is a score, and stays unusable where an object is ask
   }
 });
 
+test("the charge a provider reports with an answer (OpenRouter's usage.cost) is logged as its actual cost", async () => {
+  const billed = await stub((hit) => ({ id: `stub-billed-${hit}`, choices: [{ message: { content: '{"ok":true}' } }], usage: { ...usage, cost: 0.000425 } }));
+  const original = process.env.DEEPSEEK_BASE_URL;
+  const subject = `billed-${tag()}`;
+  process.env.DEEPSEEK_BASE_URL = `${billed.url}/v1`;
+  try {
+    await ask(subject);
+    const [a] = await sql`SELECT a.cost::text AS cost, a.currency, a.cost_basis FROM receipt_attempts a JOIN receipts r ON r.id = a.receipt_id WHERE r.subject = ${subject}`;
+    assert.deepEqual({ ...a }, { cost: "0.000425", currency: "USD", cost_basis: "actual" });
+  } finally {
+    process.env.DEEPSEEK_BASE_URL = original;
+    await billed.close();
+  }
+  const unbilled = `unbilled-${tag()}`;
+  await ask(unbilled);
+  const [b] = await sql`SELECT a.cost FROM receipt_attempts a JOIN receipts r ON r.id = a.receipt_id WHERE r.subject = ${unbilled}`;
+  assert.equal(b!.cost, null);
+});
+
 test("an answer cut off at the output limit is a failed paid answer that says so", async () => {
   const cut = await stub(() => ({ id: "stub-cut", choices: [{ message: { content: "" }, finish_reason: "length" }], usage }));
   const original = process.env.DEEPSEEK_BASE_URL;
