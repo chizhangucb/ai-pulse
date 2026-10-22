@@ -165,7 +165,7 @@ export const ABOUT = {
     feishu?: ContactCard;
   },
   /** Copyright and takedown note at the bottom, with a link to the feedback page in between. */
-  copyright: [`${SITE.name} is a summary and reading index. Original articles belong to their publishers. If you publish one of our sources and want a correction, a takedown or a different display, please`, "contact us."] as [string, string],
+  copyright: [`${SITE.name} is a summary and reading index. Original articles belong to their publishers. If you publish one of our sources and want a correction, a takedown or a different display, please use the`, "to contact us."] as [string, string],
   /** Credit for the open-source framework this site is built on, shown on the about page. */
   credit: {
     text: "AI Pulse is built on AIHOT, an open-source AI news engine released under the MIT License by its author, Digital Life Khazix (数字生命卡兹克). AI Pulse is an independent site and is not affiliated with AIHOT.",

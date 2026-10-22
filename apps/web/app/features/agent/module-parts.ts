@@ -8,4 +8,4 @@ export const AGENT_PARTS: readonly AgentPart[] = (await loadParts((m) => m.agent
 export const TAG = AGENT_PARTS.find((p) => p.tag)?.tag ?? null;
 
 /** The modules' clients built on the Agent guide, by name, as the page lists them. */
-export const GUIDE_CLIENTS = AGENT_PARTS.flatMap((p) => p.guideClients ?? []).join("、");
+export const GUIDE_CLIENTS = AGENT_PARTS.flatMap((p) => p.guideClients ?? []).join(", ");
