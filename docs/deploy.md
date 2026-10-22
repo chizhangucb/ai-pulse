@@ -98,6 +98,12 @@ A new migration that meets a long-held lock reports the file name and the wait t
 
 What to watch for in each update follows, newest first.
 
+#### Railway deploys from GitHub (October 22, 2026)
+
+- `.railway/railway.ts` sets the source of `api`, `worker` and `web` to `chizhangucb/ai-pulse` on `main` with **Wait for CI**, matching the live services. The `railway up` upload path and its `git rev-parse HEAD` release are gone; see [Deploying a release](#deploying-a-release).
+- The file no longer writes `AIHOT_RELEASE`; it keeps whatever Railway holds. The release shown on `/api/health`, the admin Runs page and each page's `aihot-release` tag is now `AIHOT_RELEASE`, or when that is unset or empty `RAILWAY_GIT_COMMIT_SHA`, or else `dev`. An empty `AIHOT_RELEASE`, as `${{RAILWAY_GIT_COMMIT_SHA}}` resolves to on Railway and `docker-compose.yml` passes by default, used to show as an empty release. If a Railway service holds a fixed commit or `${{RAILWAY_GIT_COMMIT_SHA}}` in `AIHOT_RELEASE`, delete the variable there.
+- No database migration.
+
 #### Railway and Render configs, and the api runs the jobs that use the data directory (October 22, 2026)
 
 - `.railway/railway.ts` describes the Railway project in Railway's infrastructure-as-code format, and `render.yaml` is a Render Blueprint for the same layout; see [On Railway](#on-railway) and [On Render](#on-render).
@@ -316,20 +322,11 @@ Railway refuses to plan for services that still read a `railway.json` or `railwa
 
 ### Deploying a release
 
-Deploy the api first and wait until it is active, then the worker and web. The api's pre-deploy step migrates the database ([Migrations and deploy order](#migrations-and-deploy-order)).
+`api`, `worker` and `web` deploy from GitHub: the file sets each one's source to `github("chizhangucb/ai-pulse", { branch: "main", checkSuites: true })`, so each deploys every push to `main`. `checkSuites: true` makes Railway wait for the commit's GitHub checks to pass first, which the dashboard calls **Wait for CI**. The three services deploy in parallel. The api's pre-deploy step migrates the database, and the worker waits for those migrations on its own ([Migrations and deploy order](#migrations-and-deploy-order)).
 
-**Upload with `railway up`.** This is the current path, because Railway's GitHub app cannot see this private repository. Check out the commit whose CI passed, then run:
+A release needs no `railway config apply`. Apply only after changing `.railway/railway.ts`, once its pull request is merged.
 
-```bash
-railway config apply
-railway up --service api --ci
-railway up --service worker --ci
-railway up --service web --ci
-```
-
-`railway up` uploads the working directory and skips files listed in `.gitignore`, so `.env` and `.data/` stay on your machine. Nothing checks CI on this path: deploy only commits whose GitHub checks are green. An upload leaves `RAILWAY_GIT_COMMIT_SHA` empty, so while `source` is unset the file sets `AIHOT_RELEASE` to the checked-out commit (`git rev-parse HEAD`) and `railway config apply` writes it before the upload. Between releases the plan therefore always shows `AIHOT_RELEASE` changing on `api`, `worker` and `web`; that change is expected.
-
-**From GitHub.** Once Railway's GitHub app has access to `chizhangucb/ai-pulse`, set `source` in `.railway/railway.ts` to `github("chizhangucb/ai-pulse", { branch: "main", checkSuites: true })` and apply. Each service then deploys every push to `main`. `checkSuites: true` makes Railway wait for the commit's GitHub checks to pass first, which the dashboard calls **Wait for CI**. The three services deploy in parallel, and the worker waits for the api's migrations on its own.
+`/api/health` and the admin Runs page show the commit Railway built, from `RAILWAY_GIT_COMMIT_SHA`, to confirm a release replaced the processes. The file marks `AIHOT_RELEASE` `preserve()`, so the plan never changes it. Leave it unset: a value there, even an old commit, takes precedence over Railway's.
 
 ### Variables
 
@@ -342,7 +339,7 @@ Shared by `api` and `worker` (the settings `.env.example` gives, plus the databa
 | `NODE_ENV` | `production` |
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (the private-network address) |
 | `AIHOT_DATA_DIR` | `/data` |
-| `AIHOT_RELEASE` | The commit: `${{RAILWAY_GIT_COMMIT_SHA}}` when deploying from GitHub, the checked-out commit when uploading. Shown on `/api/health` and the admin Runs page to confirm a release replaced the processes |
+| `AIHOT_RELEASE` | Unset (`preserve()`): the release falls back to Railway's `RAILWAY_GIT_COMMIT_SHA`, see [Deploying a release](#deploying-a-release) |
 | `LLM_BASE_URL` | `https://openrouter.ai/api/v1` |
 | `LLM_MODEL` | `anthropic/claude-haiku-5.5` |
 | `LLM_EXTRA_JSON` | `{"reasoning":{"enabled":false}}` |
@@ -388,7 +385,7 @@ Shared by `api` and `worker` (the settings `.env.example` gives, plus the databa
 | `WEB_PORT` | `3000`, the port the server reads |
 | `PORT` | `3000`, the port Railway routes the domain and the health check to |
 | `TRUST_PROXY` | `true`: Railway's proxy adds the visitor's address to `X-Forwarded-For` |
-| `AIHOT_RELEASE` | The commit, as for `api` and `worker` |
+| `AIHOT_RELEASE` | Unset, as for `api` and `worker` |
 
 Optional settings from `.env.example` (embeddings, paid collection, Feishu, `DB_BACKUP_STORE_*` and so on) go on the service that reads them. Backups run in the api, so `DB_BACKUP_STORE_*` belongs on `api`.
 
@@ -482,7 +479,7 @@ Render sends SIGTERM and waits `maxShutdownDelaySeconds` (at most 300) before ki
 
 ## Migrations and deploy order
 
-Each service deploys on its own: on Render once a push passes CI; on Railway in the order you run `railway up`, or, deploying from GitHub, all three in parallel once the checks pass:
+Each service deploys on its own: on Render once a push passes CI; on Railway all three in parallel once the checks pass:
 
 1. The api's pre-deploy step migrates and seeds in a separate container, while the old api, worker and web keep running. If it fails, the api deploy stops and the old api stays.
 2. Then the old api stops and the new one starts; the site answers errors for that short gap, because a service with a volume or disk cannot overlap with its replacement.
