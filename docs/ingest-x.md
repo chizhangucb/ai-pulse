@@ -40,6 +40,6 @@ The response is `{"ok": true, "created": 1}`. Posts already stored are not creat
 | 401 | Missing or wrong token, or `INGEST_TOKEN` is not set |
 | 409 | The source is paused in the admin |
 | 413 | More than 50 items |
-| 429 | Over `INGEST_RATE_LIMIT` pushes per minute (default 10 with Docker); 32 accounts an hour fit when the job waits about 7 seconds between requests |
+| 429 | Over `INGEST_RATE_LIMIT` pushes per minute (default 10 with Docker); 98 accounts an hour fit when the job waits about 7 seconds between requests |
 
 To push old posts without them counting as today's news, add `"raw": {"_aihot": {"backfill": true}}` to each item.

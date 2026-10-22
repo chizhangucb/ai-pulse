@@ -49,6 +49,14 @@ test("concurrent source intake creates one source for the same feed", async () =
   for (const result of results) if (!result.created) assert.equal(result.duplicate.id, created.source.id);
 });
 
+test("a source id derived from an X handle with underscores is accepted", async () => {
+  for (const id of [`x-perplexity_ai-${T}`, `x-_philschmid-${T}`]) {
+    const result = await createSource({ id, name: "X account", kind: "external", config: {}, tier: "T1_5" }, "test");
+    assert.ok(result.created);
+    assert.equal(result.source.id, id);
+  }
+});
+
 test("a source transaction rolled back at commit leaves no successful audit entry", async () => {
   await sql.unsafe(`CREATE FUNCTION refuse_admin_source_commit() RETURNS trigger LANGUAGE plpgsql AS $$
     BEGIN IF NEW.name = 'refuse-admin-commit' THEN RAISE EXCEPTION 'refused at commit'; END IF; RETURN NEW; END $$`);

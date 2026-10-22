@@ -77,7 +77,7 @@ Each source's key fields:
 | `site_fulltext` | Whether the site may show the full text. **Off by default**: only the summary and a link to the original. Turn it on only when the source clearly allows it |
 | `syndicate_fulltext` | Whether the full-text RSS may carry the body. **Off by default**; it applies only when the site shows full text too, and should be on only when the source clearly allows republishing |
 
-AI Pulse also has 32 X accounts in `industry/x-accounts.json`. `scripts/seed.ts` creates an `external` source for each, and an outside job pushes their posts ([X posts through the ingest endpoint](ingest-x.md)).
+AI Pulse also has 98 X accounts in `industry/x-accounts.json`. `scripts/seed.ts` creates an `external` source for each, and an outside job pushes their posts ([X posts through the ingest endpoint](ingest-x.md)).
 
 ## 4. The picking standard: `industry/prompts/`
 

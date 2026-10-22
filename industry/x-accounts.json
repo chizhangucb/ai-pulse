@@ -208,6 +208,423 @@
       "handle": "_akhaliq",
       "name": "AK",
       "tier": "T2"
+    },
+    {
+      "handle": "ArtificialAnlys",
+      "name": "Artificial Analysis",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "arena",
+      "name": "Arena",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "fal",
+      "name": "fal",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "OpenRouter",
+      "name": "OpenRouter",
+      "tier": "T1_5",
+      "owner_entity_id": "openrouter",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "Google",
+      "name": "Google",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "GeminiApp",
+      "name": "Gemini",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "ChatGPT",
+      "name": "ChatGPT",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "OpenAINewsroom",
+      "name": "OpenAI Newsroom",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "ClaudeDevs",
+      "name": "Claude Devs",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "cohere",
+      "name": "Cohere",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "perplexity_ai",
+      "name": "Perplexity",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "cognition",
+      "name": "Cognition",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "opencode",
+      "name": "opencode",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "openclaw",
+      "name": "OpenClaw",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "arcprize",
+      "name": "ARC Prize",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "Waymo",
+      "name": "Waymo",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "ElevenLabs",
+      "name": "ElevenLabs",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "LumaLabsAI",
+      "name": "Luma AI",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "krea_ai",
+      "name": "Krea AI",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "higgsfield",
+      "name": "Higgsfield",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "ViggleAI",
+      "name": "Viggle",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "MeshyAI",
+      "name": "Meshy",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "PixVerse",
+      "name": "PixVerse",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "odysseyml",
+      "name": "Odyssey",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "suno",
+      "name": "Suno",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "midjourney",
+      "name": "Midjourney",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "theworldlabs",
+      "name": "World Labs",
+      "tier": "T1_5",
+      "owner_entity_id": "world-labs",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "Figure_robot",
+      "name": "Figure",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "GeneralistAI",
+      "name": "Generalist",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "ManusAI",
+      "name": "Manus",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "Muse",
+      "name": "Muse",
+      "tier": "T1_5",
+      "owner_entity_id": "meta",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "haoailab",
+      "name": "UCSD Hao AI Lab",
+      "tier": "T1_5",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "SpaceXSI",
+      "name": "SpaceX Super Intelligence",
+      "tier": "T1_5",
+      "owner_entity_id": "xai",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "bot",
+      "name": "Grok Bot",
+      "tier": "T1_5",
+      "owner_entity_id": "xai",
+      "publisherRole": "organization"
+    },
+    {
+      "handle": "rohanpaul_ai",
+      "name": "Rohan Paul",
+      "tier": "T2"
+    },
+    {
+      "handle": "testingcatalog",
+      "name": "TestingCatalog",
+      "tier": "T2"
+    },
+    {
+      "handle": "elonmusk",
+      "name": "Elon Musk",
+      "tier": "T1_5",
+      "owner_entity_id": "xai",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "Yuchenj_UW",
+      "name": "Yuchen Jin",
+      "tier": "T2"
+    },
+    {
+      "handle": "Thom_Wolf",
+      "name": "Thomas Wolf",
+      "tier": "T1_5",
+      "owner_entity_id": "hugging-face",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "AravSrinivas",
+      "name": "Aravind Srinivas",
+      "tier": "T1_5",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "thsottiaux",
+      "name": "Tibo",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "reach_vb",
+      "name": "Vaibhav Srivastav",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "adocomplete",
+      "name": "Ado Kukic",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "dexhorthy",
+      "name": "Dex Horthy",
+      "tier": "T2"
+    },
+    {
+      "handle": "alexeheath",
+      "name": "Alex Heath",
+      "tier": "T2"
+    },
+    {
+      "handle": "karinanguyen",
+      "name": "Karina Nguyen",
+      "tier": "T2"
+    },
+    {
+      "handle": "PeterMcCrory",
+      "name": "Peter McCrory",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "_philschmid",
+      "name": "Philipp Schmid",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "lydiahallie",
+      "name": "Lydia Hallie",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "arthurmensch",
+      "name": "Arthur Mensch",
+      "tier": "T1_5",
+      "owner_entity_id": "mistral",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "joshwoodward",
+      "name": "Josh Woodward",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "trq212",
+      "name": "Thariq",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "enjalot",
+      "name": "Ian Johnson",
+      "tier": "T2"
+    },
+    {
+      "handle": "dps",
+      "name": "David Singleton",
+      "tier": "T1_5",
+      "owner_entity_id": "meta",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "bcherny",
+      "name": "Boris Cherny",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "_catwu",
+      "name": "Cat Wu",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "DarioAmodei",
+      "name": "Dario Amodei",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "markchen90",
+      "name": "Mark Chen",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "merettm",
+      "name": "Jakub Pachocki",
+      "tier": "T1_5",
+      "owner_entity_id": "openai",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "DrJimFan",
+      "name": "Jim Fan",
+      "tier": "T1_5",
+      "owner_entity_id": "nvidia",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "chelseabfinn",
+      "name": "Chelsea Finn",
+      "tier": "T2"
+    },
+    {
+      "handle": "fchollet",
+      "name": "François Chollet",
+      "tier": "T2"
+    },
+    {
+      "handle": "noahzweben",
+      "name": "Noah Zweben",
+      "tier": "T1_5",
+      "owner_entity_id": "anthropic",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "ammaar",
+      "name": "Ammaar Reshi",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "person"
+    },
+    {
+      "handle": "sainingxie",
+      "name": "Saining Xie",
+      "tier": "T2"
+    },
+    {
+      "handle": "Gemini_Notebook",
+      "name": "Gemini Notebook",
+      "tier": "T1_5",
+      "owner_entity_id": "google",
+      "publisherRole": "organization"
     }
   ]
 }
