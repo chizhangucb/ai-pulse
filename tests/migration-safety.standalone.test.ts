@@ -48,6 +48,7 @@ test("online migrations permit metadata changes and split constraint validation"
 // A default row (a budget for a new service) is one row of constants that leaves an existing row alone.
 test("online migrations seed one constant row and refuse any other insert", () => {
   assert.equal(migrationPlan("INSERT INTO budgets (service, per_minute, note) VALUES ('example', 300, 'it''s a note') ON CONFLICT (service) DO NOTHING;").kind, "transaction");
+  assert.equal(migrationPlan("INSERT INTO public.budgets (service, note) VALUES ('example', 'one , two, and it''s three') ON CONFLICT (service) DO NOTHING;").kind, "transaction");
   for (const statement of [
     "INSERT INTO budgets (service, per_minute) VALUES ('example', 300);",
     "INSERT INTO budgets (service, per_minute) VALUES ('example', 300) ON CONFLICT (service) DO UPDATE SET per_minute = 300;",
@@ -56,6 +57,9 @@ test("online migrations seed one constant row and refuse any other insert", () =
     "INSERT INTO budgets (service, per_minute) VALUES ((SELECT max(id) FROM sources), 1) ON CONFLICT (service) DO NOTHING;",
     "INSERT INTO budgets (service, updated_at) VALUES ('example', now()) ON CONFLICT (service) DO NOTHING;",
     "INSERT INTO budgets VALUES ('example', 300) ON CONFLICT (service) DO NOTHING;",
+    "INSERT INTO sources (id, name) VALUES ('example', 'Example') ON CONFLICT (id) DO NOTHING;",
+    "INSERT INTO budgets (service, per_minute, note) VALUES ('example', 300) ON CONFLICT (service) DO NOTHING;",
+    "INSERT INTO budgets (service, note) VALUES ('example', 300, 'a , b') ON CONFLICT (service) DO NOTHING;",
   ]) assert.throws(() => migrationPlan(statement), statement);
 });
 
