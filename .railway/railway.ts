@@ -32,7 +32,7 @@ export default defineRailway(() => {
       SSL_CERT_DAYS: preserve(),
     },
   });
-  const data = volume("api-volume");
+  const data = volume("api-volume", { region: "sfo", sizeMB: 5000 });
 
   // The settings .env.example gives, for both backend processes.
   const backend = {

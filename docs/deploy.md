@@ -276,7 +276,7 @@ Railway is the first host. `.railway/railway.ts` describes the whole Railway pro
 | Service | Role |
 |---|---|
 | `web` | Pages, RSS and the public API; the only service with a public domain |
-| `api` | The backend, with the volume `api-volume` at `/data`; also runs the jobs that read or write `/data` |
+| `api` | The backend, with the volume `api-volume` (5000 MB in `sfo`) at `/data`; also runs the jobs that read or write `/data` |
 | `worker` | Collection, model calls, grouping, reports and the other scheduled jobs; no volume |
 | `Postgres` | PostgreSQL 17 from the `postgres:17` image, with the volume `postgres-volume` at `/var/lib/postgresql/data` |
 
