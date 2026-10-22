@@ -7,6 +7,7 @@ import type { ModelPreset } from "@aihot/contracts/site-config";
 import { PRESETS } from "@aihot/site/models";
 import { config, credential } from "../config.ts";
 import { sha256 } from "../lib/ids.ts";
+import { shortError } from "../lib/log-error.ts";
 import {
   assertAccepted, failureKind, logicalKeyFor, ModelOutputError, ModelUnavailableError, paidRequest, ProviderRejectedError, receiptState, rejectReceivedResponse,
   type ReceiptRequest,
@@ -189,7 +190,28 @@ export async function chatJson<S extends z.ZodType>(opts: ChatJsonOptions<S>): P
   }
 }
 
+/**
+ * One log line per call, so the platform's log view shows the model work: "reused" is an answer already
+ * paid for (no new spend); costUsd is what the provider reported for a new answer.
+ */
 async function chatOnce<S extends z.ZodType>(opts: ChatJsonOptions<S>, circuit = false, fallbackFor?: string): Promise<ChatJsonResult<z.infer<S>>> {
+  const started = performance.now();
+  const line = (level: string, fields: Record<string, unknown>) => console.log(JSON.stringify({
+    level, msg: "model call", step: opts.purpose, model: opts.model, providerModel: MODELS[opts.model]?.model || null,
+    ...fields, latencyMs: Math.round(performance.now() - started),
+  }));
+  try {
+    const result = await callModel(opts, circuit, fallbackFor);
+    const cost = result.usage?.cost;
+    line("info", { status: result.reused ? "reused" : "ok", costUsd: !result.reused && typeof cost === "number" && Number.isFinite(cost) ? cost : null });
+    return result;
+  } catch (error) {
+    line("warn", { status: "error", costUsd: null, error: shortError(error) });
+    throw error;
+  }
+}
+
+async function callModel<S extends z.ZodType>(opts: ChatJsonOptions<S>, circuit: boolean, fallbackFor?: string): Promise<ChatJsonResult<z.infer<S>>> {
   const spec = MODELS[opts.model];
   if (!spec) throw new Error(`Unknown model ${opts.model}`);
   if (!config.modelCallsEnabled) throw new ModelUnavailableError("Model calls are disabled (MODEL_CALLS_ENABLED=false)");

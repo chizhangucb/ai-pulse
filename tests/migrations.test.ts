@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { after, test } from "node:test";
 import postgres from "postgres";
-import { runMigrations } from "../scripts/migrate.ts";
+import { pendingMigrations, runMigrations } from "../scripts/migrate.ts";
 
 const db = postgres(process.env.DATABASE_URL!, { max: 1, onnotice: () => {} });
 const other = postgres(process.env.DATABASE_URL!, { max: 1, onnotice: () => {} });
@@ -136,4 +136,18 @@ test("IF NOT EXISTS must not turn an invalid or wrong-table index into a success
     "database/migrations/9007_wrong_table.sql": "CREATE INDEX CONCURRENTLY IF NOT EXISTS migration_idx ON migration_invalid (id);",
   })), /different table/);
   assert.equal((await db`SELECT 1 FROM schema_migrations WHERE name IN ('9006_invalid.sql', '9007_wrong_table.sql')`).length, 0);
+});
+
+test("pending migrations are the files the database has not applied, every file before the first run", async () => {
+  const root = fixture({
+    "database/migrations/9100_applied.sql": "SELECT 1;",
+    "database/migrations/9102_pending.sql": "SELECT 1;",
+    "modules/example/migrations/9101_module.sql": "SELECT 1;",
+  });
+  await db`INSERT INTO schema_migrations (name) VALUES ('9100_applied.sql')`;
+  assert.deepEqual(await pendingMigrations(db, root), ["9101_module.sql", "9102_pending.sql"]);
+  await db`CREATE SCHEMA migration_fresh`;
+  const fresh = postgres(process.env.DATABASE_URL!, { max: 1, onnotice: () => {}, connection: { search_path: "migration_fresh" } });
+  try { assert.deepEqual(await pendingMigrations(fresh, root), ["9100_applied.sql", "9101_module.sql", "9102_pending.sql"]); }
+  finally { await fresh.end(); }
 });

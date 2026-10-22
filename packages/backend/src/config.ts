@@ -39,6 +39,10 @@ const credentialsDir = env.AIHOT_CREDENTIALS_DIR || DEPLOYMENT.credentialsDir;
 export const config = {
   databaseUrl: str("DATABASE_URL", "postgres://127.0.0.1:5432/aihot"),
   apiPort: int("API_PORT", 3001),
+  // How long a stopping process lets running jobs finish; pg-boss then fails the rest and they are retried.
+  // Below the supervisor's stop window (Docker's stop_grace_period, Railway's drainingSeconds,
+  // Render's maxShutdownDelaySeconds) so the database still closes.
+  stopTimeoutMs: int("STOP_TIMEOUT_MS", 270_000),
   // Every generated absolute link uses this address, whatever Host a request arrives with.
   siteUrl: str("SITE_URL", SITE.defaultUrl).replace(/\/+$/, ""),
   egressProxyUrl: env.EGRESS_PROXY_URL || null,

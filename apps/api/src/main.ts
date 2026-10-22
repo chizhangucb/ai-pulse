@@ -1,5 +1,9 @@
 import { assertProductionSecrets, config } from "@aihot/backend/config";
 import { closeDb } from "@aihot/backend/db";
+import { getBoss, stopBoss } from "@aihot/backend/jobs/queue";
+import { registerNotifyJobs } from "@aihot/backend/jobs/notify";
+import { registerSchedules } from "@aihot/backend/jobs/schedules";
+import { ensureContentTargets } from "@aihot/backend/notify/deliver";
 import { installModules } from "@aihot/backend/modules";
 import { assertModelChoices } from "@aihot/backend/editorial/models";
 import { SERVER_MODULES } from "@aihot/site/modules/server";
@@ -25,12 +29,18 @@ const app = await buildApp();
 await app.listen({ port: config.apiPort, host: process.env.API_HOST || "127.0.0.1" });
 startHeartbeat(`api:${config.apiPort}`);
 startWorkerWatchdog();
+// Jobs that read or write config.dataDir run here: the api is the only process with that disk.
+await ensureContentTargets();
+const boss = await getBoss();
+await registerNotifyJobs(boss);
+await registerSchedules(boss, "api");
 
 let stopping = false;
 const shutdown = async () => {
   if (stopping) return;
   stopping = true;
   await app.close();
+  await stopBoss();
   await closeDb();
   process.exit(0);
 };

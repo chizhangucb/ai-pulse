@@ -6,6 +6,7 @@ import { PresentationMismatch } from "../content/presentation.ts";
 import { HttpStatusError } from "../lib/http-fetch.ts";
 import { identityKeyForUrl } from "../lib/url.ts";
 import { sha256 } from "../lib/ids.ts";
+import { shortError } from "../lib/log-error.ts";
 import { enqueue, QUEUES, shutdownSignal } from "../jobs/queue.ts";
 import { queueProcessing } from "../jobs/content.ts";
 import { BudgetExceededError, completeReceipt } from "../providers/receipts.ts";
@@ -277,9 +278,30 @@ async function recordFetch(db: Db, sourceId: string, runId: number, run: { found
               error = ${run.error}, detail = nullif(coalesce(detail,'{}'::jsonb) || coalesce(${detail}::jsonb,'{}'::jsonb),'{}'::jsonb) WHERE id = ${runId}`;
 }
 
+/** One log line per collection run, so the platform's log view shows collection without the admin. */
+export async function logCollectRun<R extends { status: string; found?: number; created?: number; error?: string }>(fields: Record<string, unknown>, run: () => Promise<R>): Promise<R> {
+  const started = performance.now();
+  const line = (status: string, result: Partial<R>, error?: unknown) => console.log(JSON.stringify({
+    level: status === "failed" ? "warn" : "info", msg: "collect run", ...fields, status, found: result.found ?? null, created: result.created ?? null,
+    durationMs: Math.round(performance.now() - started), ...(error ? { error: shortError(error) } : {}),
+  }));
+  try {
+    const result = await run();
+    line(result.status, result, result.error);
+    return result;
+  } catch (error) {
+    line("failed", {}, error);
+    throw error;
+  }
+}
+
 /** `xSince` reads an X account again from that post, without moving its watermark back. */
 export async function collectSource(sourceId: string, opts: { force?: boolean; xSince?: string } = {}): Promise<CollectResult> {
   const source = await loadSource(sourceId);
+  return logCollectRun({ source: sourceId, kind: source?.kind ?? null }, () => collectLoaded(sourceId, source, opts));
+}
+
+async function collectLoaded(sourceId: string, source: SourceRow | null, opts: { force?: boolean; xSince?: string }): Promise<CollectResult> {
   if (!source) return { sourceId, status: "skipped", found: 0, created: 0, revised: 0, error: "missing" };
   if (!source.enabled && !opts.force) return { sourceId, status: "skipped", found: 0, created: 0, revised: 0, error: "paused" };
   if (source.kind === "mp_account" || source.kind === "external") {
@@ -403,7 +425,11 @@ function coveredTo(m: SourceRow): bigint {
  * its late posts and, read on its own, the posts below it), and the stretches still unread are kept in
  * each account's cursor, so they survive a change of shards.
  */
-export async function collectXShard(key: string, sourceIds: string[]): Promise<{ key: string; status: "ok" | "failed" | "skipped"; accounts: number; found: number; created: number; error?: string }> {
+export async function collectXShard(key: string, sourceIds: string[]) {
+  return logCollectRun({ shard: key, kind: "x_search", sources: sourceIds }, () => collectShard(key, sourceIds));
+}
+
+async function collectShard(key: string, sourceIds: string[]): Promise<{ key: string; status: "ok" | "failed" | "skipped"; accounts: number; found: number; created: number; error?: string }> {
   const members = (
     await sql<SourceRow[]>`
       SELECT id, name, kind, config, tier, participation_mode, first_party, interval_minutes, enabled, cursor, fail_count

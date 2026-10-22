@@ -1,6 +1,6 @@
 // Retirement failures: old schedules keep producing work, already-unscheduled queues keep old jobs,
-// cleanup removes a live/business queue or its durable run history, or retired failures stay in the
-// admin's current schedules. Use pg-boss and PostgreSQL.
+// cleanup removes a live/business queue, the other process's timer or its durable run history, or
+// retired failures stay in the admin's current schedules. Use pg-boss and PostgreSQL.
 import "./setup.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
@@ -8,7 +8,7 @@ import { closeDb, sql } from "@aihot/backend/db";
 import { getBoss, stopBoss } from "@aihot/backend/jobs/queue";
 import { installModules } from "@aihot/backend/modules";
 import { runsOverview } from "@aihot/backend/admin/runs";
-import { registerSchedules } from "../apps/worker/src/schedules.ts";
+import { registerSchedules } from "@aihot/backend/jobs/schedules";
 
 after(async () => { await stopBoss(); await closeDb(); });
 
@@ -16,7 +16,9 @@ test("retired schedules leave the current overview and execution queues while li
   let externalJobs = ["external.kept", "kept", "external.kept"];
   const boss = await getBoss();
   const retired = ["cron.retired.scheduled", "cron.retired.unscheduled", "cron.paused", "cron.renamed.old"];
-  for (const name of [...retired, "cron.kept", "cron.renamed.new", "business.kept"]) {
+  // The api's timers (operations on its disk): ops.backup is off here, as no backup store is configured.
+  const apiTimers = ["cron.ops.retention", "cron.ops.backup"];
+  for (const name of [...retired, ...apiTimers, "cron.kept", "cron.renamed.new", "business.kept"]) {
     await boss.createQueue(name);
     await boss.send(name, { fixture: true }, { startAfter: "2099-01-01" });
   }
@@ -36,7 +38,8 @@ test("retired schedules leave the current overview and execution queues while li
     { name: "paused", cron: "0 0 1 1 *", when: () => false, run: async () => ({}) },
   ], admin: { currentJobs: async () => externalJobs } }]);
 
-  await registerSchedules(boss);
+  await registerSchedules(boss, "worker");
+  for (const name of apiTimers) assert.ok(await boss.getQueue(name), `the worker leaves the api's ${name}`);
   // Multiple schedule keys must still yield one latest result per task.
   await boss.schedule("cron.kept", "0 0 1 1 *", {}, { key: "extra" });
   const schedules = await boss.getSchedules();
@@ -50,6 +53,10 @@ test("retired schedules leave the current overview and execution queues while li
     assert.ok(await boss.getQueue(name));
     assert.equal((await sql`SELECT id FROM pgboss.job WHERE name = ${name}`).length, 1);
   }
+  await registerSchedules(boss, "api");
+  assert.equal(await boss.getQueue("cron.ops.backup"), null, "the api retires its own disabled timer");
+  for (const name of ["cron.ops.retention", "cron.kept", "business.kept"]) assert.ok(await boss.getQueue(name), `the api leaves ${name}`);
+  assert.ok((await boss.getSchedules()).some((s) => s.name === "cron.ops.retention"));
   // An engine timer may also finish during this test; its result must not affect the fixture checks.
   await sql`INSERT INTO job_runs (job, status, finished_at) VALUES ('hot.rank', 'failed', now())`;
   const overview = await runsOverview();

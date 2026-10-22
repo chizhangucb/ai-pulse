@@ -4,6 +4,7 @@
 import { config, credential } from "../config.ts";
 import { sql } from "../db.ts";
 import { sha256 } from "../lib/ids.ts";
+import { shortError } from "../lib/log-error.ts";
 import { z } from "zod";
 import { assertAccepted, completeReceipt, ModelOutputError, ModelUnavailableError, paidRequest, rejectReceivedResponse } from "./receipts.ts";
 
@@ -20,7 +21,23 @@ export function embeddingsAvailable(): boolean {
   return config.modelCallsEnabled && !!(credential("models", "EMBEDDING_API_KEY") ?? credential("models", "DASHSCOPE_API_KEY"));
 }
 
-async function embedBatch(texts: string[], subject: string): Promise<{ vectors: number[][]; receiptId: number }> {
+/** One log line per request, in the shape of the chat calls' (providers/llm.ts). */
+async function embedBatch(texts: string[], subject: string): Promise<{ vectors: number[][]; receiptId: number; reused: boolean }> {
+  const started = performance.now();
+  const line = (level: string, fields: Record<string, unknown>) => console.log(JSON.stringify({
+    level, msg: "model call", step: "embeddings", model: SERVICE, providerModel: EMBEDDING_MODEL, ...fields, latencyMs: Math.round(performance.now() - started),
+  }));
+  try {
+    const result = await requestEmbeddings(texts, subject);
+    line("info", { status: result.reused ? "reused" : "ok", costUsd: null });
+    return result;
+  } catch (error) {
+    line("warn", { status: "error", costUsd: null, error: shortError(error) });
+    throw error;
+  }
+}
+
+async function requestEmbeddings(texts: string[], subject: string): Promise<{ vectors: number[][]; receiptId: number; reused: boolean }> {
   if (!config.modelCallsEnabled) throw new ModelUnavailableError("Model calls are disabled (MODEL_CALLS_ENABLED=false)");
   const base = own ? credential("models", "EMBEDDING_BASE_URL") ?? "https://api.openai.com/v1" : credential("models", "DASHSCOPE_BASE_URL") ?? "https://dashscope.aliyuncs.com/compatible-mode/v1";
   const key = own ? credential("models", "EMBEDDING_API_KEY") : credential("models", "DASHSCOPE_API_KEY");
@@ -50,7 +67,7 @@ async function embedBatch(texts: string[], subject: string): Promise<{ vectors: 
     })).length(texts.length) }).parse(receipt.response);
     data.sort((a, b) => a.index - b.index);
     if (data.some((item, index) => item.index !== index)) throw new Error("Embedding indices do not match inputs");
-    return { vectors: data.map((item) => item.embedding), receiptId: receipt.receiptId };
+    return { vectors: data.map((item) => item.embedding), receiptId: receipt.receiptId, reused: receipt.reused };
   } catch (error) {
     await rejectReceivedResponse(receipt.receiptId, `unusable embeddings: ${String(error).slice(0, 500)}`);
     throw new ModelOutputError(`Embedding response is unusable for ${subject}: ${String(error).slice(0, 300)}`, receipt.receiptId);

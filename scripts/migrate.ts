@@ -25,14 +25,26 @@ async function waitForBackupDump(session: postgres.ReservedSql, waitMs: number, 
   }
 }
 
-/** `backupWaitMs`: how long to wait for a running backup dump before each migration (none by default). */
-export async function runMigrations(sql: postgres.Sql, root: string, { backupWaitMs = 0 } = {}): Promise<number> {
+/** The engine's and modules' migration files, in the order they run. */
+export function migrationFiles(root: string): { name: string; file: string }[] {
   const sqlFiles = (dir: string) => existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith(".sql")).map((name) => ({ name, file: path.join(dir, name) })) : [];
   const modules = path.join(root, "modules");
-  const migrations = [
+  return [
     ...sqlFiles(path.join(root, "database/migrations")),
     ...(existsSync(modules) ? readdirSync(modules).flatMap((name) => sqlFiles(path.join(modules, name, "migrations"))) : []),
   ].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+}
+
+/** Names of the migration files the database has not applied; all of them before the first run. */
+export async function pendingMigrations(sql: postgres.Sql, root: string): Promise<string[]> {
+  const [{ ready }] = await sql<{ ready: boolean }[]>`SELECT to_regclass('schema_migrations') IS NOT NULL AS ready`;
+  const applied = new Set(ready ? (await sql<{ name: string }[]>`SELECT name FROM schema_migrations`).map((row) => row.name) : []);
+  return migrationFiles(root).map((m) => m.name).filter((name) => !applied.has(name));
+}
+
+/** `backupWaitMs`: how long to wait for a running backup dump before each migration (none by default). */
+export async function runMigrations(sql: postgres.Sql, root: string, { backupWaitMs = 0 } = {}): Promise<number> {
+  const migrations = migrationFiles(root);
   for (const [i, migration] of migrations.entries()) {
     if (migrations[i + 1]?.name === migration.name) throw new Error(`two migrations are named ${migration.name}: ${migration.file} and ${migrations[i + 1].file}`);
   }
@@ -97,10 +109,9 @@ export async function runMigrations(sql: postgres.Sql, root: string, { backupWai
 }
 
 if (import.meta.main) {
-  const { REPO_ROOT } = await import("@aihot/backend/config");
+  const { config, REPO_ROOT } = await import("@aihot/backend/config");
   const { closeDb, sql } = await import("@aihot/backend/db");
-  // As long as the worker waits for a whole backup on stop: the dump is the first part of it.
-  const { STOP_TIMEOUT_MS } = await import("@aihot/backend/jobs/queue");
-  try { await runMigrations(sql, REPO_ROOT, { backupWaitMs: STOP_TIMEOUT_MS }); }
+  // As long as a stopping process waits for a whole backup: the dump is the first part of it.
+  try { await runMigrations(sql, REPO_ROOT, { backupWaitMs: config.stopTimeoutMs }); }
   finally { await closeDb(); }
 }
