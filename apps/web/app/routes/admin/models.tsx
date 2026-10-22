@@ -171,7 +171,7 @@ export default function ModelsAdmin({ loaderData: m }: Route.ComponentProps) {
               .filter((x) => !target?.vision || x.vision)
               .map((x) => (
                 <option key={x.key} value={x.key}>
-                  {x.key}（{x.service}）
+                  {x.key} ({x.service})
                 </option>
               ))}
             <option value="__default">Back to default ({target?.env} or {target?.defaultModel})</option>
