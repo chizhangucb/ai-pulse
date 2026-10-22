@@ -12,8 +12,11 @@ test('a cold read that finds nothing yet does not stick: later reads see the fir
     ('editorial', 'Editorial', 'rss', 'editorial', true),
     ('signal', 'Signal', 'x_search', 'hot_signal', true),
     ('disabled', 'Disabled', 'rss', 'editorial', false)`;
+  await sql`INSERT INTO sources (id, name, kind, participation_mode, enabled, tags) VALUES
+    ('x-lab', 'X: Lab (@lab)', 'external', 'editorial', true, ${["X"]}),
+    ('pushed', 'Pushed feed', 'external', 'editorial', true, ${["ingest:auto-created"]})`;
   const stats = await loadSiteStats();
-  assert.deepEqual([stats.sources, stats.sourceKinds], [2, { rss: 1, x_search: 1 }]);
+  assert.deepEqual([stats.sources, stats.xAccounts, stats.sourceKinds], [2, 2, { external: 2, rss: 1, x_search: 1 }]);
   assert.equal(await latestHotRanking(), null);
   const [published] = await sql`INSERT INTO hot_rankings (computed_at, rule_version, entries, published)
     VALUES (now(), 'test', '[]', true) RETURNING id`;

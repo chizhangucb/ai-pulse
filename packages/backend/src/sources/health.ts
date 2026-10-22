@@ -58,19 +58,19 @@ export interface QuietSource extends SourceHealthRow {
   quiet_days: number | null;
 }
 
-export const SOURCE_USE_NAMES: Record<string, string> = { editorial: "编辑内容", hot_signal: "热度信号" };
+export const SOURCE_USE_NAMES: Record<string, string> = { editorial: "Editorial", hot_signal: "Popularity signal" };
 
 /** A fixable source problem. A blocked presentation needs proof that the same article was updated. */
 export type SourceProblem = "failing" | "unstable" | "quality" | "details" | "presentation";
 /** Each fixable problem as it is listed, per source: `action` is for the daily follow-up. */
 export const SOURCE_PROBLEMS: { problem: SourceProblem; title: string; describe: (s: SourceHealthRow) => string; observedAt: (s: SourceHealthRow) => Date | null; action: string }[] = [
-  { problem: "failing", observedAt: s => s.last_failed_at, title: "连续抓取失败", describe: s => `连续失败 ${s.fail_count} 次${s.last_error ? `，${s.last_error}` : ""}`, action: "转给 AI 检查抓取错误" },
-  { problem: "unstable", observedAt: s => s.last_failed_at, title: "反复抓取失败", describe: s => `近 7 天失败 ${s.failed}/${s.runs} 次`, action: "即使最近成功也需检查，避免继续漏收" },
-  { problem: "quality", observedAt: s => s.last_quality_at, title: "文章质量待核实",
-    describe: s => `近 7 天${[s.undated && `缺发布时间 ${s.undated} 篇`, s.repeated && `反复修订 ${s.repeated} 篇`].filter(Boolean).join("、")}`,
-    action: "缺时间可能让新闻按历史文章处理，反复修订需核对正文是否混入变化内容" },
-  { problem: "presentation", observedAt: s => s.presentation_failed_at, title: "正文展示待处理", describe: s => s.presentation_failures.map(f => `${f.url}：${f.error}`).join("；"), action: "保留了前版原文与译文，请预览正文展示刷新并核实需正常重翻的文章" },
-  { problem: "details", observedAt: s => s.last_detail_failure_at, title: "详情补全失败", describe: s => `近 7 天失败 ${s.detail_failures}/${s.detail_attempts} 页`, action: "查看抓取记录中的详情地址与错误" },
+  { problem: "failing", observedAt: s => s.last_failed_at, title: "Fetching keeps failing", describe: s => `failed ${s.fail_count} times in a row${s.last_error ? `, ${s.last_error}` : ""}`, action: "Hand to the AI to check the fetch error" },
+  { problem: "unstable", observedAt: s => s.last_failed_at, title: "Fetching fails intermittently", describe: s => `failed ${s.failed}/${s.runs} runs in the last 7 days`, action: "Check it even if the latest run succeeded, so it stops missing items" },
+  { problem: "quality", observedAt: s => s.last_quality_at, title: "Article quality needs checking",
+    describe: s => `in the last 7 days: ${[s.undated && `${s.undated} without a publish time`, s.repeated && `${s.repeated} revised repeatedly`].filter(Boolean).join(", ")}`,
+    action: "A missing time can make news count as an old article; repeated revisions mean checking whether changing content got into the body" },
+  { problem: "presentation", observedAt: s => s.presentation_failed_at, title: "Article display needs attention", describe: s => s.presentation_failures.map(f => `${f.url}: ${f.error}`).join("; "), action: "The previous original and translation were kept; preview the display refresh and check the articles that should be retranslated" },
+  { problem: "details", observedAt: s => s.last_detail_failure_at, title: "Detail pages fail to load", describe: s => `failed ${s.detail_failures}/${s.detail_attempts} pages in the last 7 days`, action: "Look at the detail URLs and errors in the fetch log" },
 ];
 
 /** Matches a saved error that is a spent provider budget. */
@@ -92,13 +92,13 @@ export function rhythmMultiple(s: QuietSource): number | null {
 export function rhythmText(s: QuietSource): string {
   const times = rhythmMultiple(s);
   if (times === null) {
-    const run = `近 7 天 ${s.runs} 次抓取、0 条新内容`;
-    if (!s.ever_output) return `${run}；从未收到过内容`;
+    const run = `${s.runs} fetches and 0 new items in the last 7 days`;
+    if (!s.ever_output) return `${run}; never received anything`;
     return s.evidence_days > 0
-      ? `${run}；窗口内可比较的历史只有 ${s.evidence_days} 天`
-      : `${run}；近 ${RHYTHM_WINDOW_DAYS} 天窗口内没有可比较的产出`;
+      ? `${run}; only ${s.evidence_days} days of comparable history in the window`
+      : `${run}; no comparable output in the last ${RHYTHM_WINDOW_DAYS} days`;
   }
-  return `近 ${s.quiet_days} 天没有新内容，平时约 ${s.median_gap_days} 天一条（${Number(times.toFixed(1))} 倍）`;
+  return `nothing new for ${s.quiet_days} days, usually one every ${s.median_gap_days} days (${Number(times.toFixed(1))}x)`;
 }
 
 /** Seven days of outcomes, including intermittent failures that a later success clears on sources.
@@ -228,5 +228,5 @@ async function withRhythm(sources: SourceHealthRow[], now: number): Promise<Quie
 
 /** Every listed source with its own numbers. */
 export function sourceHealthList<T extends SourceHealthRow>(rows: T[], describe: (row: T) => string): string {
-  return rows.map(s => `${s.name}（${s.id}）：${describe(s)}`).join("；");
+  return rows.map(s => `${s.name} (${s.id}): ${describe(s)}`).join("; ");
 }

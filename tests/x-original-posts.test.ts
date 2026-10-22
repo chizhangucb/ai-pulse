@@ -104,11 +104,11 @@ test("rebuilding an image-only post replaces historical model replies across pub
 
 test("real text containing links and a fetched X Article keep their normal writing path", async () => {
   for (const [name, text] of [
-    ["real-text", "A model adds speech support. https://example.org/release"],
+    ["real-text", "モデルが音声入力に対応しました。 https://example.org/release"],
     ["long-article", "https://x.com/i/article/12345"],
   ]) {
     const { id } = await post(name!, text!);
-    if (name === "long-article") await sql`UPDATE articles SET x_article=${sql.json({title:"A model release",text:"A model adds speech support with multilingual benchmarks."})} WHERE id=${id}`;
+    if (name === "long-article") await sql`UPDATE articles SET x_article=${sql.json({title:"モデル公開",text:"モデルが音声入力に対応し、多言語の評価結果も公開しました。"})} WHERE id=${id}`;
     const start = requests.length;
     await analyzeArticle(id);
     assert.ok(requests.slice(start).includes("summarize"), `${name}: real material is still translated`);

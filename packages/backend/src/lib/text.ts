@@ -4,12 +4,16 @@ export function collapseWhitespace(s: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
-/** A declared language wins; otherwise Han text is Chinese only without Japanese or Korean script. */
-export function isChineseText(text: string, language?: string | null): boolean {
+/**
+ * Whether text is in the readers' language, English, and so needs no translation. A declared language wins;
+ * otherwise text whose letters are mostly Latin counts as English (a Chinese name inside it does not change that).
+ */
+export function isEnglishText(text: string, language?: string | null): boolean {
   const declared = language?.toLowerCase().split(/[-_]/)[0];
-  if (declared === "zh") return true;
+  if (declared === "en") return true;
   if (declared && !["und", "unknown", "other", "zxx"].includes(declared)) return false;
-  return /\p{Script=Han}/u.test(text) && !/[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u.test(text);
+  const letters = (text.match(/\p{L}/gu) ?? []).length;
+  return letters > 0 && (text.match(/\p{Script=Latin}/gu) ?? []).length / letters >= 0.8;
 }
 
 export function truncate(s: string, max: number, ellipsis = "…"): string {

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router";
-import { ago, bj } from "./format";
+import { ago, wallTime } from "./format";
 
 export function AdminPage({ title, subtitle, actions, children }: { title: ReactNode; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode }) {
   return (
@@ -85,7 +85,7 @@ export function healthTone(h: string | null | undefined): Tone {
 export function Time({ at, title }: { at: string | null | undefined; title?: string }) {
   if (!at) return <span className="text-ink-4">—</span>;
   return (
-    <time dateTime={String(at)} title={title ?? bj(at, true)} className="num whitespace-nowrap" suppressHydrationWarning>
+    <time dateTime={String(at)} title={title ?? wallTime(at, true)} className="num whitespace-nowrap" suppressHydrationWarning>
       {ago(at)}
     </time>
   );
@@ -99,7 +99,7 @@ export interface Column<T> {
   align?: "right";
 }
 
-export function DataTable<T>({ rows, columns, rowKey, empty = "暂无数据", onRowClick, dense }: { rows: T[]; columns: Column<T>[]; rowKey: (r: T) => string | number; empty?: ReactNode; onRowClick?: (r: T) => void; dense?: boolean }) {
+export function DataTable<T>({ rows, columns, rowKey, empty = "No data", onRowClick, dense }: { rows: T[]; columns: Column<T>[]; rowKey: (r: T) => string | number; empty?: ReactNode; onRowClick?: (r: T) => void; dense?: boolean }) {
   const scrollable = useContext(InScrollCard);
   if (!rows.length) return <Empty>{empty}</Empty>;
   return (
@@ -250,14 +250,14 @@ export function Pager({ page, hasMore }: { page: number; hasMore: boolean }) {
   if (page <= 1 && !hasMore) return null;
   return (
     <div className="mt-4 flex items-center justify-center gap-2 text-[13px]">
-      {page > 1 && <ButtonLink to={to(page - 1)} size="sm">上一页</ButtonLink>}
-      <span className="num px-2 text-ink-3">第 {page} 页</span>
-      {hasMore && <ButtonLink to={to(page + 1)} size="sm">下一页</ButtonLink>}
+      {page > 1 && <ButtonLink to={to(page - 1)} size="sm">Previous</ButtonLink>}
+      <span className="num px-2 text-ink-3">Page {page}</span>
+      {hasMore && <ButtonLink to={to(page + 1)} size="sm">Next</ButtonLink>}
     </div>
   );
 }
 
-export function Json({ value, collapsed = true, label = "原始数据" }: { value: unknown; collapsed?: boolean; label?: string }) {
+export function Json({ value, collapsed = true, label = "Raw data" }: { value: unknown; collapsed?: boolean; label?: string }) {
   const [open, setOpen] = useState(!collapsed);
   return (
     <details open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="group rounded-control bg-bg-sunk/70 ring-1 ring-line">
@@ -275,7 +275,7 @@ export function ReasonDialog({
   open,
   title,
   description,
-  confirmLabel = "确认",
+  confirmLabel = "Confirm",
   danger,
   requireReason = true,
   children,
@@ -332,12 +332,12 @@ export function ReasonDialog({
             {description && <div className="mt-1.5 text-[13px] leading-relaxed text-ink-3">{description}</div>}
             {children && <div className="mt-4 space-y-3">{children}</div>}
             <div className="mt-4">
-              <Field label={requireReason ? "原因（写进审计记录）" : "备注（可选）"}>
-                <Textarea ref={ref} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={requireReason ? "为什么做这个改动" : ""} rows={2} />
+              <Field label={requireReason ? "Reason (saved in the audit log)" : "Note (optional)"}>
+                <Textarea ref={ref} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={requireReason ? "Why this change" : ""} rows={2} />
               </Field>
             </div>
             <div className="mt-5 flex justify-end gap-2">
-              <Button tone="ghost" onClick={onClose}>取消</Button>
+              <Button tone="ghost" onClick={onClose}>Cancel</Button>
               <Button type="submit" tone={danger ? "danger" : "primary"} busy={busy} disabled={requireReason && !reason.trim()}>
                 {confirmLabel}
               </Button>

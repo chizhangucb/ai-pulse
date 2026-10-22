@@ -98,7 +98,7 @@ test("manual score corrections, including no score, survive every public project
 test("Markdown preserves a table's headings, caption, links, alignment and multiline cells in both languages", async () => {
   const id = await article();
   const table = '<table><caption>Benchmark results</caption><thead><tr><th>Model</th><th align="right">Score</th></tr></thead><tbody><tr><td><a href="https://example.com/model">A|B</a></td><td>90<br>±1</td></tr></tbody></table>';
-  await sql`UPDATE articles SET language = 'en', body_html = ${table} WHERE id = ${id}`;
+  await sql`UPDATE articles SET language = 'fr', body_html = ${table} WHERE id = ${id}`;
   await sql`INSERT INTO translations (article_id, revision, body_html, body_text, origin) VALUES (${id}, 1, ${table.replace('Benchmark results', '基准结果').replace('Model', '模型').replace('Score', '分数')}, '基准结果', 'source')`;
   await publishArticle(id, released());
   const response = await get(`/items/${id}/markdown`);
@@ -148,7 +148,7 @@ test("Markdown retains numeric superscripts, subscripts and fenced code while re
 
 test("site reading sends one language while exports retain both, including after withdrawal", async () => {
   const id = await article();
-  await sql`UPDATE articles SET language = 'en', body_html = '<h2>Original heading</h2><p>Original full body</p>' WHERE id = ${id}`;
+  await sql`UPDATE articles SET language = 'fr', body_html = '<h2>Original heading</h2><p>Original full body</p>' WHERE id = ${id}`;
   await sql`INSERT INTO translations (article_id, revision, body_html, body_text, origin) VALUES (${id}, 1, '<h2>译文标题</h2><p>中文完整正文</p>', '中文完整正文', 'source')`;
   await publishArticle(id, released());
   const normal = JSON.parse((await get(`/api/site/items/${id}`)).body);

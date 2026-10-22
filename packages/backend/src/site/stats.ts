@@ -12,6 +12,9 @@ export type { SiteStats };
 /** How many sources the about page's river draws, at most. */
 const SAMPLE = 180;
 
+/** One X account each: searched through SocialData, or pushed by the hourly X job (seeded with the X tag). */
+const X_ACCOUNT = sql`(kind = 'x_search' OR (kind = 'external' AND 'X' = ANY(tags)))`;
+
 const stats = cached(() => querySiteStats(new Date()), { freshMs: 10 * 60_000, maxStaleMs: 60 * 60_000 });
 
 export function loadSiteStats(): Promise<SiteStats> {
@@ -22,7 +25,8 @@ async function querySiteStats(now: Date): Promise<SiteStats> {
   const dayAgo = new Date(now.getTime() - 24 * 3600_000);
   const [[row], kinds, sample, latest] = await Promise.all([
     sql<Array<Omit<SiteStats, "sourceKinds" | "day" | "sampleSources" | "latest"> & { collected: number; selectedDay: number }>>`
-      SELECT (SELECT count(*) FROM sources WHERE enabled)::int AS sources,
+      SELECT (SELECT count(*) FROM sources WHERE enabled AND NOT ${X_ACCOUNT})::int AS sources,
+             (SELECT count(*) FROM sources WHERE enabled AND ${X_ACCOUNT})::int AS "xAccounts",
              (SELECT count(*) FROM publications p WHERE p.visibility <> 'withdrawn')::int AS items,
              (SELECT count(*) FROM publications p WHERE ${selectedCondition(now)})::int AS selected,
              (SELECT count(*) FROM reports WHERE kind = 'daily')::int AS dailies,

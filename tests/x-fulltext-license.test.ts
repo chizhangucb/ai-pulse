@@ -58,7 +58,7 @@ async function fixture(options: {
     VALUES (${source}, '许可测试来源', ${kind}, 'T1', ${options.mode ?? "editorial"}, ${options.full ?? false}, ${options.syndicate ?? true}, 'https://example.org/source.png', '2100-01-01')`;
   // Found, published and released a minute ago: a rolling window that ends at the reader's clock holds it.
   const minuteAgo = new Date(Date.now() - 60_000);
-  const { articleId: id } = await upsertMaterial({ sourceId: source, url, title: `Original title ${key}`, language: "en",
+  const { articleId: id } = await upsertMaterial({ sourceId: source, url, title: `Original title ${key}`, language: "fr",
     bodyText: options.bodyStatus === "none" ? null : main, bodyHtml: options.bodyStatus === "none" ? null : `<p>${main}</p>`,
     bodyStatus: options.bodyStatus ?? "ok", xPost, via: "fetch", publishedAt: minuteAgo, discoveredAt: minuteAgo });
   await sql`INSERT INTO analyses (article_id, input_revision, origin, relevance, category, title_zh, summary_zh, reason_zh, tags, score, selected)

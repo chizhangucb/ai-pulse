@@ -5,13 +5,13 @@ import { SITE, subjectAfter } from "@aihot/site";
 import { apiGet, cachedPage, loadOr404 } from "../lib/api.server";
 import { pageReuse } from "../lib/page-reuse";
 import { pageMeta, reportLd, reportTitle, titled } from "../lib/seo";
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 import { ReportLayout } from "../features/report/ReportLayout";
 import { ReportPaper, reportOutline } from "../features/report/ReportPaper";
 import { feedLink, kindFromPath } from "../features/report/format";
 import type { Screen } from "../components/shell/screens";
 
-export const handle: Screen = { tab: "daily", name: "日报" };
+export const handle: Screen = { tab: "daily", name: "Daily" };
 export { pageHeaders as headers } from "../lib/api.server";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
@@ -29,13 +29,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     loadOr404<ReportDetail>(`/api/site/reports/${kind}/${key}`, { signal: request.signal }),
     apiGet<ReportNavigationResponse>(`/api/site/reports/${kind}/navigation/${key}`, { signal: request.signal }),
   ]);
-  return cachedPage(3600, { report, index, today: beijingDate(Date.now()) });
+  return cachedPage(3600, { report, index, today: siteDate(Date.now()) });
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
-  if (!loaderData) return [{ title: titled("报告不存在") }, { name: "robots", content: "noindex" }];
+  if (!loaderData) return [{ title: titled("Brief not found") }, { name: "robots", content: "noindex" }];
   const r = loaderData.report;
-  const description = r.lead?.leadParagraph ?? r.overview?.slice(0, 150) ?? `${SITE.name} ${r.key} ${subjectAfter("的", REPORT_NAMES[r.kind])}。`;
+  const description = r.lead?.leadParagraph ?? r.overview?.slice(0, 150) ?? `The ${SITE.name} ${REPORT_NAMES[r.kind].toLowerCase()} ${SITE.subject} brief for ${r.key}.`;
   const path = `/${r.kind}/${r.key}`;
   return [...pageMeta({
     title: reportTitle(r),

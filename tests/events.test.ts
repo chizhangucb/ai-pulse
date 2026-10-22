@@ -35,8 +35,8 @@ const provider = await stub(async (_hit, req) => {
   await hold.promise;
   const body = JSON.parse(req.body) as { messages: Array<{ content: string }> };
   const user = body.messages[1]!.content;
-  const pair = user.includes("报道 A");
-  const ids = [...user.matchAll(/【候选 (C\d+)】/g)].map((m) => m[1]!);
+  const pair = user.includes("Report A");
+  const ids = [...user.matchAll(/\[Candidate (C\d+)\]/g)].map((m) => m[1]!);
   const answer = pair
     ? { a: "发布", b: "发布", relation: pairRelation ?? relation, difference: "", confidence: 0.95 }
     : { query: "发布新模型", decisions: ids.map((id, index) => ({ id, relation: answerAll || index === 0 ? relation : "UNRELATED", confidence: 0.95, note: "" })), selection: { addsValue: true, reason: "fixture news" } };
@@ -263,7 +263,7 @@ test("a manual detach during a discussion judgement wins just as it does for an 
   assert.equal((await sql`SELECT 1 FROM story_signals WHERE article_id = ${articleId}`).length, 0);
 });
 
-// Facts store date-only input at Beijing midnight: a UTC conversion must not shift it a day back,
+// Facts store date-only input at midnight in the site's zone: a UTC conversion must not shift it a day back,
 // and a malformed or impossible model date must neither abort grouping nor silently roll forward.
 test("fact dates survive candidate recall without a timezone shift and invalid dates stay unknown", async () => {
   hold = gate(); hold.open();

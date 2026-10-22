@@ -49,7 +49,7 @@ export async function correctReportClassification(tx: Tx, articleId: string, rea
         const byId = new Map(rows.map(r => [r.article_id, r]));
         content.metrics = { ...content.metrics, modelsReleased: entries.filter(e => {
           const p = byId.get(e.itemId);
-          return p && isRelease(p.category, p.tags) && !e.followUp && (e.firstParty || e.role === "官方" || e.role === "X·官方");
+          return p && isRelease(p.category, p.tags) && !e.followUp && (e.firstParty || e.role === "Official" || e.role === "X · Official");
         }).length };
       }
     } else content.themes = arranged;

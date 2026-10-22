@@ -222,7 +222,7 @@ test("rewriting a story digest uses the current reports and prompt and is audite
   const result = await rewriteStoryDigest(g.storyId, "digest prompt changed", "ops-script");
   assert.equal(result.updated, true);
   assert.equal(provider.hits(), calls + 1);
-  assert.ok(!digestPrompt.includes("上一版综述"), "a rewrite does not start from the previous digest");
+  assert.ok(!digestPrompt.includes("Previous overview"), "a rewrite does not start from the previous digest");
   const [after] = await sql`SELECT version FROM stories WHERE id=${g.storyId}`;
   assert.equal(after!.version, before!.version + 1);
   const [entry] = await sql`SELECT actor, reason, after FROM audit_log WHERE action='story.rewrite-digest' AND subject=${`story:${g.storyId}`}`;
@@ -405,7 +405,7 @@ test("an editor moves a report into the fact it repeats: no false development re
   assert.deepEqual([...await sql`SELECT fact_id, role, manual, evidence FROM fact_articles WHERE article_id=${repost}`].map(r => ({ ...r, fact_id: Number(r.fact_id) })),
     [{ fact_id: g.factId, role: "report", manual: true, evidence: "Tasks consume usage." }]);
   assert.equal((await sql`SELECT 1 FROM story_signals WHERE article_id=${repost} AND story_id=${g.storyId}`).length, 1, "its heat evidence stays with the story");
-  await assert.rejects(moveToFact(repost, "f-missing", "x", "test"), /目标事实不存在/);
+  await assert.rejects(moveToFact(repost, "f-missing", "x", "test"), /The target fact does not exist/);
 });
 
 test("an in-flight digest cannot overwrite an editor revision or a merge, and its paid response remains reusable", async () => {

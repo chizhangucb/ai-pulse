@@ -54,7 +54,7 @@ test("an outage is announced once, repeated hourly, and closed with one recovery
     const [state] = await sql<{ value: Record<string, { since: string }> }[]>`SELECT value FROM settings WHERE key = 'alerts.state'`;
     assert.equal(Date.parse(state!.value["content.process"]!.since), t0, "the episode is not dated by the oldest waiting article");
     const finding = (await collectFindings(t0)).find((f) => f.key === "content.process")!;
-    assert.match(finding.detail!, /最老的一篇 .* 收进/);
+    assert.match(finding.detail!, /oldest came in at /);
     r = await checkAlerts(t0 + 50 * 60_000);
     assert.deepEqual(stuck(r.sent), [], "no repeat within the hour");
     r = await checkAlerts(t0 + 61 * 60_000);
@@ -107,7 +107,7 @@ test("content incidents survive restarts, pauses, aging failures and partial rec
 // environment choice, else the site default. Failed calls a step made before it moved do not list it;
 // module steps count alike, and a step with nothing to do (an empty word list) is left out.
 test("refusal and spent-budget alerts name the steps currently routed to the provider", async () => {
-  const label = CAPABILITIES.score.label.split("（")[0]!;
+  const label = CAPABILITIES.score.label.split(" (")[0]!;
   const fallback = CAPABILITIES.score.default;
   const other = Object.keys(MODELS).find((key) => MODELS[key]!.service !== MODELS[fallback]!.service)!;
   const services = [MODELS[fallback]!.service, MODELS[other]!.service];
@@ -144,7 +144,7 @@ test("refusal and spent-budget alerts name the steps currently routed to the pro
     installModules([...installed, { name: "alert-test", models: { alertTest: { label: "模块测试步骤（说明）", env: "ALERT_TEST_MODEL", purposes: [] } } }]);
     process.env.ALERT_TEST_MODEL = other;
     assert.ok((await providerStops(services[1]!)).includes("模块测试步骤"));
-    const wording = CAPABILITIES.wording.label.split("（")[0]!;
+    const wording = CAPABILITIES.wording.label.split(" (")[0]!;
     assert.equal((await providerStops(MODELS[await modelFor("wording")]!.service)).includes(wording), READER_WORDING.length > 0);
   } finally {
     installModules(installed);
@@ -217,8 +217,8 @@ test("selected identity delays show reader impact, recovery state and the affect
     await make("group-alert-failed", 20, "failed");
     let warning = await finding();
     assert.equal(warning?.level, "now");
-    assert.match(warning!.impact!, /1 条.*精选/);
-    assert.match(warning!.heals!, /人工|处理后/);
+    assert.match(warning!.impact!, /^1 items that qualify for the selection/);
+    assert.match(warning!.heals!, /need manual handling/);
     assert.match(warning!.detail!, /group-alert-failed/);
     const runs = await runsOverview();
     assert.equal(runs.grouping.waiting, 3, "the runs page includes normal waits but no false candidates");
@@ -229,12 +229,12 @@ test("selected identity delays show reader impact, recovery state and the affect
       VALUES('group-alert-receipt','deepseek','event_identity','article:group-alert-failed','unknown') RETURNING id`;
     await sql`UPDATE articles SET grouping_receipt_id=${receipt!.id} WHERE id='group-alert-failed'`;
     warning = await finding();
-    assert.match(warning!.heals!, /自动/);
-    assert.match(warning!.heals!, /30 分钟/);
+    assert.match(warning!.heals!, /automatically/);
+    assert.match(warning!.heals!, /30 minutes/);
     await sql`INSERT INTO receipt_attempts(receipt_id,service,attempt,status,error)
-      VALUES(${receipt!.id},'deepseek',1,'failed','自动放行：结果未知超过 30 分钟，未核对是否计费')`;
+      VALUES(${receipt!.id},'deepseek',1,'failed','Released automatically: result unknown for over 30 minutes, billing not checked')`;
     warning = await finding();
-    assert.match(warning!.heals!, /人工|处理后/);
+    assert.match(warning!.heals!, /need manual handling/);
     assert.match(warning!.detail!, new RegExp(`#${receipt!.id}`));
 
     await checkAlerts(now);
@@ -268,8 +268,8 @@ test("the ops digest does not describe unknown paid work as harmless or already 
     console.log = (value: unknown) => { lines.push(String(value)); };
     await sendDigest();
     const message = lines.join("\n");
-    assert.match(message, /结果.*未知|结果.*确认/);
-    assert.doesNotMatch(message, /以下事项不影响读者|自动重试过一次/);
+    assert.match(message, /unconfirmed results/);
+    assert.doesNotMatch(message, /do not affect readers|already retried/);
   } finally {
     console.log = log;
     if (enabled === undefined) delete process.env.FEISHU_INTERNAL_ENABLED;
@@ -356,13 +356,13 @@ test("provider recovery follows the refused model and current routing", async ()
       VALUES(${r!.id},4,'dashscope','qwen3.8-flash','received')`;
     assert.ok((await checkAlerts(now+2*3600_000)).open.includes('provider.refused.dashscope:qwen3.7-flash'), 'another model cannot prove recovery');
     let finding=(await collectFindings(now+2*3600_000)).find(f=>f.key==='provider.refused.dashscope:qwen3.7-flash')!;
-    assert.match(finding.impact!, /精选预筛/);
-    assert.doesNotMatch(finding.impact!, /结构抽取/);
+    assert.match(finding.impact!, /Pick prefilter/);
+    assert.doesNotMatch(finding.impact!, /Structuring/);
     process.env.PREFILTER_MODEL = "qwen3.8-flash";
     invalidateModelCache();
     finding=(await collectFindings(now+2*3600_000)).find(f=>f.key==='provider.refused.dashscope:qwen3.7-flash')!;
     assert.equal(finding.level,'later');
-    assert.match(finding.impact!, /当前.*未使用.*旧限制.*未验证/);
+    assert.match(finding.impact!, /No current processing step uses these restricted models; the old restriction is still unverified/);
     assert.ok(!(await checkAlerts(now+2*3600_000+60_000)).sent.includes('provider.refused.dashscope:qwen3.7-flash:recovered'));
     await sql`INSERT INTO receipt_attempts(receipt_id,attempt,service,model,status)
       VALUES(${r!.id},5,'dashscope','qwen3.7-flash','received')`;
@@ -385,8 +385,8 @@ test("provider impact includes the same evaluated fallback as modelRoute", async
     const route = await modelRoute("summarize");
     assert.equal(route.fallbackModel, "test-backup");
     const steps = await stepsOnService("zhipu", new Set(["glm-5.3-flash"]));
-    assert.ok(steps.includes("标题摘要"), "the fallback can fail and stop articles even without a primary on this supplier");
-    assert.ok(!steps.includes("精选评分"), "an unevaluated fallback is not invented for other steps");
+    assert.ok(steps.includes("Title and summary"), "the fallback can fail and stop articles even without a primary on this supplier");
+    assert.ok(!steps.includes("Pick scoring"), "an unevaluated fallback is not invented for other steps");
   } finally {
     for (const [key, value] of Object.entries(envs)) if (value === undefined) delete process.env[key]; else process.env[key] = value;
     delete MODELS["test-primary"];

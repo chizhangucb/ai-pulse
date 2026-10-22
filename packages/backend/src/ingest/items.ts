@@ -8,6 +8,7 @@ import { readPublicationDate } from "../sources/dates.ts";
 import { normalizeUrl } from "../lib/url.ts";
 
 export const MAX_ITEMS = 50;
+const X_POST_HOST = /(^|\.)(x\.com|twitter\.com)$/i;
 
 export class IngestError extends Error {
   readonly status: number;
@@ -19,6 +20,8 @@ export class IngestError extends Error {
 
 interface ItemIn {
   title?: unknown;
+  text?: unknown;
+  body?: unknown;
   url?: unknown;
   publishedAt?: unknown;
   author?: unknown;
@@ -49,6 +52,9 @@ export async function ingestItems(body: { sourceId?: unknown; sourceName?: unkno
     const url = normalizeUrl(rawUrl);
     if (!url || seen.has(url)) continue;
     seen.add(url);
+    // X pages cannot be fetched, and a pushed post's title is its text: without it the post waits forever.
+    const text = [it.text, it.body].find((v): v is string => typeof v === "string" && v.trim() !== "")?.trim()
+      ?? (X_POST_HOST.test(new URL(url).hostname) ? title : undefined);
     const publication = readPublicationDate(typeof it.publishedAt === "string" ? it.publishedAt : null, "+00:00");
     const flags = it.raw?._aihot ?? {};
     const res = await upsertMaterial({
@@ -57,6 +63,7 @@ export async function ingestItems(body: { sourceId?: unknown; sourceName?: unkno
       // scheme), and upsertMaterial already applies the common normalized identity rule.
       url: rawUrl,
       title,
+      ...(text ? { bodyText: text, bodyStatus: "ok" as const } : {}),
       author: typeof it.author === "string" ? it.author.slice(0, 200) : null,
       ...publication,
       raw: it.raw ?? null,

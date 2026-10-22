@@ -85,11 +85,11 @@ test("an all-read page keeps paging, then hides the read cards and shows the unr
   try {
     await page.goto(`${origin}/`);
     await expect(page.getByRole("link", { name: "第一页文章甲", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "只看未读" }).click();
+    await page.getByRole("button", { name: "Unread only" }).click();
     // Both loaded cards are read: the list pages on by itself and lands on the unread report.
     await expect(page.getByRole("link", { name: "第二页文章甲", exact: true })).toBeVisible();
     assert.equal(await page.getByRole("link", { name: "第一页文章甲", exact: true }).count(), 0, "a read card is hidden");
-    assert.equal(await page.getByRole("button", { name: "只看未读" }).getAttribute("aria-pressed"), "true");
+    assert.equal(await page.getByRole("button", { name: "Unread only" }).getAttribute("aria-pressed"), "true");
   } finally {
     await context.close();
   }
@@ -102,13 +102,13 @@ test("a page that fails to load offers a retry that keeps the filter", async () 
   try {
     await page.goto(`${origin}/`);
     await expect(page.getByRole("link", { name: "第一页文章甲", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "只看未读" }).click();
-    const retry = page.getByRole("button", { name: "加载失败，点此重试" });
+    await page.getByRole("button", { name: "Unread only" }).click();
+    const retry = page.getByRole("button", { name: "Could not load. Tap to retry" });
     await expect(retry).toBeVisible();
     failNextPage = false;
     await retry.click();
     await expect(page.getByRole("link", { name: "第二页文章甲", exact: true })).toBeVisible();
-    assert.equal(await page.getByRole("button", { name: "只看未读" }).getAttribute("aria-pressed"), "true", "retrying keeps the filter");
+    assert.equal(await page.getByRole("button", { name: "Unread only" }).getAttribute("aria-pressed"), "true", "retrying keeps the filter");
   } finally {
     failNextPage = false;
     await context.close();
@@ -121,14 +121,14 @@ test("returning to the list keeps the filter and finds the unread report again",
   try {
     await page.goto(`${origin}/`);
     await expect(page.getByRole("link", { name: "第一页文章甲", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "只看未读" }).click();
+    await page.getByRole("button", { name: "Unread only" }).click();
     const opened = page.getByRole("link", { name: "第二页文章甲", exact: true });
     await expect(opened).toBeVisible();
     // Opening a card marks it read in this browser, so the return has to find the other unread one.
     await opened.click();
     await expect(page.getByText("固定正文", { exact: true })).toBeVisible();
     await page.goBack();
-    await expect(page.getByRole("button", { name: "只看未读" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Unread only" })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByRole("link", { name: "第二页文章乙", exact: true })).toBeVisible();
     assert.equal(await page.getByRole("link", { name: "第二页文章甲", exact: true }).count(), 0, "the report just opened stays hidden");
   } finally {
@@ -142,7 +142,7 @@ test("a group stays while any selected report in it is unread, and goes once all
   try {
     await page.goto(`${origin}/?tag=group`);
     await expect(page.getByRole("link", { name: "代表文章", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "只看未读" }).click();
+    await page.getByRole("button", { name: "Unread only" }).click();
     await expect(page.getByRole("link", { name: "代表文章", exact: true })).toBeVisible();
     assert.equal(await page.getByRole("link", { name: "已读完的组", exact: true }).count(), 0, "a fully read group is hidden");
   } finally {
@@ -166,11 +166,11 @@ for (const phone of [false, true]) test(`a kept group is not greyed and its ${ph
   }, name);
   try {
     await page.goto(`${origin}/?tag=group`);
-    await page.getByRole("button", { name: "只看未读" }).click();
+    await page.getByRole("button", { name: "Unread only" }).click();
     const title = page.getByRole("heading", { name: "代表文章" });
     await expect(title).toBeVisible();
     assert.equal(await greyed("代表文章"), false, "the kept group's card is not greyed");
-    await page.locator("article", { has: title }).getByRole("button", { name: "另外 1 家也报道了" }).filter({ visible: true }).click();
+    await page.locator("article", { has: title }).getByRole("button", { name: "1 more source reported this" }).filter({ visible: true }).click();
     await expect(page.getByText("组内未读报道", { exact: true }).filter({ visible: true })).toBeVisible();
     assert.equal(await greyed("组内未读报道"), false, "an unread report keeps the normal colour");
     assert.equal(await greyed("组内已读报道"), true, "a read report is grey");
@@ -185,8 +185,8 @@ test("with everything read and no more pages, the filter says so instead of look
   try {
     await page.goto(`${origin}/?tag=read`);
     await expect(page.getByRole("link", { name: "第一页文章甲", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "只看未读" }).click();
-    await expect(page.getByText("没有未读的精选内容", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Unread only" }).click();
+    await expect(page.getByText("No unread picks", { exact: true })).toBeVisible();
   } finally {
     await context.close();
   }
@@ -198,12 +198,12 @@ test("all-read pages stop at the automatic bound and can continue manually witho
   try {
     await page.goto(`${origin}/?tag=boundary`);
     const raw = await page.evaluate(() => localStorage.getItem("aihot-read-items"));
-    await page.getByRole("button", { name: "只看未读" }).click();
-    const more = page.getByRole("button", { name: "加载更多", exact: true });
+    await page.getByRole("button", { name: "Unread only" }).click();
+    const more = page.getByRole("button", { name: "Load more", exact: true });
     await expect(more).toBeVisible();
     await more.click();
     await expect(more).toBeVisible();
-    await expect(page.getByText("这批精选都读过了", { exact: true })).toBeVisible();
+    await expect(page.getByText("You have read all of these picks", { exact: true })).toBeVisible();
     await more.click();
     await expect(page.getByRole("link", { name: "批次 5", exact: true })).toBeVisible();
     assert.equal(await page.evaluate(() => localStorage.getItem("aihot-read-items")), raw);

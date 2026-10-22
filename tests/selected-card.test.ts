@@ -1,5 +1,5 @@
 // Failure cases: the card shows no publication date, so a weeks-old launch pushed today reads as
-// today's news; the date is taken in UTC and lands a day early around Beijing midnight; the title is no
+// today's news; the date is taken in UTC and lands a day late on a Pacific evening; the title is no
 // larger than the summary, or the source and date read as body text; markdown characters in a model's
 // words break the card; the reason reads as body text.
 import { tag } from "./setup.ts";
@@ -33,15 +33,15 @@ async function selected(category: string, reason: string | null, copy = SPACE) {
     VALUES (${articleId},1,'rule','pass',${category},${copy.title},${copy.summary},${reason},90,true)`;
   await sql`UPDATE articles SET grouping_status='complete',grouped_at=now(),selection_adds_value=true WHERE id=${articleId}`;
   await publishArticle(articleId);
-  // 00:30 in Beijing on the 15th is still the 14th in UTC.
-  await sql`UPDATE publications SET published_at='2026-10-14T16:30:00Z' WHERE article_id=${articleId}`;
+  // 20:30 Pacific on the 14th is already the 15th in UTC.
+  await sql`UPDATE publications SET published_at='2026-10-15T03:30:00Z' WHERE article_id=${articleId}`;
   const content = await selectedContent(articleId);
   assert.equal(content.status, "ready");
   return (content as Extract<typeof content, { status: "ready" }>).card as any;
 }
 const category = (key: string) => CATEGORIES.find((c) => c.key === key)!;
 
-test("the title is larger than the summary, followed by the source and Beijing date in grey", async () => {
+test("the title is larger than the summary, followed by the source and the site's date in grey", async () => {
   const card = await selected("ai-products", "官方演示了 Space 的协作用法。");
   assert.equal(card.schema, "2.0");
   assert.equal(card.header, undefined, "a header title cannot be made larger");
@@ -52,10 +52,10 @@ test("the title is larger than the summary, followed by the source and Beijing d
   for (const end of ["default", "pc", "mobile"]) assert.match(size[end], /^heading-[34]$/, "18px on computers, 16px on phones");
   assert.equal(summary.text_size ?? "normal", "normal");
   assert.equal(summary.content, "官方演示了团队协作用法。");
-  assert.deepEqual([meta.text_size, meta.content], ["notation", "<font color='grey'>ChatGPT · 10月15日发布</font>"]);
+  assert.deepEqual([meta.text_size, meta.content], ["notation", "<font color='grey'>ChatGPT · published Oct 14</font>"]);
   assert.deepEqual([reason.text_size, reason.content], ["notation", `<font color='grey'>**${ITEM_COPY.reasonLabel}**　官方演示了 Space 的协作用法。</font>`]);
   const links = buttons.columns.map((c: any) => c.elements[0]);
-  assert.deepEqual(links.map((b: any) => b.text.content), [`在 ${SITE.name} 阅读`, "原文"]);
+  assert.deepEqual(links.map((b: any) => b.text.content), [`Read on ${SITE.name}`, "Original"]);
   assert.ok(links.every((b: any) => b.behaviors[0].type === "open_url" && b.behaviors[0].default_url.startsWith("https://")));
   assert.doesNotMatch(JSON.stringify(card), /来源：/);
 });

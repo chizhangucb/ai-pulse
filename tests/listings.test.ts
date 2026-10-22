@@ -111,10 +111,10 @@ test("a changelog's date headings date its updates and are no articles themselve
   assert.deepEqual(
     rows.map((r) => [decodeURIComponent(r.url.replace(/^.*#/, "#")), r.title.replace(` ${T}`, ""), r.published_at?.toISOString()]),
     [
-      ["#deepseek-v41-flash-发布", "DeepSeek-V4.1-Flash 发布", "2026-09-09T16:00:00.000Z"],
-      ["#deepseek-v32", "DeepSeek-V3.2", "2025-11-30T16:00:00.000Z"],
-      ["#deepseek-v32-speciale", "DeepSeek-V3.2-Speciale", "2025-11-30T16:00:00.000Z"],
-      ["#deepseek-chat-4", "deepseek-chat", "2024-05-16T16:00:00.000Z"],
+      ["#deepseek-v41-flash-发布", "DeepSeek-V4.1-Flash 发布", "2026-09-10T07:00:00.000Z"],
+      ["#deepseek-v32", "DeepSeek-V3.2", "2025-12-01T08:00:00.000Z"],
+      ["#deepseek-v32-speciale", "DeepSeek-V3.2-Speciale", "2025-12-01T08:00:00.000Z"],
+      ["#deepseek-chat-4", "deepseek-chat", "2024-05-17T07:00:00.000Z"],
     ],
   );
 });

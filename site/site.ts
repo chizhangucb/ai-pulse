@@ -1,167 +1,161 @@
-// 站点身份和读者看得到的文案。换成你的行业时，先改这个文件。
-// 网页和后端都读它；改完重新构建（docker compose up --build）即可生效。
-// 域名不在这里：部署时用环境变量 SITE_URL 设置。
+// Site identity and the copy readers see. When moving the site to another industry, start here.
+// Both the web app and the backend read it; rebuild (docker compose up --build) after changing it.
+// The domain is not set here: set SITE_URL when deploying.
 
 import type { Founder } from "@aihot/contracts/site-config";
 
 /**
- * 日报、周报、月报什么时候出（北京时间，HH:mm）：日报收这个时间之前的 24 小时，周报在每个自然周之后的周一出，
- * 月报在每月 1 日出。排程、成刊时间窗口、缺期告警和所有提到时间的文案都读它（public/ 里的文件写占位
- * {{dailyTime}}、{{weeklyTime}}、{{monthlyTime}}）；排程每半小时检查一次，所以写整点或半点。
+ * When the daily, weekly and monthly briefs come out (HH:mm in SITE.timeZone): the daily brief covers the 24 hours
+ * before its time, the weekly brief comes out on the Monday after each calendar week, and the monthly brief on the
+ * 1st. Scheduling, the brief windows, missed-issue alerts and every sentence that mentions a time read these (files
+ * in public/ use {{dailyTime}}, {{weeklyTime}}, {{monthlyTime}}); the scheduler checks every half hour, so use :00 or :30.
  */
 export const EDITION_TIMES = { daily: "08:00", weekly: "10:00", monthly: "10:30" };
 
-/** “每天 08:00”“每周一 10:00”“每月 1 日 10:30”：写进句子里的出刊时间。 */
+/** "every day at 08:00 PT": brief times as written in sentences. */
 export const EDITION_WHEN = {
-  daily: `每天 ${EDITION_TIMES.daily}`,
-  weekly: `每周一 ${EDITION_TIMES.weekly}`,
-  monthly: `每月 1 日 ${EDITION_TIMES.monthly}`,
+  daily: `every day at ${EDITION_TIMES.daily} PT`,
+  weekly: `every Monday at ${EDITION_TIMES.weekly} PT`,
+  monthly: `on the 1st of each month at ${EDITION_TIMES.monthly} PT`,
 };
 
 export const SITE = {
-  /** 站名：导航、页面标题、分享图、RSS、MCP、后台都用它。 */
-  name: "MyHOT",
+  /** Site name: navigation, page titles, share images, RSS, MCP and the admin all use it. */
+  name: "AI Pulse",
   /**
-   * 行业词：拼进默认说法里，比如“AI 日报”“AI 动态”。
-   * 改成“法律”“HR”“黄金”之类，页面上就会变成“法律日报”“法律动态”。
+   * Industry word, used in default phrases such as "AI Daily" and "All AI news".
    */
   subject: "AI",
-  /** 首页的完整标题（浏览器标签、搜索结果）。 */
-  homeTitle: "MyHOT — AI 行业动态 · 每日精选与日报",
-  /** 主题目录页（/topics）的标题。 */
-  topicsTitle: "AI 主题：公司与模型、技术方向、内容形态的最新动态",
-  /** 反馈表单输入框里的示例。 */
-  feedbackExample: "例如：我在搜索某个关键词时遇到……我原本想……",
-  /** 反馈页标题下面的一句话。 */
-  feedbackLead: "发现 bug、想要的功能、看不顺眼的地方，都可以告诉我们。",
-  /** 反馈表单邮箱框里的提示。 */
-  feedbackEmailHint: "留下邮箱，我们可以回信联系你",
-  /** 一句话介绍：搜索引擎、分享卡片、RSS、llms.txt 会用。 */
-  description: `从一批 AI 信源里挑出值得看的动态，把同一件事的多篇报道归到一起，${EDITION_WHEN.daily} 出一份日报。`,
-  /** llms.txt 里一句话介绍下面的一段详细介绍（选填）。 */
+  /** IANA time zone for every date, brief window and schedule on the site. */
+  timeZone: "America/Los_Angeles",
+  /** Short zone label written after times readers see. */
+  timeZoneLabel: "PT",
+  /** Full home page title (browser tab, search results). */
+  homeTitle: "AI Pulse: the AI news worth reading, picked daily",
+  /** Title of the topics directory (/topics). */
+  topicsTitle: "AI topics: the latest on labs, models, agents, chips, policy and more",
+  /** Example text in the feedback form. */
+  feedbackExample: "For example: I searched for a company and expected to see...",
+  /** One line under the feedback page title. */
+  feedbackLead: "Found a bug, want a feature, or think something reads badly? Tell us.",
+  /** Hint in the feedback form email field. */
+  feedbackEmailHint: "Leave an email if you would like a reply",
+  /** One-line description: search engines, share cards, RSS and llms.txt use it. */
+  description: `We read the main AI sources, pick the news worth your time, group reports of the same story, and publish a daily brief ${EDITION_WHEN.daily}.`,
+  /** A longer paragraph under the one-line description in llms.txt (optional). */
   llmsIntro: null as string | null,
-  /** 一行小字：分享图、海报下方。 */
-  tagline: "值得关注的 AI 动态",
-  /** 搜索引擎读到的关键词（首页结构化数据）。 */
-  keywords: ["AI 资讯", "AI 新闻", "AI 日报", "AI 行业动态"] as string[],
-  /** 网站开始收录的年份（结构化数据的时间范围，选填）。 */
+  /** Small line under share images and posters. */
+  tagline: "The AI news worth reading",
+  /** Keywords for search engines (home page structured data). */
+  keywords: ["AI news", "AI daily brief", "AI industry news", "AI models", "AI labs"] as string[],
+  /** Year the site started collecting (structured data, optional). */
   since: null as string | null,
-  /** 界面语言（HTML lang、og:locale）。 */
-  locale: "zh-CN",
-  /** 默认域名，只在没设置 SITE_URL 时使用。 */
+  /** Interface language (HTML lang, og:locale). */
+  locale: "en-US",
+  /** Default address, used only when SITE_URL is not set. */
   defaultUrl: "http://localhost:3000",
-  /** 标准图标（favicon.ico、icon.png、icon-192.png、apple-icon.png、logo.svg）以外也放在网站根目录的图标，site/brand/ 里的文件名（选填）；manifest.webmanifest 或外站引用了它们时用。 */
+  /** Icons served from the site root besides the standard ones, file names in site/brand/ (optional). */
   rootIcons: [] as string[],
   /**
-   * MCP 工具名的前缀（小写字母、数字、下划线），工具会叫 myhot_get_latest、myhot_search……
-   * 已经有人接入后就不要再改。
+   * Prefix of MCP tool names (lowercase letters, digits, underscores): aipulse_get_latest, aipulse_search...
+   * Do not change it once people have connected.
    */
-  mcpPrefix: "myhot",
+  mcpPrefix: "aipulse",
   /**
-   * 公开接口（MCP、OpenAPI、llms.txt）的版本号，只升不降。
-   * 改了接口里已有的字段或含义时升主版本，并在部署说明里写清。
+   * Version of the public interfaces (MCP, OpenAPI, llms.txt); only goes up.
+   * Raise the major version when an existing field or its meaning changes, and say so in the deploy notes.
    */
   interfaceVersion: "4.0.0",
-  /** 对外联系邮箱（选填）：llms.txt 和给 Agent 的使用说明里会写。 */
+  /** Public contact email (optional), written into llms.txt and the agent guide. */
   contactEmail: null as string | null,
-  /** 关于页底部的一行小字（选填）。 */
-  footerNote: "由 AIHOT 开源框架驱动",
-  /** 中国大陆网站的 ICP 备案号（选填），填了就显示在侧栏底部和“我的”页底部，并链接到工信部备案系统。 */
+  /** Small line at the bottom of the about page (optional). */
+  footerNote: null as string | null,
+  /** Mainland China ICP filing number (optional); not used by this site. */
   icp: null as string | null,
-  /** 中国大陆网站的公安备案信息（选填），填了显示在侧栏底部和“我的”页底部。 */
+  /** Mainland China public security filing (optional); not used by this site. */
   psb: null as string | null,
-  /** 源码的 GitHub 仓库地址（选填），填了就在侧栏底部和“我的”页底部显示“GitHub 开源”。 */
+  /** GitHub repository of the source (optional); shown in the sidebar and the "Me" page when set. */
   github: null as string | null,
-  /** 结构化数据里的网站运营者（搜索引擎用）。 */
+  /** Site operator in structured data (for search engines). */
   organization: {
-    name: "MyHOT",
-    /** 创始人（选填）。 */
+    name: "AI Pulse",
+    /** Founder (optional). */
     founder: null as Founder | null,
   },
-  /** 抓取信源时报上的名字和版本（User-Agent 里用），不要冒用别的站。 */
-  crawlerName: "MyHOTBot/1.0",
+  /** Name and version sent when fetching sources (in the User-Agent); never use another site's name. */
+  crawlerName: "AIPulseBot/1.0",
 } as const;
 
-/** 使用规则和隐私说明两页（正文在 pages/ 里）。 */
+/** The terms and privacy pages (their text is in pages/). */
 export const POLICY = {
   terms: {
-    /** 页面名：导航、页脚、页面标题都用它。 */
-    name: "使用规则",
-    description: "本站网页、RSS、公开 API 与 MCP 的使用规则。",
-    /** llms.txt 里对这一页的一句说明（选填）。 */
+    /** Page name: navigation, footer and page title. */
+    name: "Terms of use",
+    description: "Terms for using this site's pages, RSS feeds, public API and MCP.",
+    /** One line about this page in llms.txt (optional). */
     covers: null as string | null,
-    /** Agent 接入页的 RSS、API 两栏各自提醒的使用规则（选填）。 */
+    /** Reminders shown in the RSS and API panels of the agent page (optional). */
     notes: null as null | { rss: string; api: string },
-    /**
-     * 讲清哪些用途要先取得授权的话（选填）：llms 接在 llms.txt“使用说明”的版权说明后面，
-     * agent 写在给 Agent 的使用说明“使用规则”一节的开头。
-     */
+    /** Which uses need permission first (optional): `llms` for llms.txt, `agent` for the agent guide. */
     license: null as null | { llms: string; agent: string },
-    /**
-     * 公开 API、RSS 和 OpenAPI 文件声明使用规则的响应头（选填）：原样附上，再加一个指向这一页的
-     * Link 头（rel="terms-of-service"）；浏览器里的调用方也读得到它们。
-     */
+    /** Response headers declaring the terms on the public API, RSS and OpenAPI file (optional). */
     headers: null as null | Record<string, string>,
   },
   privacy: {
-    description: "本站如何处理浏览器本地数据、反馈资料与访问日志。",
-    /** llms.txt 里对这一页的一句说明（选填）。 */
+    description: "How this site handles browser storage, feedback and access logs.",
+    /** One line about this page in llms.txt (optional). */
     covers: null as string | null,
   },
   /**
-   * X 帖子本身的文字和图片算不算全文：算的话，只在这篇允许站内全文时显示（信源允许全文、正文也取到了）；
-   * 不算的话总是显示，和标题、摘要一样。
+   * Whether the text and images of an X post count as full text: if so, they show only when the post may be shown
+   * in full on the site; if not, they always show, like a title and summary.
    */
   xPostIsFullText: true,
 } as const;
 
-/** 导航（电脑侧栏、手机底栏、“我的”页）。 */
+/** Navigation (desktop sidebar, phone tab bar, "Me" page). */
 export const NAV = {
-  /**
-   * 不放进导航的引擎入口，目前只支持热点榜（"/hot"）和主题（"/topics"）。页面照样能打开；原来回到它的返回按钮和链接改回精选，
-   * 写 "/hot" 时首页也不放当前热点。
-   */
+  /** Engine pages left out of navigation; only "/hot" and "/topics" are supported. */
   hidden: [] as Array<"/hot" | "/topics">,
 };
 
-/** 条目卡片和详情页上的几处说法和显示。 */
+/** Wording and display on item cards and item pages. */
 export const ITEM_COPY = {
-  /** 模型写的那句理由叫什么：卡片、详情页、Markdown 导出、给 Agent 的回答和群推送都用它。 */
-  reasonLabel: "推荐理由",
-  /** 读者在网页和分享图上看不看得到 AI 评分。只管显示：公开 API 和 MCP 的数据照样带 score，后台照常显示。 */
+  /** What the model's one-line reason is called: cards, item pages, Markdown export, agent answers and pushes. */
+  reasonLabel: "Why it matters",
+  /** Whether readers see the AI score on pages and share images. Display only: the API and MCP still carry it. */
   showScore: true,
 };
 
-/** 关于页的一张二维码卡片。 */
+/** One QR card on the about page. */
 interface ContactCard {
   kind: string;
   title: string;
   note: string;
-  /** 站外链接过的根目录文件名（选填），比如 qr-wechat.jpg：这个地址总是跳到现在的二维码。 */
+  /** A root file name linked from elsewhere (optional), such as qr-wechat.jpg: it always redirects to the current code. */
   alias?: string;
 }
 
-/** 关于页的文案。数字（信源数、收录数、精选数、日报期数）来自站内实时统计，不用写在这里。 */
+/** About page copy. The numbers (sources, items, picks, briefs) come from live counts, not from here. */
 export const ABOUT = {
-  kicker: `关于 ${SITE.name}`,
-  /** 页面描述（搜索结果、分享卡片）。 */
-  description: `关于 ${SITE.name}：${SITE.description}`,
-  /** 大标题：第一行正常颜色，第二行强调色。 */
-  headline: ["AI 圈每天都有新动静，", "值得看的，只有几条。"] as [string, string],
-  /** 标题下面的一段话。{sources} 会换成实时的信源数（两边自动加空格，所以 {sources} 两边不写空格）；统计没取到时换成 sourcesFallback。 */
-  lead: `${SITE.name} 替你盯着{sources}个信源：抓取、归并、打分、精选，${EDITION_WHEN.daily} 出一份日报。免费，不用注册。`,
-  sourcesFallback: "十几",
-  /** 信源河动画下面的四个环节。 */
+  kicker: `About ${SITE.name}`,
+  /** Page description (search results, share cards). */
+  description: `About ${SITE.name}: ${SITE.description}`,
+  /** Headline: first line in the normal color, second in the accent color. */
+  headline: ["Something happens in AI every day.", "Only a few things are worth your time."] as [string, string],
+  /** Paragraph under the headline. {sources} becomes the live counts ("12 feeds and 32 X accounts"); sourcesFallback is used when they are missing. */
+  lead: `${SITE.name} watches {sources} for you: it collects, groups, scores and picks, then publishes a daily brief ${EDITION_WHEN.daily}. Free, no sign-up.`,
+  sourcesFallback: "dozens of sources",
+  /** The four steps under the source animation. */
   steps: {
-    collect: "官方博客、媒体和个人的订阅源都在看；更新越勤的源看得越勤，最快 15 分钟看一次。",
-    store: "抓到的都存下来，同一件事的报道归到一起，热点榜就是从这里算出来的。",
-    select: `模型先看是不是这个行业的事、有没有实际信息，再写中文标题、摘要和${ITEM_COPY.reasonLabel}；营销稿和重复转发进不来。`,
-    publish: `${EDITION_WHEN.daily} 出日报，${EDITION_WHEN.weekly} 出周报，${EDITION_WHEN.monthly} 出月报。`,
+    collect: "We follow official blogs, news sites and newsletters. Busier sources are checked more often, as often as every 15 minutes.",
+    store: "Everything collected is kept, and reports of the same story are grouped together. The trending list is built from these groups.",
+    select: `A model first checks that a piece is about AI and has real news in it, then writes a plain title, a short summary and ${ITEM_COPY.reasonLabel.toLowerCase()}. Marketing and reposts do not get in.`,
+    publish: `A daily brief ${EDITION_WHEN.daily}, a weekly brief ${EDITION_WHEN.weekly}, and a monthly brief ${EDITION_WHEN.monthly}.`,
   },
   /**
-   * 作者块（选填），null 就不显示。
-   * avatarSourceId：一个 X 账号信源的 id，头像取它的（选填）。
-   * 二维码在后台“设置”里上传，或者放进 site/brand/contact/；没有二维码就不显示那张卡片。
+   * Author block (optional); null hides it.
+   * avatarSourceId: id of an X account source whose avatar is used (optional).
    */
   maker: null as null | {
     name: string;
@@ -170,160 +164,166 @@ export const ABOUT = {
     wechat?: ContactCard;
     feishu?: ContactCard;
   },
-  /** 页面底部的版权与下架说明，中间接“反馈页”的链接。 */
-  copyright: [`${SITE.name} 是聚合摘要和阅读索引，原文版权归各来源所有。如果你是来源方，希望更正、下架或调整展示方式，可以通过`, "联系我们。"] as [string, string],
-  /** 页面底部“使用规则”链接的锚点 id（选填）：外部文档写死过这个锚点就填上，以后不要改。 */
+  /** Copyright and takedown note at the bottom, with a link to the feedback page in between. */
+  copyright: [`${SITE.name} is a summary and reading index. Original articles belong to their publishers. If you publish one of our sources and want a correction, a takedown or a different display, please use the`, "to contact us."] as [string, string],
+  /** Credit for the open-source framework this site is built on, shown on the about page. */
+  credit: {
+    text: "AI Pulse is built on AIHOT, an open-source AI news engine released under the MIT License by its author, Digital Life Khazix (数字生命卡兹克). AI Pulse is an independent site and is not affiliated with AIHOT.",
+    url: "https://github.com/KKKKhazix/AIHOT",
+    label: "AIHOT on GitHub",
+  },
+  /** Anchor id of the terms link at the bottom (optional); keep it once external documents link to it. */
   termsAnchor: null as string | null,
 } as const;
 
-/** 后台页面上给管理员的提示（选填）。 */
+/** Hints for admins on admin pages (optional). */
 export const ADMIN = {
-  /** “反馈”页标题下的一行。 */
+  /** One line under the feedback page title. */
   feedbackNote: null as string | null,
-  /** 确认框里补的一句本站规定：封禁反馈来源时。 */
+  /** Extra sentence in the confirm dialog when banning a feedback sender. */
   banNote: null as string | null,
-  /** 确认框里补的一句本站规定：调整付费服务的请求上限时。 */
+  /** Extra sentence in the confirm dialog when changing a paid service limit. */
   budgetNote: null as string | null,
 };
 
-/** Agent 接入页的示例。 */
+/** Examples on the agent page. */
 export const AGENT = {
-  /** MCP 工具表里“搜索”一行：能搜什么、可以怎么问。 */
-  search: { scope: "按公司、产品、人物或话题搜最近 7 天", ask: "这家公司最近发了什么？" },
+  /** The "search" row of the MCP tool table: what it searches and an example question. */
+  search: { scope: "Search the last 7 days by company, product, person or topic", ask: "What has this company announced lately?" },
 };
 
-/** 日报、周报、月报版面上的说法。 */
+/** Wording in the daily, weekly and monthly briefs. */
 export const REPORTS = {
-  /** 报头下面的出版者一行。 */
+  /** Publisher line under the nameplate. */
   imprint: SITE.name.toUpperCase(),
-  /** 报头旁边的一个词。 */
+  /** One word next to the nameplate. */
   motto: SITE.subject as string,
-  /** 每种报告页面的描述（搜索结果、分享卡片），不带句号；llms.txt 介绍周报、月报时也用它。 */
+  /** Page descriptions of each brief (search results, share cards), no final period; llms.txt uses them too. */
   descriptions: {
-    daily: `${SITE.name} ${subjectAfter(`${EDITION_WHEN.daily}（北京时间）发布的`, "行业精编日报")}`,
-    weekly: subjectAfter("每周", "行业综合回顾"),
-    monthly: subjectAfter("每月", "行业盘点"),
+    daily: `The ${SITE.name} daily brief, published ${EDITION_WHEN.daily}`,
+    weekly: `A weekly review of the ${SITE.subject} news that mattered`,
+    monthly: `A monthly round-up of ${SITE.subject} news`,
   },
   /**
-   * 一期里的一条怎么称呼（“4 件大事”）：没有头条时的标题（“这一天的 4 件 AI 大事”）、报头和往期目录的条数、
-   * 周报月报没有总述时的那句话，以及订阅说明里的“按栏目分好的大事”都用它。
+   * What one entry of a brief is called ("4 top stories"): the title when there is no lead story, counts on the
+   * nameplate and archive, the line in weekly and monthly briefs without an overview, and the feed descriptions.
    */
-  entry: { measure: "件", noun: "大事" },
-  /** 报头上其余几个数字后面的说法；精选数和日报期数在关于页、主题页也这样写。 */
-  metricUnits: { sourcesCount: "个来源", firstPartyEvents: "件一手发布", selectedCount: "条精选", reportsCovered: "期日报" },
-  /** 报告分享图上“共几条”的说法。 */
-  shareUnit: "件大事",
-  /** 日报时段内有资料经过评判、但没有新大事时的标题与导语。 */
-  quiet: { title: "今日安静，无大事发生", paragraph: `${subjectAfter("北京时间 {start} 至 {end}，没有新的", "大事")}。` },
+  entry: { measure: "", noun: "top stories" },
+  /** Units after the other numbers on the nameplate; the about and topic pages write counts the same way. */
+  metricUnits: { sourcesCount: "sources", firstPartyEvents: "official announcements", selectedCount: "picks", reportsCovered: "daily briefs" },
+  /** "N top stories" on brief share images. */
+  shareUnit: "top stories",
+  /** Title and lead when items were reviewed in the daily window but nothing big happened. */
+  quiet: { title: "A quiet day: nothing big happened", paragraph: `No new top ${SITE.subject} stories between {start} and {end} ${SITE.timeZoneLabel}.` },
 };
 
-/** 运维告警（只发给站长）里随部署而变的几处说法。 */
+/** Wording in operations alerts (sent only to the site owner) that depends on the deployment. */
 export const ALERTS = {
-  /** 多少分钟没有收录新文章就告警“网站停止收录新内容”（最多一天）；环境变量 ALERT_QUIET_MINUTES 优先。 */
+  /** Minutes without a new article before the "collection stopped" alert (at most a day); ALERT_QUIET_MINUTES wins. */
   quietMinutes: 360,
-  /** 同一条告警里，“没有”后面补一句平时的收录量；null 就不写。 */
+  /** A sentence on the usual volume added to that alert; null leaves it out. */
   usualFlow: null as string | null,
-  /** worker 停了的告警里，怎么看它的日志。 */
-  workerLogs: "看 worker 的日志（docker compose logs worker）",
+  /** How to read the worker's logs, in the worker-down alert. */
+  workerLogs: "check the worker logs (docker compose logs worker)",
 };
 
-/** 后台新建信源时的默认设置。 */
+/** Defaults when an admin creates a source. */
 export const SOURCE_DEFAULTS = {
-  /** 站内展示全文；false 时只显示摘要和原文链接。 */
+  /** Show full text on the site; false shows only the summary and a link to the original. */
   siteFulltext: false,
 };
 
 /**
- * 社区站的信源（填信源 id）：算热度时按发帖的账号计，一个账号算一个独立来源，而不是整个信源只算一个。
- * dev 是 dev.to 的文章流，hn 是 Hacker News 的帖子流。
+ * Community feeds (source ids) whose heat is counted per posting account, one account per independent source,
+ * instead of the whole feed counting once. dev is the dev.to article stream, hn the Hacker News stream.
  */
 export const COMMUNITY_FEEDS: { dev: string[]; hn: string[] } = {
   dev: [],
-  hn: [],
+  hn: ["hn-ai"],
 };
 
-/** 各页分享图（/og/pages/*.png）上的文字。主题目录页的那张按主题数自动生成。 */
+/** Text on each page's share image (/og/pages/*.png). The topics directory image is generated from the topic count. */
 export const CARDS: Record<string, { kicker: string; title: string; subtitle: string; accent?: "hot" | "amber" }> = {
-  site: { kicker: subjectAfter("每日", "精选"), title: SITE.tagline, subtitle: SITE.description },
-  all: { kicker: subjectAfter("全部", "动态"), title: "所有信源的最新动态，一站看完", subtitle: "按时间汇总各信源的最新动态，可按类别与标签筛选。" },
-  hot: { kicker: "热点榜", title: "过去 48 小时，大家在讨论什么", subtitle: "热度指数、趋势与组成热度的公开来源。", accent: "hot" },
-  daily: { kicker: withSubject("日报"), title: subjectAfter(`每天 ${spokenTime(EDITION_TIMES.daily)}，一份读得完的`, "日报"), subtitle: `${subjectAfter("前一天值得关注的", "动态")}。` },
-  weekly: { kicker: withSubject("周报"), title: `一周${REPORTS.entry.noun}，一次看清`, subtitle: "本周的主线、重要发布与值得回看的讨论。" },
-  monthly: { kicker: withSubject("月报"), title: "一个月的变化", subtitle: "月度主线与关键事件回顾。" },
-  about: { kicker: "关于", title: `关于 ${SITE.name}`, subtitle: SITE.description },
-  terms: { kicker: "使用规则", title: `${SITE.name} 使用规则`, subtitle: "网页、API、RSS 与 MCP 的使用范围。" },
-  privacy: { kicker: "隐私说明", title: `${SITE.name} 隐私说明`, subtitle: "访问日志、浏览器本地数据与反馈资料的处理方式。" },
-  changelog: { kicker: "更新日志", title: `${SITE.name} 更新日志`, subtitle: "功能更新、优化、公告与下线记录。" },
-  feedback: { kicker: "反馈", title: "告诉我们哪里可以更好", subtitle: "内容、功能、接入，或来源方的更正与下架请求。" },
-  agent: { kicker: "Agent 接入", title: `把 ${SITE.name} 接进你的 Agent`, subtitle: "MCP、RSS、API 三种方式，匿名只读，无需 API Key。" },
+  site: { kicker: "Daily AI picks", title: SITE.tagline, subtitle: SITE.description },
+  all: { kicker: "All AI news", title: "Every source's latest news in one place", subtitle: "The latest from every source, newest first. Filter by category and tag." },
+  hot: { kicker: "Trending", title: "What people are talking about in the last 48 hours", subtitle: "Heat index, trend, and the public sources behind it.", accent: "hot" },
+  daily: { kicker: withSubject("Daily"), title: `A daily ${SITE.subject} brief you can finish, every morning at ${spokenTime(EDITION_TIMES.daily)}`, subtitle: `The ${SITE.subject} news worth knowing from the past day.` },
+  weekly: { kicker: withSubject("Weekly"), title: "The week's top stories at a glance", subtitle: "This week's main threads, key launches and discussions worth a second look." },
+  monthly: { kicker: withSubject("Monthly"), title: "How the month changed things", subtitle: "The month's main threads and key events." },
+  about: { kicker: "About", title: `About ${SITE.name}`, subtitle: SITE.description },
+  terms: { kicker: "Terms", title: `${SITE.name} terms of use`, subtitle: "How the pages, API, RSS and MCP may be used." },
+  privacy: { kicker: "Privacy", title: `${SITE.name} privacy notice`, subtitle: "How access logs, browser storage and feedback are handled." },
+  changelog: { kicker: "Changelog", title: `${SITE.name} changelog`, subtitle: "New features, improvements, announcements and retirements." },
+  feedback: { kicker: "Feedback", title: "Tell us what could be better", subtitle: "Content, features, integrations, or corrections and takedowns from publishers." },
+  agent: { kicker: "For agents", title: `Connect ${SITE.name} to your agent`, subtitle: "MCP, RSS or API. Anonymous, read-only, no API key needed." },
 };
 
-/** 公开接口的访问约定里随部署而变的几处：给 Agent 的使用说明、llms.txt 会写。 */
+/** Parts of the public access terms that depend on the deployment, written into the agent guide and llms.txt. */
 export const ACCESS = {
-  /** 同一 IP 每分钟大约能请求多少次，超过会收到 429 并带 Retry-After（选填，由部署的反向代理限流）；null 表示不限流，说明里不提。 */
+  /** Roughly how many requests per minute one IP may make before a 429 with Retry-After (optional, enforced by the reverse proxy). */
   ratePerMinute: null as number | null,
-  /** 请写程序同步数据的人报上的 User-Agent（选填），写在 JSON 接口的说明后面。 */
+  /** User-Agent that people syncing data should send (optional). */
   userAgent: null as string | null,
 };
 
-/** 这个部署自己的几处安排（选填）。 */
+/** Arrangements of this deployment (all optional). */
 export const DEPLOYMENT = {
-  /** 凭据分组文件（models.env、collectors.env……）默认放在哪个目录，相对仓库根目录；环境变量 AIHOT_CREDENTIALS_DIR 优先，都没有就只读环境变量。 */
+  /** Default folder of credential group files (models.env, collectors.env...), relative to the repo root; AIHOT_CREDENTIALS_DIR wins. */
   credentialsDir: null as string | null,
-  /** 凭据分组的文件名（放在凭据目录下，选填）：没写的分组用“分组名.env”，比如 models.env。 */
+  /** File names of credential groups in that folder (optional); a group not listed uses "<group>.env". */
   credentialFiles: {} as Partial<Record<string, string>>,
-  /** 这个部署额外要求的凭据（[分组, 环境变量名]）；生产 API 启动时检查，默认没有额外要求。 */
+  /** Extra credentials ([group, variable]) the production API checks at startup; none by default. */
   requiredSecrets: [] as const,
-  /** 线上 api 收到的 Host（CDN 回源用的域名，选填）；本地开发时，网页开发服务器转给 api 的请求也换成它，和线上一致。 */
+  /** Host the production API receives (the CDN origin name, optional); the dev web server rewrites to it too. */
   originHost: null as string | null,
-  /** 反向代理把没登录的后台访问转去登录时，用哪个请求头带上原来的地址（选填，登录后回到那里）。 */
+  /** Header the reverse proxy uses to carry the original address when sending a signed-out admin to login (optional). */
   loginReturnHeader: null as string | null,
   /**
-   * 图片代理从原站取图的流量上限：超过后没缓存的图先返回 503，等这一分钟或这一天过去，当天额度用完会进运营日报；
-   * null 就不设上限。环境变量 IMGPROXY_UPSTREAM_MB_PER_MINUTE、IMGPROXY_UPSTREAM_GB_PER_DAY 优先。
+   * Upstream traffic cap of the image proxy: past it, uncached images return 503 until the minute or day passes.
+   * null means no cap. IMGPROXY_UPSTREAM_MB_PER_MINUTE and IMGPROXY_UPSTREAM_GB_PER_DAY win.
    */
   imageUpstreamBudget: null as null | { mbPerMinute: number; gbPerDay: number },
   /**
-   * 已实测应由服务器直接连接、不走出网代理（EGRESS_PROXY_URL）的域名，采集和图片共用（选填）。
-   * 每次重定向重新按目标域名选路，直连仍检查实际连接地址。
+   * Hosts fetched directly rather than through EGRESS_PROXY_URL, for collection and images (optional).
+   * Each redirect picks its route again by host; direct connections still check the address connected to.
    */
   directFetchHosts: [] as string[],
   /**
-   * 精选评测（scripts/eval-selection.ts）不带参数时用的金标集：文件（相对仓库根目录）、抽样条数、只抽哪一份、门槛扫描范围。
-   * null 就用 .data/gold.jsonl 的全部样本（最多 200 条），在 40–90 之间扫描。
+   * Gold set used by scripts/eval-selection.ts without arguments: file (from the repo root), sample size, split and
+   * threshold sweep. null uses all of .data/gold.jsonl (at most 200) and sweeps 40 to 90.
    */
   selectionGold: null as null | { file: string; sample: number; split: string; sweep: [number, number] },
 };
 
-/** RSS 订阅源的说明里随站点而变的说法。 */
+/** Site-specific wording in RSS feed descriptions. */
 export const FEED_COPY = {
-  /** “全部动态”源的说明里，除了未审内容、低相关条目和已合并重复条目，还写明不含的内容（选填）。 */
+  /** What the "all news" feed leaves out, besides unreviewed, off-topic and merged duplicate items (optional). */
   allLeavesOut: [] as string[],
 };
 
 /**
- * 公开接口（API、RSS、MCP）里和网页不同的类别（选填）。上线后不要改：接口参数和订阅地址里有类别的 key。
- * merge：并进另一类发布的类别，key 是行业包里的类别，值是它并进的类别（公开接口比网页少一类时用）；
- * feedLabels：分类 RSS 标题里的名字，替换行业包里的 feedLabel（并进了别的类别时，名字常常也要跟着改）。
+ * Categories that differ in the public API, RSS and MCP from the web pages (optional). Keep them once live: the
+ * keys appear in API parameters and feed addresses.
+ * merge: a category published as another (key is the industry category, value the one it merges into);
+ * feedLabels: names in category RSS titles, replacing the industry's feedLabel.
  */
 export const PUBLIC_CATEGORIES = {
   merge: {},
   feedLabels: {},
 } as const;
 
-/** “AI 日报”这类说法：行业词和名词之间，英文词加空格，中文词不加。 */
+/** "AI Daily", "AI Weekly": the industry word before a noun. */
 export function withSubject(noun: string): string {
-  return /[A-Za-z0-9]$/.test(SITE.subject) ? `${SITE.subject} ${noun}` : `${SITE.subject}${noun}`;
+  return `${SITE.subject} ${noun}`;
 }
 
-/** “按主题看 AI”“往期 AI 日报”这类说法：行业词接在中文后面，英文词前加空格，中文词不加；noun 照 withSubject 接上。 */
+/** "Browse AI by topic", "Past AI Daily": text, then the industry word (and noun, as in withSubject). */
 export function subjectAfter(text: string, noun?: string): string {
-  const gap = /^[A-Za-z0-9]/.test(SITE.subject) ? " " : "";
-  return `${text}${gap}${noun ? withSubject(noun) : SITE.subject}`;
+  return `${text} ${noun ? withSubject(noun) : SITE.subject}`;
 }
 
-/** “8 点”“10 点 30 分”：口语里的 HH:mm。 */
+/** "8 AM", "10:30 AM": HH:mm as spoken. */
 function spokenTime(time: string): string {
   const [hour, minute] = time.split(":").map(Number) as [number, number];
-  return `${hour} 点${minute ? ` ${minute} 分` : ""}`;
+  return `${hour % 12 || 12}${minute ? `:${String(minute).padStart(2, "0")}` : ""} ${hour < 12 ? "AM" : "PM"}`;
 }

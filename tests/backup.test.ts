@@ -33,7 +33,8 @@ const roots: string[] = [];
 const databases = new Set<string>();
 const objects = new Map<string, Buffer>();
 const PNG = await sharp({ create: { width: 4, height: 4, channels: 3, background: "#808080" } }).png().toBuffer();
-const NOW = new Date("2026-11-01T04:00:00Z");
+// 04:00 on Sunday 1 November in the site's zone (Pacific Time): a daily, weekly and monthly backup at once.
+const NOW = new Date("2026-11-01T12:00:00Z");
 // Backups are named after the database ("news_db" → news-db-…).
 const stem = sql.options.database.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
@@ -65,7 +66,7 @@ after(async () => {
 async function extractSavedFiles() {
   const destination = await mkdtemp(path.join(tmpdir(), "aihot-backup-restored-"));
   roots.push(destination);
-  const archive = objects.get(`daily/${stem}-files-202611010400.tar.gz`);
+  const archive = objects.get(`daily/${stem}-files-202611011200.tar.gz`);
   assert.ok(archive, "backup must supply the real file archive");
   const archivePath = path.join(destination, "files.tar.gz");
   await writeFile(archivePath, archive);
@@ -86,7 +87,7 @@ test("a real paired restore opens a feedback screenshot when forwarding is disab
   const summary = await runBackup(NOW);
   assert.equal(summary.uploaded, true);
   const { destination, data } = await extractSavedFiles();
-  const dump = objects.get(`daily/${stem}-202611010400.dump`);
+  const dump = objects.get(`daily/${stem}-202611011200.dump`);
   assert.ok(dump, "backup must supply the real database dump");
   const dumpPath = path.join(destination, "database.dump");
   await writeFile(dumpPath, dump);
@@ -137,7 +138,7 @@ test("both attachment roots restore nested paths and bytes, without caches or pr
   assert.deepEqual((await readdir(data)).sort(), ["feedback-screenshots", "uploads"]);
   assert.deepEqual(await readFile(path.join(data, "uploads/nested/user-file.bin")), upload);
   assert.deepEqual(await readFile(path.join(data, "feedback-screenshots/local.png")), PNG);
-  assert.deepEqual([...objects.keys()].sort(), ["daily", "weekly", "monthly"].flatMap(prefix => [`${prefix}/${stem}-202611010400.dump`, `${prefix}/${stem}-files-202611010400.tar.gz`]).sort());
+  assert.deepEqual([...objects.keys()].sort(), ["daily", "weekly", "monthly"].flatMap(prefix => [`${prefix}/${stem}-202611011200.dump`, `${prefix}/${stem}-files-202611011200.tar.gz`]).sort());
   for (const object of summary.objects) assert.equal(object.sha256, createHash("sha256").update(objects.get(object.key)!).digest("hex"));
 });
 
@@ -159,7 +160,7 @@ test("an unreadable upload directory cannot become a successful empty backup", a
   const shipped = objects.size;
   const [last] = await sql`SELECT value FROM settings WHERE key = 'backup.last'`;
   await symlink("uploads", path.join(config.dataDir, "uploads")); // ELOOP, without depending on root/permission behavior
-  await assert.rejects(runBackup(new Date("2026-11-01T04:01:00Z")), /ELOOP/);
+  await assert.rejects(runBackup(new Date("2026-11-01T12:01:00Z")), /ELOOP/);
   assert.equal(objects.size, shipped, "do not send an empty archive as a replacement for unreadable files");
   const [after] = await sql`SELECT value FROM settings WHERE key = 'backup.last'`;
   assert.deepEqual(after, last, "last successful backup remains accurate");

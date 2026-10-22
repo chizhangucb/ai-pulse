@@ -2,7 +2,7 @@
 // keys and formats once readers have data under them: existing readers' data must stay readable as-is.
 // Storage failures degrade silently.
 import { useEffect, useSyncExternalStore } from "react";
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 
 export const KEYS = {
   starred: "aihot-starred-items",
@@ -147,7 +147,7 @@ function isStarredItem(v: unknown): v is LocalStarredItem {
 function isDisplayableDate(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
-    beijingDate(value);
+    siteDate(value);
     return true;
   } catch {
     return false;
@@ -360,7 +360,7 @@ export function clearRecentSearches() {
 const LAST_PAGE_KEY = "aihot:last-page";
 const NOT_A_PLACE = /^\/(feedback|more)(\/|$)|^\/admin(\/|$)/;
 
-/** Called on every in-site navigation: remembers the latest real page, never feedback, "更多" or the admin. */
+/** Called on every in-site navigation: remembers the latest real page, never feedback, "More" or the admin. */
 export function rememberPage(path: string) {
   if (!NOT_A_PLACE.test(path)) writeRaw(LAST_PAGE_KEY, path, "session");
 }
@@ -397,15 +397,15 @@ export interface ImportReport {
 
 /** Merge: existing stars are not overwritten, read ids are unioned, appearance only if unset. */
 export function importBundle(text: string): ImportReport {
-  if (text.length > IMPORT_MAX_CHARS) throw new Error("文件过大（上限 2,000,000 字符）");
+  if (text.length > IMPORT_MAX_CHARS) throw new Error("The file is too large (limit 2,000,000 characters)");
   let data: unknown;
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error("不是有效的 JSON 文件");
+    throw new Error("This is not a valid JSON file");
   }
   const d = data as Partial<ExportBundle>;
-  if (!d || typeof d !== "object" || d.version !== 1) throw new Error("文件格式不对（需要 version: 1）");
+  if (!d || typeof d !== "object" || d.version !== 1) throw new Error("Wrong file format (version: 1 is required)");
   return mergeLocalData({
     starred: Array.isArray(d.starred) ? d.starred : [],
     read: Array.isArray(d.read) ? d.read : [],
@@ -428,7 +428,7 @@ function starredUnreadable(): boolean {
 function mergeLocalData(incoming: { starred: unknown[]; read: unknown[]; theme: unknown; font?: unknown }): ImportReport {
   return editLocalData(() => {
     // The reader's own data stays recoverable (export it, or fix it) rather than replaced by the import.
-    if (starredUnreadable()) throw new Error("这台设备上已有的收藏数据无法读取，为避免覆盖，这次没有导入。");
+    if (starredUnreadable()) throw new Error("The saved items already on this device cannot be read, so nothing was imported to avoid overwriting them.");
     const current = getStarred();
     const have = new Set(current.map((s) => s.id));
     const additions: LocalStarredItem[] = [];
@@ -444,7 +444,7 @@ function mergeLocalData(incoming: { starred: unknown[]; read: unknown[]; theme: 
     starredSkipped += additions.length - accepted.length;
     const mergedStarred = [...current, ...accepted].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt));
     // An import is reported only after it was written; a failure here leaves the browser as it was.
-    if (!writeRaw(KEYS.starred, JSON.stringify(mergedStarred))) throw new Error("浏览器存储已满或不可用，这次没有导入任何内容。");
+    if (!writeRaw(KEYS.starred, JSON.stringify(mergedStarred))) throw new Error("Browser storage is full or unavailable, so nothing was imported.");
 
     const readIds = getReadIds();
     const readHave = new Set(readIds);

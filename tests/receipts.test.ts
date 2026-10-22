@@ -8,6 +8,7 @@ import { z } from "zod";
 import { config } from "@aihot/backend/config";
 import { closeDb, sql } from "@aihot/backend/db";
 import { chatJson } from "@aihot/backend/providers/llm";
+import { ScoreSchema } from "@aihot/backend/editorial/analyze";
 import { embeddingsAvailable } from "@aihot/backend/providers/embeddings";
 import { assertAccepted, failureKind, ProviderRejectedError, BudgetExceededError, logicalKeyFor, markStalePendingReceipts, ModelOutputError, paidRequest, providerStopKey, ReceiptUnknownError } from "@aihot/backend/providers/receipts";
 import { autoReleaseUnknownReceipts } from "@aihot/backend/operations/recover";
@@ -156,6 +157,37 @@ test("a fully received non-object model response is unusable output, not an unkn
     process.env.DEEPSEEK_BASE_URL = original;
     await malformed.close();
   }
+});
+
+test("a bare-number answer is a score, and stays unusable where an object is asked for", async () => {
+  answer = () => " 81\n";
+  try {
+    const subject = `bare-score-${tag()}`;
+    const scored = await chatJson({ model: "deepseek-flash", purpose: "invariant_test", subject, promptVersion: "t1", system: "s", user: `input ${subject}`, schema: ScoreSchema });
+    assert.deepEqual(scored.data, { attentionScore: 81 });
+    await assert.rejects(ask(`bare-other-${tag()}`), ModelOutputError);
+  } finally {
+    answer = () => '{"ok":true}';
+  }
+});
+
+test("the charge a provider reports with an answer (OpenRouter's usage.cost) is logged as its actual cost", async () => {
+  const billed = await stub((hit) => ({ id: `stub-billed-${hit}`, choices: [{ message: { content: '{"ok":true}' } }], usage: { ...usage, cost: 0.000425 } }));
+  const original = process.env.DEEPSEEK_BASE_URL;
+  const subject = `billed-${tag()}`;
+  process.env.DEEPSEEK_BASE_URL = `${billed.url}/v1`;
+  try {
+    await ask(subject);
+    const [a] = await sql`SELECT a.cost::text AS cost, a.currency, a.cost_basis FROM receipt_attempts a JOIN receipts r ON r.id = a.receipt_id WHERE r.subject = ${subject}`;
+    assert.deepEqual({ ...a }, { cost: "0.000425", currency: "USD", cost_basis: "actual" });
+  } finally {
+    process.env.DEEPSEEK_BASE_URL = original;
+    await billed.close();
+  }
+  const unbilled = `unbilled-${tag()}`;
+  await ask(unbilled);
+  const [b] = await sql`SELECT a.cost FROM receipt_attempts a JOIN receipts r ON r.id = a.receipt_id WHERE r.subject = ${unbilled}`;
+  assert.equal(b!.cost, null);
 });
 
 test("an answer cut off at the output limit is a failed paid answer that says so", async () => {

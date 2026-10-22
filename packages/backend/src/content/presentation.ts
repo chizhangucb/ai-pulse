@@ -24,7 +24,7 @@ export function rebaseTranslation(previous: string, next: string, translated: st
   const zh = cheerio.load(translated, null, false);
   const oldBlocks = textBlocks(old), newBlocks = textBlocks(current), translatedBlocks = textBlocks(zh);
   if (oldBlocks.length !== newBlocks.length || oldBlocks.length !== translatedBlocks.length) {
-    throw new PresentationMismatch("正文段落结构已变化，需要正常重翻，不能只刷新展示");
+    throw new PresentationMismatch("The body's paragraph structure changed; it needs a normal retranslation, not just a display refresh");
   }
   const shell = (html: string) => {
     const $ = cheerio.load(html, null, false);
@@ -35,7 +35,7 @@ export function rebaseTranslation(previous: string, next: string, translated: st
   oldBlocks.forEach((block, i) => {
     const fresh = newBlocks[i]!;
     if (shell(old(block).html() ?? "") !== shell(current(fresh).html() ?? "")) {
-      throw new PresentationMismatch(`第 ${i + 1} 段的文字或内联结构已变化，需要正常重翻，不能只刷新展示`);
+      throw new PresentationMismatch(`Paragraph ${i + 1} changed its text or inline structure; it needs a normal retranslation, not just a display refresh`);
     }
     const rendered = cheerio.load(zh(translatedBlocks[i]!).html() ?? "", null, false);
     const links = current(fresh).find("a").toArray();
@@ -45,7 +45,7 @@ export function rebaseTranslation(previous: string, next: string, translated: st
     const oldMedia = old(block).find(MEDIA).toArray().filter(el => !old(el).parentsUntil(block, MEDIA).length);
     const zhMedia = rendered(MEDIA).toArray().filter(el => !rendered(el).parents(MEDIA).length);
     if (links.length !== zhLinks.length || media.length !== zhMedia.length || oldLinks.some((link, k) => link.attribs.href !== zhLinks[k]?.attribs.href)) {
-      throw new PresentationMismatch(`第 ${i + 1} 段的译文链接或图片无法对应，需要正常重翻`);
+      throw new PresentationMismatch(`Paragraph ${i + 1}: links or images in the translation do not match; it needs a normal retranslation`);
     }
     zhLinks.forEach((link, k) => { link.attribs = { ...links[k]!.attribs }; });
     // The model may move media tokens within a sentence. Match the original token, never its
@@ -54,13 +54,13 @@ export function rebaseTranslation(previous: string, next: string, translated: st
     oldMedia.forEach((el, k) => {
       const key = old.html(el), replacement = current.html(media[k]!);
       const matches = replacements.get(key) ?? [];
-      if (matches.some(value => value !== replacement)) throw new PresentationMismatch(`第 ${i + 1} 段的重复图片无法唯一对应，需要正常重翻`);
+      if (matches.some(value => value !== replacement)) throw new PresentationMismatch(`Paragraph ${i + 1}: repeated images cannot be matched uniquely; it needs a normal retranslation`);
       matches.push(replacement);
       replacements.set(key, matches);
     });
     zhMedia.forEach(el => {
       const replacement = replacements.get(rendered.html(el))?.shift();
-      if (replacement === undefined) throw new PresentationMismatch(`第 ${i + 1} 段的译文图片无法对应，需要正常重翻`);
+      if (replacement === undefined) throw new PresentationMismatch(`Paragraph ${i + 1}: images in the translation do not match; it needs a normal retranslation`);
       rendered(el).replaceWith(replacement);
     });
     current(fresh).html(rendered.html());

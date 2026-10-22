@@ -31,7 +31,7 @@ const TYPES: Record<string, string> = {
 };
 
 /**
- * A public file's `{{…}}` placeholders: the site's name, address, description, tagline and locale, the
+ * A public file's `{{…}}` placeholders: the site's name, address, description, tagline, locale and time zone, the
  * reports' edition times, the public interface version and the category list (JSON-escaped in JSON files). In a JSON document, an
  * `enum` or `examples` list holding "{{categories}}" becomes the list of category keys.
  */
@@ -42,6 +42,7 @@ function fillPlaceholders(text: string, json: boolean): string {
     description: SITE.description,
     tagline: SITE.tagline,
     locale: SITE.locale,
+    timeZone: SITE.timeZone,
     dailyTime: EDITION_TIMES.daily,
     weeklyTime: EDITION_TIMES.weekly,
     monthlyTime: EDITION_TIMES.monthly,

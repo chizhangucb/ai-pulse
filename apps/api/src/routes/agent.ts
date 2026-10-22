@@ -63,14 +63,14 @@ export function registerAgent(app: FastifyInstance) {
     let found = await resolveStory(publicId);
     if (found.kind === "merged") found = await resolveStory(found.target);
     const body = found.kind === "found" ? await v1Story(found.storyId) : null;
-    if (!body) return sendProblem(req, reply, { status: 404, code: "not_found", detail: "没有这个公开事件。只使用热点结果里给出的「来龙去脉」地址，不要猜。", cacheControl: "public, max-age=60" });
+    if (!body) return sendProblem(req, reply, { status: 404, code: "not_found", detail: "No such public story. Use only the \"Full story\" addresses from the trending results; do not guess.", cacheControl: "public, max-age=60" });
     return markdown(req, reply, storyAnswer(body.story, limit, "http"), "agent-story", V1_OPERATIONS.storyByPublicId.cacheControl);
   }));
 
   app.get("/api/v1/agent/daily", publicHandler(async (req, reply) => {
     strictQuery(req, []);
     const res = await dailyWithNotes("latest");
-    if (!res) return sendProblem(req, reply, { status: 404, code: "not_found", detail: "还没有发布过日报。" });
+    if (!res) return sendProblem(req, reply, { status: 404, code: "not_found", detail: "No daily brief has been published yet." });
     return markdown(req, reply, dailyAnswer(res.body.report, "http", res.notes), "agent-daily", V1_OPERATIONS.latestDaily.cacheControl);
   }));
 
@@ -79,18 +79,18 @@ export function registerAgent(app: FastifyInstance) {
     const date = (req.params as { date: string }).date;
     if (!isValidDate(date)) throw new QueryError("date must be a real YYYY-MM-DD calendar date.");
     const res = await dailyWithNotes(date);
-    if (!res) return sendProblem(req, reply, { status: 404, code: "not_found", detail: `没有 ${date} 的日报；不要换一天冒充。`, cacheControl: "public, max-age=60" });
+    if (!res) return sendProblem(req, reply, { status: 404, code: "not_found", detail: `There is no daily brief for ${date}; do not substitute another day.`, cacheControl: "public, max-age=60" });
     return markdown(req, reply, dailyAnswer(res.body.report, "http", res.notes), "agent-daily", V1_OPERATIONS.dailyByDate.cacheControl);
   }));
 
   for (const p of [
-    { kind: "weekly", name: "周报", param: "week", form: "a real ISO week such as 2026-W39", latest: V1_OPERATIONS.latestWeekly.cacheControl, byKey: V1_OPERATIONS.weeklyByWeek.cacheControl },
-    { kind: "monthly", name: "月报", param: "month", form: "a real month such as 2026-09", latest: V1_OPERATIONS.latestMonthly.cacheControl, byKey: V1_OPERATIONS.monthlyByMonth.cacheControl },
+    { kind: "weekly", name: "weekly brief", param: "week", form: "a real ISO week such as 2026-W39", latest: V1_OPERATIONS.latestWeekly.cacheControl, byKey: V1_OPERATIONS.weeklyByWeek.cacheControl },
+    { kind: "monthly", name: "monthly brief", param: "month", form: "a real month such as 2026-09", latest: V1_OPERATIONS.latestMonthly.cacheControl, byKey: V1_OPERATIONS.monthlyByMonth.cacheControl },
   ] as const) {
     app.get(`/api/v1/agent/${p.kind}`, publicHandler(async (req, reply) => {
       strictQuery(req, []);
       const body = await v1Period(p.kind, "latest");
-      if (!body) return sendProblem(req, reply, { status: 404, code: "not_found", detail: `还没有发布过${p.name}。` });
+      if (!body) return sendProblem(req, reply, { status: 404, code: "not_found", detail: `No ${p.name} has been published yet.` });
       return markdown(req, reply, periodAnswer(body.report, p.kind, "http"), `agent-${p.kind}`, p.latest);
     }));
     app.get(`/api/v1/agent/${p.kind}/:${p.param}`, publicHandler(async (req, reply) => {
@@ -98,7 +98,7 @@ export function registerAgent(app: FastifyInstance) {
       const key = (req.params as Record<string, string>)[p.param]!;
       if (!isPeriodKey(p.kind, key)) throw new QueryError(`${p.param} must be ${p.form}.`);
       const body = await v1Period(p.kind, key);
-      if (!body) return sendProblem(req, reply, { status: 404, code: "not_found", detail: `没有 ${key} 的${p.name}；不要换一期冒充。`, cacheControl: "public, max-age=60" });
+      if (!body) return sendProblem(req, reply, { status: 404, code: "not_found", detail: `There is no ${p.name} for ${key}; do not substitute another issue.`, cacheControl: "public, max-age=60" });
       return markdown(req, reply, periodAnswer(body.report, p.kind, "http"), `agent-${p.kind}`, p.byKey);
     }));
   }

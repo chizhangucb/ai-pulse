@@ -165,10 +165,10 @@ for(const [change,publishedAt] of [['archiving',corrected],['retracting',null]] 
   await sql`INSERT INTO grouping_overrides(article_id,reason,actor) VALUES(${id},'Reviewed grouping','test')`;
   const plan=(await previewPublicationDateCorrection(id,publishedAt))!;
   const input={version:plan.version,hash:plan.hash,publishedAt,requestId:`${change}-${id}`,reason:'Verified original publication'};
-  await assert.rejects(correctPublicationDate(id,input,'test'),/人工/);
+  await assert.rejects(correctPublicationDate(id,input,'test'),/grouped by hand/);
   await sql`DELETE FROM grouping_overrides WHERE article_id=${id}`;
   await sql`UPDATE articles SET grouping_status='pending' WHERE id=${id}`;
-  await assert.rejects(correctPublicationDate(id,input,'test'),/处理/);
+  await assert.rejects(correctPublicationDate(id,input,'test'),/still processing/);
   assert.equal((await sql`SELECT backfill FROM articles WHERE id=${id}`)[0]!.backfill,false);
 });
 
@@ -207,7 +207,7 @@ test('recent date correction refuses a later timestamp beyond the discovery tole
   const id=await misdatedFixture();
   const discoveredAt=new Date(Date.now()-6*3600_000);
   await sql`UPDATE articles SET discovered_at=${discoveredAt},published_at=${discoveredAt},published_at_claim=${discoveredAt},timeline_at=${discoveredAt} WHERE id=${id}`;
-  await assert.rejects(previewPublicationDateCorrection(id,new Date(Date.now()-3600_000).toISOString()),/一小时|收录/);
+  await assert.rejects(previewPublicationDateCorrection(id,new Date(Date.now()-3600_000).toISOString()),/one-hour tolerance/);
   const [a]=await sql`SELECT published_at FROM articles WHERE id=${id}`;
   assert.equal(a!.published_at.toISOString(),discoveredAt.toISOString());
 });
@@ -245,7 +245,7 @@ test('retracting a proven repost date removes live evidence while retaining mate
 test('retraction preserves imported history',async()=>{
   const history=await fixture();
   await sql`UPDATE articles SET backfill=true,backfill_reason='first-import',discovered_at=published_at+interval '30 days' WHERE id=${history}`;
-  await assert.rejects(previewPublicationDateCorrection(history,null),/历史/);
+  await assert.rejects(previewPublicationDateCorrection(history,null),/Historical content/);
 });
 
 // A judgement that finished without grouping (blocked, or relevance unknown) is not active processing.

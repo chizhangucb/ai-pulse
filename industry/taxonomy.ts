@@ -1,121 +1,133 @@
-// 这个行业的分类体系：类别、标签词表、公司（主体）名录，以及防止张冠李戴的身份词典。
-// 模型按这里的词表打标签，主题页（topics.json）按标签归类，筛选栏按类别分组。
-// 换行业时：类别的 key 会出现在网址里（/all?category=…），上线后就不要再改；标签和名录可以随时增减。
+// This industry's classification: categories, the tag vocabulary, the company (subject) directory, and the identity
+// dictionary that keeps write-ups from naming the wrong company. Models tag items from these lists, topic pages
+// (topics.json) group items by tag, and the filter bar groups by category.
+// Category keys appear in addresses (/all?category=...); keep them once the site is live. Tags and companies can change.
 
 /**
- * 网页上的类别（筛选栏、卡片角标、RSS 分类订阅）。key 是网址和接口里的身份，上线后不要改。
- * section 是日报里的分节标题（几个类别可以共用一节，按这里的顺序排）；guide 告诉结构抽取模型这一类收什么、
- * 和相邻类别的边界在哪（总的归类原则写在 prompts/structure.md 里）。
- * commentary 标出评论类（教程、观点）：日报写过的事又有评论类的后续报道，只占一行快讯（报道它的信源够多时除外）。
- * 没归上类的资料在日报里放进第一个 key 为 industry 的类别所在的节（没有就放最后一节）。
- * tagColor 是飞书推送卡片里跟在标题后面的这一类小标签的颜色（飞书 text_tag 的颜色名）。
- * feedLabel 是分类 RSS 标题里的名字（不写就用 label）。公开接口、RSS 和 MCP 里要把一类并进另一类发布，写在站点设置里（site/site.ts 的 PUBLIC_CATEGORIES）。
+ * Categories on the site (filter bar, card badges, category RSS). key is the identity in addresses and the API.
+ * section is the heading in the daily brief (several categories may share one, in this order); guide tells the
+ * structuring model what belongs here and where the border with neighbors is (general rules are in prompts/structure.md).
+ * commentary marks commentary (how-tos, opinion): a follow-up of this kind on a story the daily brief already covered
+ * gets only a one-line brief item (unless enough sources report it).
+ * Items with no category go into the section of the category keyed "industry" (or the last section if there is none).
+ * tagColor is the Feishu card tag color. feedLabel is the name in category RSS titles (defaults to label).
  */
 export const CATEGORIES = [
-  { key: "ai-models", tagColor: "indigo", label: "模型", feedLabel: "AI 模型", section: "模型发布/更新", guide: "模型本身的发布、版本、权重开放、能力或价格变化，以及既有榜单上的模型成绩。公布一次跑分不是发布新基准，也不是教程。" },
-  { key: "ai-products", tagColor: "turquoise", label: "产品", feedLabel: "AI 产品", section: "产品发布/更新", guide: "可使用的 AI 产品、功能、应用、工具、API、平台和工程组件的发布更新。模型厂商发布的推理框架、算子库、硬件适配组件仍是产品，不能因为厂商名归成模型。" },
-  { key: "industry", tagColor: "orange", label: "行业", feedLabel: "行业动态", section: "行业动态", guide: "已发生的公司经营、融资并购、人事、合作、诉讼、政策、真实安全事故及调查进展。新闻由当事人发帖、带有态度，也不因此变成观点。" },
-  { key: "paper", tagColor: "violet", label: "论文", feedLabel: "论文", section: "论文研究", guide: "以新研究方法、实验设计与发现为核心的论文、技术报告、新基准或研究数据集。系统性红队实验属于研究；既有榜单成绩归模型，真实事故的新闻调查归行业。" },
-  { key: "tip", tagColor: "green", label: "教程", section: "技巧与观点", guide: "读者可以照着使用的方法、提示词、工具用法、工程实践复盘与技术讲解。重点是可复用的做法；单纯发布工具归产品，只有态度和预测而无做法归观点。", commentary: true },
-  { key: "opinion", tagColor: "purple", label: "观点", section: "技巧与观点", guide: "重点是作者的解释、判断、主张、预测、评论或访谈观点。讨论市场不自动归行业，作者是名人不自动归观点。", commentary: true },
+  { key: "ai-models", tagColor: "indigo", label: "Models", feedLabel: "AI models", section: "Models", guide: "A model itself: a release, a new version, open weights, changes in capability or price, and results of a model on an existing leaderboard. Publishing one benchmark score is not a new benchmark and not a how-to." },
+  { key: "ai-products", tagColor: "turquoise", label: "Products & agents", feedLabel: "AI products", section: "Products & agents", guide: "AI products people can use: apps, features, agents, tools, APIs, platforms and developer components, launched or updated. An inference engine or kernel library from a model lab is still a product, not a model." },
+  { key: "compute", tagColor: "carmine", label: "Chips & compute", feedLabel: "AI chips and compute", section: "Chips & compute", guide: "AI chips, accelerators, servers, data centers, cloud capacity deals, power for AI, and supply of compute. A lab buying compute belongs here; a lab raising money belongs in Business." },
+  { key: "industry", tagColor: "orange", label: "Business", feedLabel: "AI business", section: "Business & funding", guide: "Things that happened at companies: funding rounds, valuations, acquisitions, earnings, hires and departures, partnerships and lawsuits. A post by the people involved with an attitude is still news, not opinion." },
+  { key: "policy", tagColor: "red", label: "Policy & safety", feedLabel: "AI policy and safety", section: "Policy & safety", guide: "Laws, regulation, government action, export controls, court rulings on AI, real safety or security incidents and their investigations, and labs' safety frameworks. A safety research paper belongs in Research." },
+  { key: "paper", tagColor: "violet", label: "Research", feedLabel: "AI research", section: "Research", guide: "Papers, technical reports, new benchmarks and research datasets whose core is a new method, experiment or finding. Systematic red-teaming is research; a model's score on an existing leaderboard belongs in Models." },
+  { key: "tip", tagColor: "green", label: "How-to", feedLabel: "AI how-to", section: "How-to & opinion", guide: "Methods readers can follow: prompts, tool usage, engineering write-ups and technical explainers. The point is a reusable way of doing something; a plain tool launch is a product, and views without a method are opinion.", commentary: true },
+  { key: "opinion", tagColor: "purple", label: "Opinion", feedLabel: "AI opinion", section: "How-to & opinion", guide: "The point is the author's explanation, judgment, argument, prediction, commentary or interview views. Talking about markets is not automatically Business, and a famous author is not automatically Opinion.", commentary: true },
 ] as const satisfies ReadonlyArray<{ key: string; tagColor: string; label: string; feedLabel?: string; section: string; guide: string; commentary?: true }>;
 
 /**
- * 这个行业最受关注的一类发布（AI 行业是新模型）：日报报头的“N 个新模型”、改分类后修订已出的报告都按它数。
- * category 是类别，tag 是标签，两者都对上才算；unit 接在数字后面。
- * 没有这样一类的行业设成 null，报头就不显示这个数。
+ * The release this industry watches most (new models in AI): the "N new models" count on the daily nameplate, and
+ * recounts of published briefs after a category change. Both category and tag must match; unit follows the number.
+ * Industries without such a release set null, and the nameplate leaves the count out.
  */
-export const RELEASE: { category: string; tag: string; unit: string } | null = { category: "ai-models", tag: "模型发布", unit: "个新模型" };
+export const RELEASE: { category: string; tag: string; unit: string } | null = { category: "ai-models", tag: "Model release", unit: "new models" };
 
-/** 周报月报的总述可以直接写、不必在报道里找到出处的行业通用词（小写）。站名会自动算进去。 */
-export const PLAIN_TERMS: readonly string[] = ["ai", "api", "llm", "gpu", "agi", "ceo", "ipo"];
+/** Common words the weekly and monthly overviews may use without finding them in an item (lower case). The site name counts too. */
+export const PLAIN_TERMS: readonly string[] = ["ai", "api", "llm", "gpu", "agi", "ceo", "ipo", "agent", "agents", "open source", "open-weight", "chip", "chips"];
 
 /**
- * 内容理解一步给每篇资料判的“内容类型”（写在 prompts/content-understanding.md 里，改了类型要同步改那份提示词）。
- * 评分提示词（prompts/selection-score.md）按类型给五个维度不同的权重。
+ * The content type the understanding step gives each item (listed in prompts/content-understanding.md; change both
+ * together). The score prompt (prompts/selection-score.md) weighs its five dimensions by type.
  */
 export const ITEM_TYPES = ["model_release", "product_launch", "tool_or_prompt", "research_paper", "industry_event", "opinion_analysis", "tutorial_explainer"] as const;
 
-// ── 标签词表 ────────────────────────────────────────────────────────────────────────────
+// ── Tag vocabulary ─────────────────────────────────────────────────────────────────────────
 
-/** 每篇资料的第一个标签必须是这些“分类标签”之一。 */
+/** The first tag of every item must be one of these category tags. */
 export const CATEGORY_TAGS = [
-  "产品更新", "模型发布", "论文/研究", "开源/仓库", "教程/实践", "现象/趋势", "大佬观点", "评测/基准", "安全/对齐", "行业动态", "政策/监管",
-  "非AI/通用工具", "其他",
+  "Product update", "Model release", "Research", "Open source", "How-to", "Trend", "Expert view", "Benchmark", "Safety",
+  "Business", "Funding & deals", "Chips & compute", "Policy", "Not AI", "Other",
 ] as const;
 
-/** 可选的主题标签。 */
+/** Optional topic tags. */
 export const TOPIC_TAGS = [
-  "Agent", "编码", "推理", "多模态", "语音", "视频", "图像生成", "RAG", "端侧", "数据/训练", "搜索", "部署/工程", "开源生态", "具身智能", "MCP/工具调用",
+  "Agents", "Coding", "Reasoning", "Multimodal", "Voice", "Video", "Image generation", "RAG", "On-device", "Data & training", "Search",
+  "Deployment", "Open-weight models", "Robotics", "MCP & tool use", "Data centers",
 ] as const;
 
-/** 可选的实体标签（公司、机构、平台）。 */
-export const ENTITY_TAGS = ["OpenAI", "Anthropic", "DeepSeek", "DeepMind", "Google", "Meta", "Microsoft", "xAI", "Hugging Face", "GitHub", "arXiv"] as const;
+/** Optional entity tags (companies, institutions, platforms). */
+export const ENTITY_TAGS = ["OpenAI", "Anthropic", "Google", "DeepMind", "Meta", "Microsoft", "xAI", "Mistral", "NVIDIA", "DeepSeek", "Hugging Face", "GitHub", "arXiv"] as const;
 
-/** 模型常写的近义词，统一成词表里的写法。 */
+/** Synonyms models often write, mapped to the vocabulary above. */
 export const TAG_SYNONYMS: Readonly<Record<string, string>> = {
-  "教程/玩法": "教程/实践", "技巧/最佳实践": "教程/实践", "合作/生态": "行业动态", "融资/收购": "行业动态", "公司动态": "行业动态",
-  合作: "行业动态", 生态: "行业动态", 融资: "行业动态", 收购: "行业动态", 投资: "行业动态", 并购: "行业动态",
-  政策: "政策/监管", 监管: "政策/监管", 法规: "政策/监管", 安全: "安全/对齐", 对齐: "安全/对齐",
-  论文: "论文/研究", 研究: "论文/研究", paper: "论文/研究", papers: "论文/研究",
-  "open-source": "开源/仓库", 开源: "开源/仓库", 仓库: "开源/仓库", repo: "开源/仓库",
-  教程: "教程/实践", 玩法: "教程/实践", 指南: "教程/实践", 技巧: "教程/实践", 最佳实践: "教程/实践", 实践: "教程/实践",
-  产品: "产品更新", 更新: "产品更新", 发布: "模型发布", 模型: "模型发布", 趋势: "现象/趋势", 现象: "现象/趋势", 观点: "大佬观点",
-  视频生成: "视频", 非ai: "非AI/通用工具", "non-ai": "非AI/通用工具", 通用工具: "非AI/通用工具", 工程工具: "非AI/通用工具",
-  安全扫描: "非AI/通用工具", devops: "非AI/通用工具", 行业: "行业动态", 动态: "行业动态",
+  product: "Product update", products: "Product update", "product launch": "Product update", update: "Product update", launch: "Product update",
+  model: "Model release", models: "Model release", "new model": "Model release", release: "Model release",
+  paper: "Research", papers: "Research", "research paper": "Research", study: "Research",
+  "open-source": "Open source", opensource: "Open source", repo: "Open source", github: "Open source",
+  tutorial: "How-to", guide: "How-to", tips: "How-to", "best practices": "How-to", explainer: "How-to",
+  trends: "Trend", opinion: "Expert view", interview: "Expert view", commentary: "Expert view",
+  benchmarks: "Benchmark", eval: "Benchmark", evals: "Benchmark", evaluation: "Benchmark", leaderboard: "Benchmark",
+  alignment: "Safety", security: "Safety", "ai safety": "Safety",
+  industry: "Business", company: "Business", partnership: "Business", partnerships: "Business", hiring: "Business", lawsuit: "Business",
+  funding: "Funding & deals", investment: "Funding & deals", acquisition: "Funding & deals", "m&a": "Funding & deals", ipo: "Funding & deals", valuation: "Funding & deals",
+  chips: "Chips & compute", compute: "Chips & compute", hardware: "Chips & compute", gpu: "Chips & compute", gpus: "Chips & compute", semiconductors: "Chips & compute",
+  regulation: "Policy", government: "Policy", law: "Policy", "export controls": "Policy",
+  agent: "Agents", "ai agents": "Agents", "video generation": "Video", "text-to-video": "Video", "text-to-image": "Image generation",
+  robots: "Robotics", "embodied ai": "Robotics", "open weights": "Open-weight models", "data center": "Data centers", datacenter: "Data centers",
+  "tool use": "MCP & tool use", mcp: "MCP & tool use", "function calling": "MCP & tool use",
+  "non-ai": "Not AI", "not ai": "Not AI", devops: "Not AI",
 };
 
-// ── 公司与主体 ──────────────────────────────────────────────────────────────────────────
+// ── Companies and subjects ────────────────────────────────────────────────────────────────
 
 /**
- * 公司主题：id → 显示名、卡片上显示的标签（null 表示只用 entity:<id> 归类）、别名。
- * aliases 给结构抽取模型看；orgNames 是这家公司发消息时开头用的组织名（公司、实验室、团队），
- * 在它自己的主题页上读者知道说的是谁，可以省去；otherNames 是公司的其他称呼（官方账号名、子品牌）。
- * 所有这些名字都用来认出说的是哪家公司，比如把事实的主体对到发布方。
+ * Company topics: id → display name, the tag shown on cards (null means only entity:<id> grouping), aliases.
+ * aliases are for the structuring model; orgNames are the organization names a company's own posts start with (lab,
+ * team), which its own topic page may leave out; otherNames are other names of the company (official accounts,
+ * sub-brands). All of them identify which company an item is about, for example to match a fact to its publisher.
  */
 export const ENTITIES: Record<string, { name: string; displayTag: string | null; aliases: string[]; orgNames?: string[]; otherNames?: string[] }> = {
-  "world-labs": { name: "World Labs", displayTag: null, aliases: ["World Labs"] },
-  "thinking-machines": { name: "Thinking Machines Lab", displayTag: null, aliases: ["Thinking Machines"] },
-  amd: { name: "AMD", displayTag: null, aliases: ["AMD", "Advanced Micro Devices"] },
   openai: { name: "OpenAI", displayTag: "OpenAI", aliases: ["OpenAI", "ChatGPT", "Sora", "Codex", "GPT"], orgNames: ["OpenAI"], otherNames: ["OpenAI Developers"] },
-  anthropic: { name: "Anthropic", displayTag: "Anthropic", aliases: ["Anthropic", "Claude"], orgNames: ["Anthropic"], otherNames: ["Claude Code"] },
-  google: { name: "Google", displayTag: "Google", aliases: ["Google", "DeepMind", "Gemini", "谷歌"], orgNames: ["Google DeepMind", "Google Research", "Google", "DeepMind", "谷歌"], otherNames: ["Google AI", "Google Labs", "Google Cloud"] },
-  deepseek: { name: "DeepSeek", displayTag: "DeepSeek", aliases: ["DeepSeek", "深度求索"], orgNames: ["DeepSeek", "深度求索"] },
-  qwen: { name: "千问 Qwen", displayTag: null, aliases: ["Qwen", "通义", "阿里"], orgNames: ["通义千问", "通义实验室", "阿里巴巴", "阿里云", "阿里", "Qwen Team", "Qwen", "Alibaba"], otherNames: ["千问", "千问APP", "Alibaba Cloud"] },
-  kimi: { name: "Kimi / 月之暗面", displayTag: null, aliases: ["Kimi", "月之暗面", "Moonshot"], orgNames: ["Moonshot AI", "月之暗面", "Kimi"] },
-  minimax: { name: "MiniMax", displayTag: null, aliases: ["MiniMax", "海螺"], orgNames: ["MiniMax", "稀宇科技"] },
-  zhipu: { name: "智谱 GLM", displayTag: null, aliases: ["智谱", "GLM", "Z.ai"], orgNames: ["智谱AI", "智谱", "Zhipu AI", "Z.ai"], otherNames: ["Zhipu"] },
-  xai: { name: "xAI", displayTag: "xAI", aliases: ["xAI", "Grok"], orgNames: ["SpaceX Super Intelligence", "SpaceXAI", "SpaceXSI", "xAI"], otherNames: ["Grok Bot"] },
+  anthropic: { name: "Anthropic", displayTag: "Anthropic", aliases: ["Anthropic", "Claude"], orgNames: ["Anthropic"], otherNames: ["Claude Code", "Claude"] },
+  google: { name: "Google", displayTag: "Google", aliases: ["Google", "DeepMind", "Gemini"], orgNames: ["Google DeepMind", "Google Research", "Google", "DeepMind"], otherNames: ["Google AI", "Google Labs", "Google Cloud"] },
   meta: { name: "Meta", displayTag: "Meta", aliases: ["Meta", "Llama"], orgNames: ["Meta Superintelligence Labs", "Meta AI", "Meta"], otherNames: ["AI at Meta", "Muse"] },
-  microsoft: { name: "Microsoft", displayTag: "Microsoft", aliases: ["Microsoft", "微软", "Copilot"], orgNames: ["Microsoft Research", "Microsoft AI", "Microsoft", "微软"] },
-  nvidia: { name: "NVIDIA", displayTag: null, aliases: ["NVIDIA", "英伟达"], orgNames: ["NVIDIA", "英伟达"] },
+  microsoft: { name: "Microsoft", displayTag: "Microsoft", aliases: ["Microsoft", "Copilot", "Azure"], orgNames: ["Microsoft Research", "Microsoft AI", "Microsoft"] },
+  xai: { name: "xAI", displayTag: "xAI", aliases: ["xAI", "Grok"], orgNames: ["SpaceX Super Intelligence", "SpaceXAI", "SpaceXSI", "xAI"], otherNames: ["Grok Bot"] },
+  mistral: { name: "Mistral AI", displayTag: "Mistral", aliases: ["Mistral", "Le Chat"], orgNames: ["Mistral AI", "Mistral"] },
+  nvidia: { name: "NVIDIA", displayTag: "NVIDIA", aliases: ["NVIDIA", "CUDA", "Blackwell"], orgNames: ["NVIDIA"] },
+  amd: { name: "AMD", displayTag: null, aliases: ["AMD", "Advanced Micro Devices", "Instinct"], orgNames: ["AMD"] },
+  apple: { name: "Apple", displayTag: null, aliases: ["Apple Intelligence", "Apple"], orgNames: ["Apple"] },
+  amazon: { name: "Amazon / AWS", displayTag: null, aliases: ["Amazon", "AWS", "Bedrock", "Trainium"], orgNames: ["Amazon", "AWS", "Amazon Web Services"] },
   "hugging-face": { name: "Hugging Face", displayTag: "Hugging Face", aliases: ["Hugging Face"], orgNames: ["Hugging Face", "HuggingFace"] },
+  deepseek: { name: "DeepSeek", displayTag: "DeepSeek", aliases: ["DeepSeek"], orgNames: ["DeepSeek"] },
+  qwen: { name: "Alibaba Qwen", displayTag: null, aliases: ["Qwen", "Alibaba"], orgNames: ["Qwen Team", "Qwen", "Alibaba", "Alibaba Cloud"] },
+  kimi: { name: "Moonshot AI / Kimi", displayTag: null, aliases: ["Kimi", "Moonshot"], orgNames: ["Moonshot AI", "Kimi"] },
+  "thinking-machines": { name: "Thinking Machines Lab", displayTag: null, aliases: ["Thinking Machines"] },
+  "world-labs": { name: "World Labs", displayTag: null, aliases: ["World Labs"] },
   cursor: { name: "Cursor", displayTag: null, aliases: ["Cursor", "Anysphere"], orgNames: ["Cursor"] },
   openrouter: { name: "OpenRouter", displayTag: null, aliases: ["OpenRouter"], orgNames: ["OpenRouter"] },
 };
 
 /**
- * 身份词典：摘要和标题里出现的公司，必须在原文里也出现过，否则退回原标题、丢掉摘要（防止模型张冠李戴）。
- * 行业没有这个问题时可以留空数组。
+ * Identity dictionary: a company named in a title or summary must also appear in the original, or the original title
+ * is kept and the summary dropped (so the model cannot pin news on the wrong company). Leave empty if not needed.
  */
 export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; patterns: RegExp[] }> = [
   { id: "openai", name: "OpenAI", patterns: [/openai|chatgpt|\bgpt-?[o\d]|\bsora\b|\bcodex\b/i] },
   { id: "anthropic", name: "Anthropic", patterns: [/anthropic|\bclaude\b/i, /\b(?:opus|sonnet|haiku)\s*\d+(?:[.\-]\d+)*\b/i, /\bfable\s*\d+(?:[.\-]\d+)*\b|\bmythos\b/i] },
   { id: "google", name: "Google / Gemini", patterns: [/google|deepmind|\bgemini\b|notebooklm|\bveo\s?\d|\bAlphaFold\b|\bAMIE\b/i] },
-  { id: "deepseek", name: "DeepSeek", patterns: [/deepseek|深度求索/i] },
+  { id: "deepseek", name: "DeepSeek", patterns: [/deepseek/i] },
   { id: "xai", name: "xAI / Grok", patterns: [/\bxai\b|\bgrok\b/i] },
   { id: "meta", name: "Meta / Llama", patterns: [/\bMeta\b/, /\bmeta\s?ai\b|\bllama\b/i] },
-  { id: "microsoft", name: "Microsoft / Copilot", patterns: [/microsoft|copilot|微软/i] },
-  { id: "nvidia", name: "NVIDIA", patterns: [/nvidia|英伟达|\bnemotron\b|\bnemo\b|\bblackwell\b|\brubin(?:\s+ultra)?\b|\bcuda\b/i] },
-  { id: "qwen", name: "千问 Qwen", patterns: [/\bqwen|通义|千问/i] },
+  { id: "microsoft", name: "Microsoft / Copilot", patterns: [/microsoft|copilot/i] },
+  { id: "nvidia", name: "NVIDIA", patterns: [/nvidia|\bnemotron\b|\bnemo\b|\bblackwell\b|\brubin(?:\s+ultra)?\b|\bcuda\b/i] },
+  { id: "qwen", name: "Alibaba Qwen", patterns: [/\bqwen|\balibaba\b/i] },
   { id: "hugging-face", name: "Hugging Face", patterns: [/hugging\s?face/i] },
   { id: "cursor", name: "Cursor", patterns: [/\bCursor\b/] },
-  { id: "kimi", name: "Kimi / 月之暗面", patterns: [/\bkimi\b|月之暗面|\bmoonshot\s?ai\b/i] },
+  { id: "kimi", name: "Moonshot AI / Kimi", patterns: [/\bkimi\b|\bmoonshot\s?ai\b/i] },
   { id: "openrouter", name: "OpenRouter", patterns: [/openrouter/i] },
   { id: "minimax", name: "MiniMax", patterns: [/minimax/i] },
-  { id: "zhipu", name: "智谱 GLM", patterns: [/智谱|\bglm-?[4-9]/i] },
-  { id: "hunyuan", name: "腾讯混元", patterns: [/混元|hunyuan/i] },
-  { id: "doubao", name: "字节豆包", patterns: [/豆包|doubao|字节跳动|bytedance/i] },
+  { id: "zhipu", name: "Zhipu GLM", patterns: [/\bzhipu\b|\bglm-?[4-9]/i] },
+  { id: "hunyuan", name: "Tencent Hunyuan", patterns: [/hunyuan|\btencent\b/i] },
+  { id: "doubao", name: "ByteDance Doubao", patterns: [/doubao|bytedance/i] },
   { id: "mistral", name: "Mistral", patterns: [/mistral/i] },
   { id: "perplexity", name: "Perplexity", patterns: [/\bPerplexity\b/] },
   { id: "runway", name: "Runway", patterns: [/\brunway\b/i] },
@@ -128,12 +140,13 @@ export const IDENTITY_LEXICON: ReadonlyArray<{ id: string; name: string; pattern
   { id: "windsurf", name: "Windsurf", patterns: [/windsurf/i] },
   { id: "devin", name: "Devin", patterns: [/\bdevin\b/i] },
   { id: "manus", name: "Manus", patterns: [/\bmanus\b/i] },
-  { id: "apple", name: "Apple AI", patterns: [/\bapple\s?(intelligence|silicon|ai)\b|苹果(智能|\s?AI)/i] },
-  { id: "amazon", name: "Amazon / AWS", patterns: [/amazon|\baws\b|亚马逊/i] },
-  { id: "baidu", name: "百度文心", patterns: [/百度|baidu|文心|\bernie\s?bot\b/i] },
+  { id: "apple", name: "Apple AI", patterns: [/\bapple\s?(intelligence|silicon|ai)\b/i] },
+  { id: "amazon", name: "Amazon / AWS", patterns: [/amazon|\baws\b/i] },
+  { id: "amd", name: "AMD", patterns: [/\bamd\b/i] },
+  { id: "baidu", name: "Baidu ERNIE", patterns: [/baidu|\bernie\s?bot\b/i] },
 ];
 
-/** 这些域名上的文章，发布方就是对应的公司（托管平台如 GitHub、arXiv 不算）。 */
+/** Articles on these domains are published by the company (hosting platforms such as GitHub and arXiv do not count). */
 export const PUBLISHER_DOMAINS: ReadonlyArray<{ entityId: string; domains: readonly string[] }> = [
   { entityId: "openai", domains: ["openai.com"] },
   { entityId: "anthropic", domains: ["anthropic.com", "claude.com"] },
@@ -141,14 +154,16 @@ export const PUBLISHER_DOMAINS: ReadonlyArray<{ entityId: string; domains: reado
   { entityId: "deepseek", domains: ["deepseek.com"] },
   { entityId: "xai", domains: ["x.ai"] },
   { entityId: "meta", domains: ["ai.meta.com"] },
-  { entityId: "microsoft", domains: ["microsoft.com"] },
+  { entityId: "microsoft", domains: ["microsoft.com", "microsoft.ai"] },
+  { entityId: "mistral", domains: ["mistral.ai"] },
+  { entityId: "hugging-face", domains: ["huggingface.co"] },
   { entityId: "nvidia", domains: ["nvidia.com"] },
   { entityId: "qwen", domains: ["qwen.ai"] },
   { entityId: "cursor", domains: ["cursor.com"] },
   { entityId: "openrouter", domains: ["openrouter.ai"] },
 ];
 
-/** 原文里的这些写法也算提到了对应公司。 */
+/** These spellings in the original also count as naming the company. */
 export const IDENTITY_CONTEXT_ALIASES: ReadonlyArray<{ entityId: string; pattern: RegExp }> = [
   { entityId: "meta", pattern: /@AIatMeta\b/i },
   { entityId: "zhipu", pattern: /\bZhipu(?:\s+AI\b|['’]s\b)/i },

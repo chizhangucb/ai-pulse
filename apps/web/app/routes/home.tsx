@@ -10,7 +10,7 @@ import { Timeline } from "../features/feed/Timeline";
 import { HotTopics } from "../features/feed/HotTopics";
 import { ActiveFilters, CategoryTabs, FeedBar, SearchField } from "../features/feed/Filters";
 
-export const handle: Screen = { tab: "featured", name: "精选" };
+export const handle: Screen = { tab: "featured", name: "Picks" };
 export { pageHeaders as headers } from "../lib/api.server";
 export const { clientLoader, shouldRevalidate } = pageReuse<typeof loader>();
 
@@ -28,15 +28,15 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta({ loaderData }: Route.MetaArgs) {
   const path = listPath("/", loaderData ? filterParams(loaderData.filters) : {});
   const titles = loaderData?.data.cards.map((c) => c.item.title) ?? [];
-  return pageMeta({ path, noindex: hasFeedFilters(loaderData?.filters), jsonLd: path === "/" ? [...siteLd(), itemListLd("/", "精选", titles)] : undefined });
+  return pageMeta({ path, noindex: hasFeedFilters(loaderData?.filters), jsonLd: path === "/" ? [...siteLd(), itemListLd("/", "Picks", titles)] : undefined });
 }
 
 export default function Home() {
   const { data, filters } = useLoaderData<typeof loader>();
-  const title = filters.tag ? `#${filters.tag}` : "精选";
+  const title = filters.tag ? `#${filters.tag}` : "Picks";
   return (
     <div className="pb-6">
-      {/* Phones: the bar (精选 | 全部, filter, search), the filter in use, today's hot topics, the feed. */}
+      {/* Phones: the bar (Picks | All, filter, search), the filter in use, today's hot topics, the feed. */}
       <FeedBar base="/" category={filters.category} channel={filters.channel} />
       <ActiveFilters base="/" category={filters.category} channel={filters.channel} tag={filters.tag} />
       <div className="hidden lg:block">

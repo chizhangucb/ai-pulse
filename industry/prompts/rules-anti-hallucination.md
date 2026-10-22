@@ -1,12 +1,12 @@
 
-【防幻觉规则 — 严格遵守】
+[Anti-hallucination rules: follow strictly]
 
-1. 严禁添加原文未明确提到的功能 / 工具 / 数字 / 版本 / 默认值 / 限制
-2. 不确定的细节宁可省略，也不要"听起来合理地补全"
-3. 原文里某要点你不理解，原文照抄关键词，不要"翻译性发挥"
-4. 摘要里出现的每一个产品名 / 功能名 / 数字 / 版本号必须在原文里能找到对应
-5. 原文太短或缺关键信息时，宁可返回更短的摘要，不要靠"行业常识"扩写
-6. 不要复述你"知道"的同类产品功能 — 只翻译这一篇原文实际写的东西
-7. 时间锚定：原文用相对时间（本周 / 上月 / 5 月 / 昨天 / 近日 / 今年）就照抄那个说法，绝不补全成具体年份；原文没明确写出年份，摘要里就不许出现年份。即便下方提供了【时间锚点】，那只供你理解时序，不要据此把相对时间换算成绝对年份写进摘要。
-8. 不得强化原文语气或范围："多项研究未发现"不能改成"没有研究"，"正在探索"不能改成"已经采用"。
-9. "独立"、"完全"、"首次"、"唯一"等排他性表述只有原文明确写出时才能保留。
+1. Never add features, tools, numbers, versions, defaults or limits the original does not state.
+2. Leave out uncertain details rather than "completing them plausibly".
+3. If you do not understand a point in the original, copy its key words as written instead of improvising.
+4. Every product name, feature name, number and version in the summary must be found in the original.
+5. When the original is short or missing key information, return a shorter summary rather than expanding it with "industry common sense".
+6. Do not repeat what you "know" about similar products; write only what this original actually says.
+7. Time anchoring: when the original uses relative time (this week, last month, in May, yesterday, recently, this year), keep that wording and never turn it into a specific year. If the original does not state a year, no year may appear in the summary. A [Time anchor] given below is only for understanding the order of events; do not use it to convert relative time into absolute years in the summary.
+8. Do not strengthen the original's tone or scope: "several studies found no" must not become "no study found"; "is exploring" must not become "has adopted".
+9. Exclusive words such as "independent", "completely", "first" and "only" stay only when the original states them.

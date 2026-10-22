@@ -48,7 +48,7 @@ export interface CandidateView {
   /** Recall similarity with the query (cosine of the two embeddings, or the lexical fallback's overlap). */
   score: number;
   report: ReportView;
-  /** Only a report already visible in 精选 counts as coverage the reader has seen. */
+  /** Only a report already visible in picks counts as coverage the reader has seen. */
   selected?: boolean;
   selectedReport?: ReportView | null;
 }
@@ -75,7 +75,7 @@ export const BatchSchema = z.object({
   query: z.string().max(400).catch(""),
   decisions: z
     .array(z.object({ id: z.string().regex(/^C[1-9]\d*$/), relation: RelationSchema, confidence: z.number().min(0).max(1), note: z.string().max(400).catch("") })),
-  selection: z.object({ addsValue: z.boolean(), reason: z.string().trim().min(1).max(400) }),
+  selection: z.object({ addsValue: z.boolean(), reason: z.string().trim().min(1).transform((reason) => reason.slice(0, 400)) }),
 });
 
 export const PairSchema = z.object({
@@ -93,15 +93,15 @@ export const SignalSchema = z.object({
 export function describeReport(r: ReportView, label: string, extra = "", summaryLimit = 360): string {
   const f = r.frame;
   return [
-    `【${label}】${extra}`,
-    `标题：${r.title}`,
-    `来源：${r.source}${r.firstParty ? "（当事方/官方）" : ""}｜发布时间：${describePublicationTime(r.at, r.publicationTime)}`,
-    `摘要：${(r.summary ?? "").slice(0, summaryLimit) || "（无）"}`,
-    r.scope && r.scope !== "unknown" ? `资料范围：${r.scope === "composite" ? "多个独立发生的综合稿" : "单一具体发生或议题"}` : null,
+    `[${label}]${extra ? ` ${extra}` : ""}`,
+    `Title: ${r.title}`,
+    `Source: ${r.source}${r.firstParty ? " (the party involved / official)" : ""} | Published: ${describePublicationTime(r.at, r.publicationTime)}`,
+    `Summary: ${(r.summary ?? "").slice(0, summaryLimit) || "(none)"}`,
+    r.scope && r.scope !== "unknown" ? `Scope: ${r.scope === "composite" ? "a roundup of several separate happenings" : "one specific happening or topic"}` : null,
     f && (f.subject || f.action || f.object)
-      ? `事实要素：主体=${f.subject || "?"}；动作=${f.action || "?"}；对象=${f.object || "?"}；日期=${f.occurredAt || "未知"}`
+      ? `Fact: subject=${f.subject || "?"}; action=${f.action || "?"}; object=${f.object || "?"}; date=${f.occurredAt || "unknown"}`
       : null,
-    r.sourceText ? `【原文证据】\n${r.sourceText.slice(0, GROUP_BODY_CHARS)}\n【原文证据结束】` : null,
+    r.sourceText ? `[Original evidence]\n${r.sourceText.slice(0, GROUP_BODY_CHARS)}\n[End of original evidence]` : null,
   ]
     .filter(Boolean)
     .join("\n");
@@ -109,24 +109,24 @@ export function describeReport(r: ReportView, label: string, extra = "", summary
 
 export const candidateKey = (index: number) => `C${index + 1}`;
 
-export function batchUser(query: ReportView, cands: CandidateView[], queryLabel = "新报道", reading: ReadingContext[] = []): string {
+export function batchUser(query: ReportView, cands: CandidateView[], queryLabel = "New report", reading: ReadingContext[] = []): string {
   const list = cands
     .map((c, i) => [
-      describeReport(c.report, `候选 ${candidateKey(i)}`, `（该事实已有 ${c.members} 篇报道；事实标题：${c.factTitle}）`),
-      queryLabel === "新报道" ? c.selected && c.selectedReport
-        ? describeReport(c.selectedReport, "已公开精选", "（增量只与这篇已展示的内容比较）")
-        : "【尚无公开精选】该候选只用于身份判断。" : null,
+      describeReport(c.report, `Candidate ${candidateKey(i)}`, `(this fact has ${c.members} report(s); fact title: ${c.factTitle})`),
+      queryLabel === "New report" ? c.selected && c.selectedReport
+        ? describeReport(c.selectedReport, "Published pick", "(compare added value only with this displayed piece)")
+        : "[No published pick yet] This candidate is only for judging identity." : null,
     ].filter(Boolean).join("\n"))
     .join("\n\n");
   const background = reading.map(({ report, sourceText }, i) => [
-    describeReport(report, `已公开精选阅读背景 R${i + 1}`, "（只比较信息覆盖，不是事实候选）", 2000),
-    sourceText ? `【该已选报道的原文证据】\n${sourceText.slice(0, GROUP_BODY_CHARS)}\n【原文证据结束】` : null,
+    describeReport(report, `Published pick reading background R${i + 1}`, "(compare information coverage only; not a fact candidate)", 2000),
+    sourceText ? `[Original evidence of this picked report]\n${sourceText.slice(0, GROUP_BODY_CHARS)}\n[End of original evidence]` : null,
   ].filter(Boolean).join("\n")).join("\n\n");
-  return `${describeReport(query, queryLabel)}\n\n${list}${background ? `\n\n${background}` : ""}\n\n${queryLabel}与每个候选的关系是什么？${background ? "同时比较所有已公开精选内容，判断新增价值；无事实候选时 decisions=[]。" : ""}`;
+  return `${describeReport(query, queryLabel)}\n\n${list}${background ? `\n\n${background}` : ""}\n\nWhat is the ${queryLabel.toLowerCase()}'s relation to each candidate?${background ? " Also compare against all published picks to judge added value; with no fact candidates, decisions=[]." : ""}`;
 }
 
 export function pairUser(a: ReportView, b: ReportView): string {
-  return `${describeReport(a, "报道 A")}\n\n${describeReport(b, "报道 B")}\n\n这两篇报道是什么关系？`;
+  return `${describeReport(a, "Report A")}\n\n${describeReport(b, "Report B")}\n\nWhat is the relation between these two reports?`;
 }
 
 /** An identity answer must address every supplied candidate exactly once. */
@@ -190,7 +190,7 @@ export const STORY_REVIEW_MIN_CONFIDENCE = 0.75;
 
 /** The text a report is embedded with: title and the start of the summary, the same on both sides of a comparison. */
 export function reportText(title: string, summary: string | null | undefined): string {
-  return `${title}。${(summary ?? "").slice(0, 300)}`;
+  return `${title}. ${(summary ?? "").slice(0, 300)}`;
 }
 
 /** Lexical stand-in for cosine when embeddings are off (no embedding key): shared character bigrams. */

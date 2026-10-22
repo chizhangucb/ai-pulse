@@ -14,29 +14,29 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { q, rows };
 }
 
-export const meta: Route.MetaFunction = () => [{ title: `内容诊断 · ${SITE.name} 后台` }];
+export const meta: Route.MetaFunction = () => [{ title: `Content · ${SITE.name} admin` }];
 
 export default function Content({ loaderData }: Route.ComponentProps) {
   const { q, rows } = loaderData;
   const [sp] = useSearchParams();
   const navigate = useNavigate();
   return (
-    <AdminPage title="内容诊断" subtitle="按 ID、原文链接或标题找到任何一条内容，看它从信源到公开出口的完整链路；下架、仅摘要、人工修正和重处理都在详情页。">
+    <AdminPage title="Content" subtitle="Find any item by ID, original link or title and follow it from its source to every public output. Withdrawing, summary only, manual corrections and reprocessing are on its detail page.">
       <Form method="get" className="mb-5 flex max-w-2xl gap-2">
-        <Input name="q" defaultValue={sp.get("q") ?? ""} placeholder="内容 ID、URL 或标题关键词" aria-label="搜索内容" autoFocus />
-        <Button type="submit" tone="primary">查找</Button>
+        <Input name="q" defaultValue={sp.get("q") ?? ""} placeholder="Item ID, URL or words of the title" aria-label="Search content" autoFocus />
+        <Button type="submit" tone="primary">Find</Button>
       </Form>
       {q && (
-        <Card pad={false} title={`“${q}” 的结果`} right={<span>{rows.length === 50 ? "仅显示最近 50 条" : `${rows.length} 条`}</span>}>
+        <Card pad={false} title={`Results for “${q}”`} right={<span>{rows.length === 50 ? "Showing the latest 50" : `${rows.length} items`}</span>}>
           <DataTable
             rows={rows}
             rowKey={(r) => r.id}
             onRowClick={(r) => navigate(`/admin/content/${r.id}`)}
-            empty="没有找到。URL 会先规范化再比对；标题支持中英文片段。"
+            empty="Nothing found. URLs are normalized before matching; titles match any fragment."
             columns={[
               {
                 key: "t",
-                label: "标题",
+                label: "Title",
                 render: (r) => (
                   <div className="min-w-[320px]">
                     <Link to={`/admin/content/${r.id}`} className="font-medium text-ink hover:text-accent" onClick={(e) => e.stopPropagation()}>{r.title}</Link>
@@ -44,25 +44,25 @@ export default function Content({ loaderData }: Route.ComponentProps) {
                   </div>
                 ),
               },
-              { key: "src", label: "信源", render: (r) => <span className="whitespace-nowrap">{r.source}</span> },
+              { key: "src", label: "Source", render: (r) => <span className="whitespace-nowrap">{r.source}</span> },
               {
                 key: "st",
-                label: "状态",
+                label: "Status",
                 render: (r) => (
                   <span className="flex flex-wrap gap-1">
-                    {r.selected && <Badge tone="accent">精选</Badge>}
+                    {r.selected && <Badge tone="accent">Pick</Badge>}
                     {r.visibility && <Badge tone={r.visibility === "public" ? "muted" : "warn"}>{VISIBILITY_LABEL[r.visibility] ?? r.visibility}</Badge>}
                     {!r.visibility && <Badge>{r.processing_state}</Badge>}
                   </span>
                 ),
               },
-              { key: "sc", label: "分数", align: "right", render: (r) => r.score ?? "—" },
-              { key: "d", label: "发现", render: (r) => <Time at={r.discovered_at} /> },
+              { key: "sc", label: "Score", align: "right", render: (r) => r.score ?? "—" },
+              { key: "d", label: "Found", render: (r) => <Time at={r.discovered_at} /> },
             ]}
           />
         </Card>
       )}
-      {!q && <Empty>输入 ID、链接或标题开始查找。</Empty>}
+      {!q && <Empty>Enter an ID, link or title to start.</Empty>}
     </AdminPage>
   );
 }

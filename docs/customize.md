@@ -1,152 +1,153 @@
-# 把它改成你的行业
+# Make it your field
 
-这份仓库默认是一个“AI 行业”的示例站：示范信源是一批公开的 AI 资讯源，精选口味是 AIHOT 在 AI 领域调了很久的那一套。要把它变成“法律热点”“HR 热点”“黄金热点”，要改的东西几乎都在 [`site/`](../site/)（这个站自己的名字、文案、品牌和页面）和 [`industry/`](../industry/)（行业的分类、信源、提示词和门槛）这两个文件夹里，代码基本不用动。
+By default this repository is an example site for the AI industry: the demo sources are public AI news sources, and the picking taste is the one AIHOT tuned for AI news over a long time. To turn it into a site for law, HR or gold news, nearly everything to change is in two folders: [`site/`](../site/) (this site's own name, copy, brand and pages) and [`industry/`](../industry/) (the industry's categories, sources, prompts and thresholds). The code itself mostly stays as it is.
 
-如果你用 Claude Code、Codex 这类 Agent，可以把下面这段直接发给它，然后回答它的问题：
+With an agent such as Claude Code or Codex, you can send it this and then answer its questions:
 
 ```text
-请读 AGENTS.md 和 docs/customize.md，把这个站改成「XX 行业」的热点站。
-我关心的是：……（写你想盯的信源、你觉得什么消息重要、什么不重要，越具体越好）。
-改完帮我跑 npm run typecheck、npm test 和 node scripts/smoke.ts，并告诉我还需要我自己决定哪些事。
+Please read AGENTS.md and docs/customize.md, and turn this site into a news site for the "XX" field.
+What I care about: ... (the sources you want to watch, what news you think matters and what doesn't; the more specific the better).
+When you're done, run npm run typecheck, npm test and node scripts/smoke.ts, and tell me which decisions are still mine to make.
 ```
 
-下面是它（或者你）要做的事，按顺序。
+Here is what it (or you) does, in order.
 
-## 1. 站名和文案：`site/site.ts`
+## 1. Site name and copy: `site/site.ts`
 
-- `name`：站名。导航、标题、分享图、RSS、MCP、后台都用它。`organization.name` 是结构化数据里的网站运营者（给搜索引擎看），默认也是站名，改站名时一起改；`organization.founder` 是创始人（选填），其中 `sameAs` 可列公开个人页面的地址。
-- `subject`：行业词。页面上“AI 日报”“全部 AI 动态”会变成“法律日报”“全部法律动态”。
-- `homeTitle`、`topicsTitle`、`description`、`tagline`、`keywords`：首页和主题目录页的标题、一句话介绍、分享图下方的小字、给搜索引擎的关键词。
-- `feedbackExample`：反馈表单输入框里的示例。
-- `locale`：界面语言（网页的语言标记、分享卡片和结构化数据），`public/` 文件里的 `{{locale}}` 也换成它。
-- `since`：网站开始收录的年份（结构化数据里的时间范围，选填）。
-- `mcpPrefix`：MCP 工具名前缀，比如 `lawhot` 会得到 `lawhot_get_latest`。有人接入以后不要再改。
-- `interfaceVersion`：公开接口（MCP、OpenAPI、`llms.txt`）的版本号，只升不降；改了接口里已有的字段或含义时升主版本。
-- `crawlerName`：抓取信源时报的名字，别用别人的站名。
-- `contactEmail`：对外联系邮箱（选填），填了就在 `llms.txt` 和给 Agent 的使用说明里写成授权联系方式。
-- `footerNote`：关于页底部的一行小字。默认是一行框架署名“由 AIHOT 开源框架驱动”，可以留也可以删（设成 `null`）。
-- `icp`、`psb`：中国大陆网站的 ICP 和公安备案号，填了就显示在页脚，并链接到对应备案记录。
-- `github`：源码仓库的地址（选填），填了就在侧栏和“我的”页底部显示“GitHub 开源”。
-- `llmsIntro`：`llms.txt` 里一句话介绍下面的一段详细介绍（选填）。
-- `rootIcons`：标准图标以外也放在网站根目录的图标，`site/brand/` 里的文件名（选填）。
-- `EDITION_TIMES`：日报、周报、月报的出刊时间（北京时间）。排程、日报收录的时间窗口、缺期告警和所有提到时间的文案都读它；排程每半小时检查一次，写整点或半点。`EDITION_WHEN` 是由它拼出来、写进句子里的说法（“每天 08:00”“每周一 10:00”“每月 1 日 10:30”），一般不用改。
-- `POLICY`：使用规则和隐私说明两页的名字和简介；`terms.license` 是讲清哪些用途要先取得授权的话，`terms.headers` 是公开接口声明使用规则的响应头（都选填）；`xPostIsFullText` 决定 X 帖子本身的文字算不算全文（算的话，只在信源允许全文时显示）。
-- `ABOUT`：关于页的大标题、四个环节的说明、作者块（可选）、版权说明，以及“使用规则”链接的锚点（`termsAnchor`，选填）。
-- `CARDS`：各页分享图上的文字。
-- `NAV`：`hidden` 写不放进导航的引擎入口，目前只支持热点榜（`"/hot"`）和主题（`"/topics"`）；例如来源还不多、热点榜常是空的站写 `"/hot"`。电脑侧栏、手机底栏和“我的”页都不放；页面照样能打开，直接打开这些页面时所属标签为精选，原来回到它的返回按钮和链接改回精选，给搜索引擎的页面层级（面包屑）也不经过它；写 `"/hot"` 时首页也不放当前热点，事件页不写热点榜名次。默认是空的，导航和原来一样。
-  其他入口暂不开放：它们的返回按钮和页面内入口也需要一起支持，避免只隐藏侧栏、别处仍引导读者过去。
-- `ITEM_COPY`：模型写的那句理由叫什么（`reasonLabel`，默认“推荐理由”），读者在网页和分享图上看不看得到 AI 评分（`showScore`；只管显示，公开 API 和 MCP 照样带分数）。
-- `REPORTS.quiet`：日报时段里有资料经过评判、但没有新大事时的标题与导语；导语中的 `{start}`、`{end}` 会替换为时段起止。
-- `REPORTS`：日报、周报、月报版面上的说法：报头的出版者一行和旁边的一个词、每种报告页面的描述、一期里的一条怎么称呼（`entry`，默认“件大事”）、报头上其余数字后面的单位、分享图上的条数说法。
-- `ALERTS`、`SOURCE_DEFAULTS`、`COMMUNITY_FEEDS`：告警里随部署而变的说法，后台新建信源时默认展不展示全文，哪些社区站信源按发帖的账号算热度。
-- `ACCESS`：给 Agent 的说明和 `llms.txt` 里的限流说法与建议的 User-Agent；前面的反向代理真的按 IP 限流了，再填 `ratePerMinute`。
-- `ADMIN`：后台几处给管理员的提示（选填）。
-- `AGENT`：Agent 接入页 MCP 工具表里“搜索”一行的说法：能搜什么、可以怎么问。
-- `DEPLOYMENT`：这个部署自己的安排：凭据文件放在哪、生产 API 启动时额外检查哪些凭据（`requiredSecrets`，默认空）、CDN 回源用的域名、后台登录回跳用的请求头、图片代理的流量上限、采集和图片直连（不走出网代理）的域名、精选评测默认用的样本，都可以不填。
-- `FEED_COPY`、`PUBLIC_CATEGORIES`：“全部动态”RSS 说明里补充的不含内容；公开接口（API、RSS、MCP）里和网页不同的类别：`merge` 把一类并进另一类发布，`feedLabels` 换掉分类 RSS 标题里的名字，上线后不要改。
+- `name`: the site name, used by navigation, titles, share images, RSS, MCP and the admin. `organization.name` is the site operator in structured data (for search engines) and defaults to the site name, so change both together; `organization.founder` is the founder (optional), whose `sameAs` can list public profile addresses.
+- `subject`: the industry word. "AI daily brief" and "All AI news" on pages become "Law daily brief" and "All law news".
+- `homeTitle`, `topicsTitle`, `description`, `tagline`, `keywords`: titles of the home and topic index pages, the one-line description, the small text under share images, keywords for search engines.
+- `feedbackExample`: the example in the feedback form's text box.
+- `locale`: the interface language (the pages' language tag, share cards and structured data); `{{locale}}` in `public/` files becomes it too.
+- `since`: the year the site started collecting (the time range in structured data, optional).
+- `mcpPrefix`: the MCP tool name prefix; `lawhot` gives `lawhot_get_latest`. Do not change it once people connect.
+- `interfaceVersion`: the version of the public interfaces (MCP, OpenAPI, `llms.txt`), which only goes up; raise the major version when you change the meaning of an existing field.
+- `crawlerName`: the name sent when fetching sources. Do not use another site's name.
+- `contactEmail`: a public contact email (optional); when set, `llms.txt` and the agent guide give it as the licensing contact.
+- `footerNote`: one line of small text at the bottom of the About page (`null` for none).
+- `icp`, `psb`: ICP and public security filing numbers for sites in mainland China; when set they show in the footer, linked to their records.
+- `github`: the source repository address (optional); when set, the sidebar and the bottom of the Me page show a GitHub link.
+- `llmsIntro`: a longer introduction under the one-line description in `llms.txt` (optional).
+- `rootIcons`: icons beyond the standard ones also served at the site root, as file names in `site/brand/` (optional).
+- `timeZone`: the site's time zone (an IANA name such as `America/Los_Angeles`). Every date, brief window and schedule uses it, daylight saving included; `timeZoneLabel` is the short name written after times (such as `PT`).
+- `EDITION_TIMES`: when the daily, weekly and monthly briefs come out (local time in `timeZone`). The schedule, the daily brief's window, missing-issue alerts and all copy that mentions a time read it; the scheduler checks every half hour, so use :00 or :30. `EDITION_WHEN` is built from it for sentences ("every day at 08:00 PT", "every Monday at 10:00 PT", "on the 1st of each month at 10:30 PT") and seldom needs a change.
+- `POLICY`: names and descriptions of the terms of use and privacy notice pages; `terms.license` says which uses need permission first, and `terms.headers` are response headers in which the public interfaces state the terms (both optional); `xPostIsFullText` decides whether an X post's own text counts as full text (if it does, it shows only when the source allows full text).
+- `ABOUT`: the About page's headline, the four steps, an author block (optional), the copyright note, and the anchor of the terms link (`termsAnchor`, optional).
+- `CARDS`: the text on each page's share image.
+- `NAV`: `hidden` lists engine entries left out of the navigation; for now only Trending (`"/hot"`) and Topics (`"/topics"`), for example `"/hot"` on a site with few sources whose trending list is often empty. They are left out of the desktop sidebar, the phone tab bar and the Me page. The pages still open: opened directly they belong to the Picks tab, back buttons and links that led to them go to Picks, and the page hierarchy for search engines (breadcrumbs) skips them; with `"/hot"` the home page shows no current trending and story pages show no trending rank. It is empty by default, so navigation stays as it is.
+  Other entries are not supported yet: their back buttons and in-page links would need the same support, so readers are not led to a page that is hidden only from the sidebar.
+- `ITEM_COPY`: what the model's one-line reason is called (`reasonLabel`, "Why it matters" here), and whether readers see the AI score on pages and share images (`showScore`; display only, the public API and MCP still carry scores).
+- `REPORTS.quiet`: the title and lead when material was judged in the daily window but nothing big happened; `{start}` and `{end}` in the lead become the window's start and end.
+- `REPORTS`: wording on the briefs: the publisher line in the masthead and the word beside it, each brief page's description, what one entry is called (`entry`), units after the masthead's other numbers, and the count wording on share images.
+- `ALERTS`, `SOURCE_DEFAULTS`, `COMMUNITY_FEEDS`: wording in alerts that varies by deployment, whether a source created in the admin shows full text by default, and which community sources count heat by the posting account.
+- `ACCESS`: the rate-limit wording and suggested User-Agent in the agent guide and `llms.txt`; set `ratePerMinute` only when a reverse proxy in front really limits by IP.
+- `ADMIN`: a few hints for admins in the admin (optional).
+- `AGENT`: the "search" row of the MCP tool table on the agent page: what it searches and how to ask.
+- `DEPLOYMENT`: this deployment's own arrangements: where credential files live, extra credentials the production API checks at start (`requiredSecrets`, empty by default), the CDN origin host, the request header for the admin sign-in redirect, image proxy traffic limits, hosts collection and images reach directly (not through the egress proxy), and the default samples for the selection evaluation. All optional.
+- `FEED_COPY`, `PUBLIC_CATEGORIES`: what the "All news" RSS description adds it leaves out; categories that differ between the public interfaces (API, RSS, MCP) and the pages: `merge` publishes one category inside another, `feedLabels` renames a category in its RSS title. Do not change them after launch.
 
-站点地址不写在这里，部署时用环境变量 `SITE_URL` 设置。
+The site address is not set here but with the `SITE_URL` environment variable at deployment.
 
-## 2. 分类、标签和主题：`industry/taxonomy.ts`、`industry/topics.json`
+## 2. Categories, tags and topics: `industry/taxonomy.ts`, `industry/topics.json`
 
-- `CATEGORIES`：首页和“全部动态”的筛选类别。`key` 会出现在网址和接口里（`/all?category=`、`/feed/category/<key>.xml`），上线后不要改；`label` 是显示名；`section` 是日报、周报、月报里的分节（几个类别可以共用一节）；`guide` 写这一类收什么、和相邻类别的边界在哪，结构化时给模型看（总的归类原则在 `prompts/structure.md`）；`commentary: true` 标出评论类（教程、观点）：报过的事件再有这类跟进，即使是当事方自己发的，日报也只放进快讯（除非有 4 家以上信源报道）；`feedLabel` 是分类 RSS 标题里的名字（不写就用 `label`）。要让一类在公开接口、RSS 和 MCP 里并进另一类发布（网页上照样分开），写在 `site.ts` 的 `PUBLIC_CATEGORIES`。
-- `RELEASE`：这个行业最受关注的那类发布（AI 行业是新模型），类别和标签都对上才算。日报报头的“N 个新模型”按它数（后台改了分类，已出的日报会重算）；`unit` 是数字后面的说法。没有这样一类的行业设成 `null`，报头就不显示这个数。
-- `PLAIN_TERMS`：周报月报的总述里可以直接写、不必在条目里找到出处的行业通用词（小写）。站名自动算在内。总述写了条目里没有的名字或数字就不用，见 [精选与校准](selection.md)。
-- `CATEGORY_TAGS`、`TOPIC_TAGS`、`ENTITY_TAGS`：模型打标签时只能从这里选。第一个标签必须是“分类标签”。`prompts/structure.md` 里还写着 AI 行业的标签规则（比如什么才算“模型发布”），换行业时一起改。
-- `TAG_SYNONYMS`：模型常写的近义词，统一成词表里的写法（比如“融资”记成“行业动态”）。换了词表，这里也换成新词表的近义词。
-- `ENTITIES`：行业里的主要公司或机构，用于“公司”类主题页。`aliases` 给结构化的模型看；`otherNames` 是公司自己的其他称呼（官方账号名、子品牌），把新闻的主体对到公司、判断标题有没有点名这家公司时也认它们。`IDENTITY_LEXICON`、`PUBLISHER_DOMAINS`、`IDENTITY_CONTEXT_ALIASES` 用来防止模型在标题摘要里写进原文没提到的公司：标题摘要里出现的公司，原文里也要出现过；`IDENTITY_CONTEXT_ALIASES` 列出原文里也算提到这家公司的写法（比如官方账号名）。别的行业没有这个需要可以清空。
-- `ITEM_TYPES`：内容类型，和评分提示词里的权重表对应，改了要一起改提示词。
-- `topics.json`：主题目录（`/topics`）。站点启动时读取，改完重新构建（`docker compose up -d --build`）才生效。分三组：`company`（公司与机构）、`field`（方向）、`genre`（内容形态）。`slug` 上线后不要改。
-  - `company` 主题用 `entityId`（`ENTITIES` 的 id）收以这家公司为主体的报道；一篇报道的主体有几家公司时，标题里点了它的名才算。可选：`aliases`（搜索框里只搜这个词，也能找出这家公司的报道）。
-  - `field` 和 `genre` 主题用 `tags` 收打了这些标签的报道。
+- `CATEGORIES`: the filter categories of the home page and "All news". `key` appears in addresses and interfaces (`/all?category=`, `/feed/category/<key>.xml`), so do not change it after launch; `label` is the display name; `section` is the section in the briefs (categories can share one); `guide` says what the category holds and where it ends against its neighbors, shown to the model when structuring (the general rules are in `prompts/structure.md`); `commentary: true` marks commentary (tutorials, opinions): when a covered story gets this kind of follow-up, even from the party itself, the daily brief lists it only among the briefs (unless 4 or more sources report it); `feedLabel` is the name in the category RSS title (`label` when unset). To publish one category inside another in the public interfaces, RSS and MCP (pages still separate them), use `PUBLIC_CATEGORIES` in `site.ts`.
+- `RELEASE`: the industry's most watched kind of release (new models for AI), matched on both category and tag. The daily masthead's "N new models" counts it (when the admin changes a category, published dailies are recounted); `unit` is the word after the number. For an industry without one, set it to `null` and the masthead shows no such number.
+- `PLAIN_TERMS`: common industry words (lower case) the weekly and monthly overviews may use without finding them in the entries. The site name counts automatically. An overview that writes a name or number not in the entries is dropped; see [Selection and calibration](selection.md).
+- `CATEGORY_TAGS`, `TOPIC_TAGS`, `ENTITY_TAGS`: the only tags the model may choose. The first tag must be a category tag. `prompts/structure.md` also holds the AI industry's tag rules (such as what counts as a "Model release"); change them with the industry.
+- `TAG_SYNONYMS`: synonyms the model often writes, mapped to the vocabulary's spelling. With a new vocabulary, list its synonyms here instead.
+- `ENTITIES`: the industry's main companies or institutions, for company topic pages. `aliases` are shown to the structuring model; `otherNames` are the company's other names (official account names, sub-brands), also used to match news subjects to the company and to tell whether a title names it. `IDENTITY_LEXICON`, `PUBLISHER_DOMAINS` and `IDENTITY_CONTEXT_ALIASES` stop the model from writing companies the original never mentioned into titles and summaries: a company in the title or summary must appear in the original; `IDENTITY_CONTEXT_ALIASES` lists other ways the original can mention the company (such as an official account name). Clear them if your industry has no such need.
+- `ITEM_TYPES`: content types, matching the weight table in the score prompt; change them together.
+- `topics.json`: the topic index (`/topics`), read at start, so a change needs a rebuild (`docker compose up -d --build`). Three groups: `company` (companies and institutions), `field` (directions) and `genre` (content formats). Do not change `slug` after launch.
+  - A `company` topic uses `entityId` (an id in `ENTITIES`) to collect reports whose subject is that company; when a report has several companies as subjects, it counts only if the title names this one. Optional: `aliases` (searching just this word also finds the company's reports).
+  - `field` and `genre` topics use `tags` to collect reports with those tags.
 
-## 3. 信源：`industry/sources.json`
+## 3. Sources: `industry/sources.json`
 
-这是首次启动时导入的示范信源，已经存在的不会被覆盖；之后每次启动只补上文件里有、库里还没有的，从文件里删掉的不会从库里删（不要的在后台暂停）。上线后更常用的是后台“信源”页：能新建、试抓、调频率、暂停、看失败原因。
+These are the demo sources imported on first start; existing ones are never overwritten. Each start adds only sources that are in the file but not yet in the database, and removing one from the file does not delete it from the database (pause it in the admin instead). After launch, the admin's Sources page is used more: it creates sources, previews fetches, changes intervals, pauses sources and shows why they fail.
 
-每个信源的关键字段：
+Each source's key fields:
 
-| 字段 | 含义 |
+| Field | Meaning |
 |---|---|
-| `kind` | `rss`、`web_list`（网页列表，配选择器）、`json_list`（JSON 接口）、`x_search`（X 账号，需要 SocialData）、`mp_account`（公众号，需要极致了）、`external`（外部推送） |
-| `config` | 每种信源的配置，见 [信源](sources.md) |
-| `tier` | 信源分级：`T1` 官方一手、`T1_5` 官方账号与准官方、`T2` 媒体与个人、`EXCLUDE_MP` 不参与精选。不同分级的入选门槛不同。`T1` 就是“一手”，不用另外标 |
-| `owner_entity_id` | 可选，这个信源属于哪家公司（`ENTITIES` 的 id）。同一家公司的几个信源在热度里只算一个参与方；`T1_5` 的官方账号要当代表报道，也要填它（见 [信源](sources.md)） |
-| `participation_mode` | `editorial` 进精选和全部动态；`hot_signal` 只作热度证据；`isolated` 不进任何公开页面 |
-| `site_fulltext` | 站内能不能展示全文。**默认关**：只展示摘要和原文链接。只有来源明确允许时才打开 |
-| `syndicate_fulltext` | 全文 RSS 能不能带正文。**默认关**；只在站内也展示全文时生效，来源明确允许转载时才打开 |
+| `kind` | `rss`, `web_list` (a web listing with selectors), `json_list` (a JSON API), `x_search` (an X account, needs SocialData), `mp_account` (a WeChat official account, needs Dajiala), `external` (pushed items) |
+| `config` | Each kind's settings; see [Sources](sources.md) |
+| `tier` | `T1` official first party, `T1_5` official accounts and near-official, `T2` media and individuals, `EXCLUDE_MP` not picked. Each tier has its own threshold. `T1` is first party; there is nothing else to mark |
+| `owner_entity_id` | Optional: the company the source belongs to (an id in `ENTITIES`). A company's several sources count as one participant in heat; a `T1_5` official account needs it to be a representative report (see [Sources](sources.md)) |
+| `participation_mode` | `editorial` goes into picks and all news; `hot_signal` counts only as heat evidence; `isolated` appears on no public page |
+| `site_fulltext` | Whether the site may show the full text. **Off by default**: only the summary and a link to the original. Turn it on only when the source clearly allows it |
+| `syndicate_fulltext` | Whether the full-text RSS may carry the body. **Off by default**; it applies only when the site shows full text too, and should be on only when the source clearly allows republishing |
 
-中国大陆的很多行业，一手信息在公众号上。公众号信源需要极致了（Dajiala）的 key，按请求计费，有预算熔断。
+AI Pulse also has 32 X accounts in `industry/x-accounts.json`. `scripts/seed.ts` creates an `external` source for each, and an outside job pushes their posts ([X posts through the ingest endpoint](ingest-x.md)).
 
-## 4. 精选标准：`industry/prompts/`
+## 4. The picking standard: `industry/prompts/`
 
-这是最值得花时间的一步：你对这个行业的判断经验就写在这里。
+This is the step most worth your time: your judgment of the industry is written here.
 
-| 文件 | 作用 |
+| File | Role |
 |---|---|
-| `prefilter.md` | 预筛：这条资料是不是这个行业的事。宽召回，只拦明显无关的 |
-| `selection-score.md` | **评分标准**：给 0–100 分。里面有内容类型、五个维度、各类型的权重、必须正常评价的价值、必须压住的噪声 |
-| `content-understanding.md` | 入选和接近入选内容的写法：中文标题、答案先行的摘要、推荐理由（它也会给标签，但页面上的分类和标签来自 `structure.md`） |
-| `rules-domain.md` | 行业术语的翻译与保留规则（示例是 AI 术语：LLM 译作大语言模型、Token 保留英文……） |
-| `mend-wording.md` | 改用词：标题、摘要、推荐理由用了 `industry/wording.ts` 里列出的词时，让模型只改这些词 |
-| `summarize-*.md` | 其他内容的标题摘要写法 |
-| `structure.md` | 分类、标签、主体公司，判断是一条具体新闻还是讲多件事的综合稿，抽出新闻的事实（谁、做了什么、对什么，附原文出处和前提条件）。页面上的分类和标签、主题页、事件归组和日报都靠它 |
-| `group-*.md` | 事件归组：两篇报道是同一次发生、同一事件的后续，还是两件事；同时判断报道相对精选里已有的内容有没有新信息，没有的不进精选 |
-| `story-digest.md` | 事件页的综述（改之前用 [综述评测](story-digest-evaluation.md) 并排比较） |
-| `report-period.md`、`report-period-sections.md` | 周报月报的总述和栏目导读（日报按规则编排，不用提示词） |
-| `translate-*.md` | 全文翻译 |
+| `prefilter.md` | Pre-screen: is the material about this industry? Wide recall; it stops only what is clearly unrelated |
+| `selection-score.md` | **The rubric**: a score from 0 to 100, with content types, five dimensions, weights per type, value that must be scored normally, and noise that must be held down |
+| `content-understanding.md` | How picks and near-picks are written: an English title, an answer-first summary and why it matters (it gives tags too, but the categories and tags on pages come from `structure.md`) |
+| `rules-domain.md` | How industry terms are translated or kept (the examples are AI terms) |
+| `mend-wording.md` | Word fixes: when a title, summary or reason uses a word listed in `industry/wording.ts`, the model changes only those words |
+| `summarize-*.md` | Title and summary for everything else |
+| `structure.md` | Category, tags and companies involved; whether it is one piece of news or a roundup; the news facts (who did what to what, with sources and preconditions in the original). Categories and tags on pages, topic pages, story grouping and daily briefs rely on it |
+| `group-*.md` | Story grouping: whether two reports are the same happening, a development of the same story, or two things; and whether a report adds anything to what the picks already hold (if not, it is not picked) |
+| `story-digest.md` | The story page overview (compare versions with the [story digest evaluation](story-digest-evaluation.md) before changing it) |
+| `report-period.md`, `report-period-sections.md` | The weekly and monthly overviews and section introductions (the daily brief is put together by rule, without a prompt) |
+| `translate-*.md` | Full-text translation |
 
-你的站有读者文字里不用的词（夸张的说法、方言词、读者看不懂的行话），写进 `industry/wording.ts`：每项是一个正则和改法。写完标题、摘要和推荐理由后逐个查，用了就让模型只改这些词一次（模型步骤“改用词”，环境变量 `WORDING_MODEL` 可以单独选模型）；改完数字有变、标题摘要变空，或模型服务拒绝改写，就保留原文字。词表空着就不查，也不多调用，模型服务拒绝服务时的告警里也不列这一步。
+Words your site's writing should not use (hype, dialect, jargon readers do not know) go into `industry/wording.ts`, each a regular expression and a replacement. After the title, summary and reason are written, each is checked; if one is used, the model is asked once to change just those words (the "wording" model step; `WORDING_MODEL` picks a model for it). If a number changes, the title or summary comes back empty, or the model service refuses, the original text stays. An empty list checks nothing, makes no extra call, and the step is not listed in alerts about refused model service.
 
-提示词里用 `{{siteName}}` 指代站名，`{{> 文件名}}` 引用另一份提示词。改提示词不用改代码。
+Prompts use `{{siteName}}` for the site name and `{{> file name}}` to include another prompt. Changing a prompt needs no code change.
 
-**建议的做法**：先保留结构（五个维度加权、噪声压制规则、安全边界），只把“什么算重要”“什么算噪声”的例子换成你的行业。比如法律行业，“新法规正式公布、重要判决、监管处罚”应该正常评价，“律所营销软文、课程广告”要压住。
+**Suggested approach**: keep the structure (five weighted dimensions, the noise rules, the safety limits) and replace only the examples of what matters and what is noise with your industry's. For law, "a new regulation published, an important ruling, a regulatory penalty" should be scored normally, and "law firm marketing, course ads" held down.
 
-## 5. 门槛与校准：`industry/selection.ts`
+## 5. Thresholds and calibration: `industry/selection.ts`
 
-两次评分之和 ≥ 2 × 门槛才够分（够分的还要过归组时的去重，见 [精选与校准](selection.md)）。默认门槛（T1 60、T1_5 65、T2 76）是 AIHOT 在 AI 领域校准出来的，换了行业和提示词，需要重新校准：
+The two scores must add up to at least 2 × the threshold (and the item must pass the duplicate check in grouping; see [Selection and calibration](selection.md)). The default thresholds (T1 60, T1_5 65, T2 76) were calibrated by AIHOT for AI news; with a new industry and prompts, calibrate again:
 
-1. 从你的信源里挑 100–200 条资料，自己标“该选 / 不该选”，存成 `.data/gold.jsonl`（格式见 [精选与校准](selection.md)，`industry/gold.example.jsonl` 有两条示例）。
-2. 运行 `node --env-file=.env scripts/eval-selection.ts --gold .data/gold.jsonl`，看准确率、查准率、查全率，和不同门槛下的结果。
-3. 在后台 SelectBench 里逐条看判错的资料，回去改评分提示词或门槛，再跑一遍。
+1. Pick 100–200 items from your sources, label each "pick" or "don't pick" yourself, and save them as `.data/gold.jsonl` (format in [Selection and calibration](selection.md); `industry/gold.example.jsonl` has two examples).
+2. Run `node --env-file=.env scripts/eval-selection.ts --gold .data/gold.jsonl` and read the accuracy, precision, recall and the results at each threshold.
+3. In the admin's SelectBench, go through the misjudged items, change the score prompt or the thresholds, and run again.
 
-这一步决定了你的站“选得准不准”。
+This step decides how well your site picks.
 
-## 6. 品牌：`site/brand/`
+## 6. Brand: `site/brand/`
 
-- `logo.svg`、`icon.png`（512）、`icon-192.png`、`apple-icon.png`（180）、`favicon.ico`：站点图标。
-- `Logo.tsx`：网页左上角的站名标志，默认用站名文字排出来；有自己的 Logo，把 `Wordmark` 换成你的 SVG，参数保持不变。
-- `wordmark.svg`、`wordmark-dark.svg`（可选）：分享图和海报上的字标，深色版用在深色的分享图上；没有就用站名文字。
-- `nameplates/`：日报、周报、月报页顶部的报头字（比如“AI日报”）。换了行业词以后重新生成：
+- `logo.svg`, `icon.png` (512), `icon-192.png`, `apple-icon.png` (180), `favicon.ico`: the site icons.
+- `Logo.tsx`: the site mark at the top left of pages, set from the site name by default; with a logo of your own, replace `Wordmark` with your SVG and keep its props.
+- `wordmark.svg`, `wordmark-dark.svg` (optional): the wordmark on share images and posters, the dark one on dark share images; without them the site name is set as text.
+- `nameplates/`: the masthead lettering at the top of the brief pages. Regenerate them after changing the industry word:
   ```bash
   npm pack @fontsource/noto-sans-sc@5.3.0 && tar xzf fontsource-noto-sans-sc-5.3.0.tgz
   node scripts/nameplates.ts package
   ```
-- 关于页的二维码：先在 `site.ts` 的 `ABOUT.maker` 写好作者块，并写上 `wechat`、`feishu` 卡片（标题和说明）；再在后台“设置 → 关于页二维码”上传图片，或者把图片放进 `site/brand/contact/`，文件名以 `qr-wechat`、`qr-feishu` 开头，格式是 png、jpg 或 webp。作者块、卡片或图片缺一样，那张二维码就不显示。
+- QR codes on the About page: first write the author block in `ABOUT.maker` in `site.ts` with its `wechat` and `feishu` cards (title and description); then upload the images under admin Settings → About page QR codes, or put them in `site/brand/contact/` with names starting `qr-wechat` or `qr-feishu`, as png, jpg or webp. Without the author block, the card or the image, that QR code does not show.
 
-请不要使用 AIHOT 的名字和 Logo。
+Do not use the AIHOT name or logo.
 
-读者可以在“我的”页将字体从“默认字体”改为“浏览器默认字体”。后一项使用读者在浏览器中设置的标准字体，覆盖普通正文、表单和动态图表文字；代码仍用等宽字体，Logo、报头字和分享图片仍按站点品牌显示。字体选择只在当前浏览器保存，不转换简繁体。收藏页的版本 1 备份增加了可选的 `font` 字段，旧备份仍可导入；导入不会覆盖读者已经选择的浏览器字体。
+On the Me page, readers can switch the font from the site default to the browser's default font. That uses the standard font set in the reader's browser for body text, forms and live chart text; code stays monospaced, and the logo, masthead lettering and share images keep the site brand. The choice is saved only in that browser. Version 1 backups of saved items have an optional `font` field; older backups still import, and importing does not override a browser font the reader already chose.
 
-## 7. 页面文案：`site/pages/`、`site/public/`、`site/changelog.json`
+## 7. Page copy: `site/pages/`, `site/public/`, `site/changelog.json`
 
-- `pages/terms.md`、`pages/privacy.md`：使用规则和隐私说明。**现在是模板**，上线前按你的实际情况改写，必要时请专业人士看一下。
-- `public/`：网站根目录上的四个固定文件，替换占位符后发布：`robots.txt`、`manifest.webmanifest`（装到手机桌面时的名字和图标）、`openapi-v1.json`（公开 API 的说明），以及可选的 `.well-known/security.txt`（安全问题的联系方式）。只发布这四个文件，放进去的其他文件不会出现在网站上；没有的文件访问时是 404。文件里可以写这些占位符：`{{siteName}}`、`{{siteUrl}}`、`{{description}}`、`{{tagline}}`、`{{locale}}`，出刊时间 `{{dailyTime}}`、`{{weeklyTime}}`、`{{monthlyTime}}`，公开接口版本 `{{version}}`，逗号分隔的公开分类 `{{categoryList}}`；JSON 文件里 `enum` 或 `examples` 列表中的 `"{{categories}}"` 会换成公开分类的 key 列表。
-- `changelog.json`：更新日志。自带一条“网站上线”示例，上线前把它的 `date`、`time` 和 `latestVersion` 改成你的上线时间；示例正文里的框架署名（“用 AIHOT 开源框架搭起了这个站”）同样可留可删。新条目写在最前面，把 `latestVersion` 改成它的日期和时间。`kind` 是“更新”“优化”“公告”“下线”之一；要读者一定看到的加 `"urgent": true`（红色，标“重要”）。
+- `pages/terms.md`, `pages/privacy.md`: the terms of use and privacy notice. **They are templates**; rewrite them for your situation before launch, with a professional's review if needed.
+- `public/`: four fixed files at the site root, published with placeholders filled: `robots.txt`, `manifest.webmanifest` (name and icon when installed on a phone), `openapi-v1.json` (the public API description), and an optional `.well-known/security.txt` (the contact for security issues). Only these four are published; other files placed there never appear on the site, and a missing one returns 404. The files can use these placeholders: `{{siteName}}`, `{{siteUrl}}`, `{{description}}`, `{{tagline}}`, `{{locale}}`, the time zone `{{timeZone}}`, the brief times `{{dailyTime}}`, `{{weeklyTime}}`, `{{monthlyTime}}`, the public interface version `{{version}}`, and the comma-separated public categories `{{categoryList}}`; in a JSON file, `"{{categories}}"` in an `enum` or `examples` list becomes the list of public category keys.
+- `changelog.json`: the changelog. It comes with a "site launched" example; before launch, set its `date`, `time` and `latestVersion` to your launch time. New entries go first, with `latestVersion` set to their date and time. `kind` is one of `Update`, `Improvement`, `Announcement` and `Retired`; add `"urgent": true` for entries every reader must see (red, marked important).
 
-## 8. 模型和部署
+## 8. Models and deployment
 
-- 模型：`.env` 里的 `LLM_BASE_URL`、`LLM_API_KEY`、`LLM_MODEL`，任何 OpenAI 兼容接口都行，所有步骤默认都用它。`site/models.ts` 列出具名的模型（各用自己的地址和密钥环境变量）和每一步默认用哪个；部署时还可以用环境变量（见 `.env.example`）或后台“模型与评测”页逐步改选。用推理模型（先想再答）时给它留出推理的额度：默认模型设 `LLM_REASONING_TOKENS`，具名模型在 `site/models.ts` 里写 `reasoningTokens`；不留的话推理会把每一步的输出额度用光，答案为空，每次调用都失败。 评分预设还可写 `scoreCall: { temperature, maxTokens, timeoutMs }`，分别控制温度、输出额度和超时毫秒；示例评分预设已明确配置这些值。备用模型的 `fallbackFor` 按能力名指定它接替的主模型，须先用自己的资料评测这组组合；示例站默认没有备用组合。
-- 部署：见 [部署](deploy.md)。
+- Models: `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` in `.env`, any OpenAI-compatible API; every step uses it by default. AI Pulse uses OpenRouter with `anthropic/claude-haiku-5.5` and `LLM_EXTRA_JSON={"reasoning":{"enabled":false}}`, because Haiku 5.5 reasons by default and the reasoning shares the output budget. `site/models.ts` lists named models (each with its own address and key variables) and the default for each step; a deployment can also pick per step with environment variables (see `.env.example`) or on the admin's Models and evals page. With a model that reasons before answering, either turn reasoning off as above or leave room for it: `LLM_REASONING_TOKENS` for the default model, `reasoningTokens` for a named model in `site/models.ts`. Otherwise the reasoning uses up each step's output budget, the answer is empty and calls fail. A score preset can also set `scoreCall: { temperature, maxTokens, timeoutMs }` for temperature, output budget and timeout in milliseconds; the example score presets set them explicitly. A backup model's `fallbackFor` names, by capability, the primary model it takes over from; evaluate the pair on your own material first. The example site has no backup pairs by default.
+- Deployment: see [Deployment](deploy.md).
 
-## 改完以后检查
+## Checks after the changes
 
 ```bash
 npm run typecheck
-DATABASE_URL=postgres://…/myhot_test npm test     # 库名必须以 _test 或 _ci 结尾，数据库账号要能建库
-node scripts/smoke.ts --base http://localhost:3000   # 站点跑起来以后
+DATABASE_URL=postgres://.../myhot_test npm test       # the database name must end in _test or _ci, and the account must be able to create databases
+node scripts/smoke.ts --base http://localhost:3000   # once the site is running
 ```
 
-改写提示词、重新校准门槛不会让测试失败：测试按每一步实际渲染出的提示词认请求，门槛从 `industry/selection.ts` 读。`tests/` 里有些测试用的是示例行业的分类、标签和公司（比如 `ai-models`、“模型发布”、Anthropic）。改了 `industry/taxonomy.ts` 以后这些测试会失败，把例子换成你行业里的对应项即可，测的规则本身不用改。
+Rewriting prompts and recalibrating thresholds do not break the tests: tests recognize requests by each step's rendered prompt and read thresholds from `industry/selection.ts`. Some tests in `tests/` use the example industry's categories, tags and companies (such as `ai-models`, "Model release" and Anthropic). After changing `industry/taxonomy.ts` those tests fail; replace the examples with your industry's equivalents, and leave the rules they test as they are.
 
-然后打开网站看一眼首页、全部动态、日报、主题页和关于页，再去后台“信源”页看信源是不是都抓成功了。
+Then open the site and look at the home page, all news, the daily brief, topic pages and the About page, and check on the admin's Sources page that every source fetched successfully.

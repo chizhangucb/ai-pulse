@@ -1,34 +1,34 @@
-# 使用规则
+# Terms of use
 
-这是开源框架自带的模板。上线前请按你的实际情况改写（运营主体、允许和不允许的用途、联系方式），必要时请专业人士审阅。
+This is the template that comes with the open-source framework. Before launch, rewrite it for your situation (who runs the site, which uses are allowed or not, how to reach you), and have a professional review it if needed.
 
-| 项 | 值 |
+| Item | Value |
 |---|---|
-| 版本 | 请填写 |
-| 生效日期 | 请填写 |
-| 运营主体 | 请填写 |
-| 联系方式 | 请填写 |
+| Version | To be filled in |
+| Effective date | To be filled in |
+| Operator | To be filled in |
+| Contact | To be filled in |
 
-页首说明：
+Page intro:
 
-> 本站聚合公开信源，用模型生成中文摘要与精选，原文版权归各来源所有。网页、RSS、公开 API 与 MCP 均可匿名使用。
+> This site collects public sources and uses AI models to write English summaries and pick the news worth reading. Original articles belong to their publishers. The pages, RSS feeds, public API and MCP can all be used without an account.
 
-## 1. 内容与版权
+## 1. Content and copyright
 
-本站展示的标题、摘要和推荐理由由模型根据公开来源生成，可能有误，重要信息请以原文为准。原文版权归各来源所有；站内只在来源允许时展示全文，其余只展示摘要和原文链接。
+The titles, summaries and "why it matters" lines on this site are written by AI models from public sources and may contain mistakes; check important information against the original. Original articles belong to their publishers. The site shows full text only when a source allows it; otherwise it shows a summary and a link to the original.
 
-## 2. 来源方的更正与下架
+## 2. Corrections and takedowns for publishers
 
-如果你是来源方，希望更正、下架或调整展示方式，请通过反馈页联系我们，我们会尽快处理。
+If you publish one of our sources and want a correction, a takedown or a different display, contact us through the feedback page and we will handle it promptly.
 
-## 3. 使用本站的数据
+## 3. Using this site's data
 
-请写明你允许的用途（例如个人阅读、组织内部使用），以及需要事先取得你同意的用途（例如商业产品、公开转载、批量再分发）。
+State which uses you allow (for example personal reading or internal use in an organization) and which need your permission first (for example commercial products, public republishing or bulk redistribution).
 
-## 4. 接口与频率
+## 4. Interfaces and request rates
 
-RSS、公开 API 和 MCP 为匿名只读接口。请按响应中的缓存时间轮询，遇到 429 请遵守 Retry-After，不要并发重试。
+RSS, the public API and MCP are anonymous, read-only interfaces. Poll according to the cache times in responses; on a 429, follow Retry-After and do not retry in parallel.
 
-## 5. 免责
+## 5. Disclaimer
 
-本站按“现状”提供，不保证内容完整、准确和持续可用。
+This site is provided "as is", without any promise that its content is complete, accurate or always available.

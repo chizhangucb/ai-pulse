@@ -73,7 +73,7 @@ const followUps = async (sourceId: string) => (await collectFindings(now)).filte
 async function weekly() {
   const lines: string[] = [];
   const log = console.log;
-  console.log = (value: unknown) => { if (String(value).includes("信源周报")) lines.push(...JSON.parse(String(value)).lines); };
+  console.log = (value: unknown) => { if (String(value).includes("Weekly source report")) lines.push(...JSON.parse(String(value)).lines); };
   try { await sourceHealthWeekly(now); } finally { console.log = log; }
   return lines.join("\n");
 }
@@ -84,7 +84,7 @@ test("hot-signal activity does not hide editorial collection stopping", async ()
   await material(signal, "signal");
   const finding = (await collectFindings(now)).find(f => f.key === "content.collect");
   assert.equal(finding?.level, "now");
-  assert.match(finding!.title, /文章|编辑/);
+  assert.match(finding!.title, /stopped taking in new articles/);
   await material(editorial, "editorial");
   assert.equal((await collectFindings(now)).find(f => f.key === "content.collect"), undefined);
 });
@@ -101,7 +101,7 @@ test("daily follow-ups retain chronic failures after a successful run, separatel
         CASE WHEN i BETWEEN 1 AND 5 THEN 'failed' ELSE 'ok' END, 1, 0,
         CASE WHEN i BETWEEN 1 AND 5 THEN 'HTTP 503' ELSE NULL END FROM generate_series(0,19) i`;
   }
-  for (const [name, id] of [["编辑内容", editorial], ["热度信号", signal]]) {
+  for (const [name, id] of [["Editorial", editorial], ["Popularity signal", signal]]) {
     const [f, ...more] = await followUps(id!);
     assert.equal(more.length, 0);
     assert.equal(f?.key, `sources.unstable.${id}`);
@@ -117,7 +117,7 @@ test("each failing source is a follow-up of its own, closed when that source rec
   const second = await source("failing-second", "editorial", new Date(now));
   for (const id of [first, second]) await sql`UPDATE sources SET health = 'failing', fail_count = 6, last_error = 'HTTP 403' WHERE id = ${id}`;
   assert.deepEqual((await followUps(first)).map(f => f.key), [`sources.failing.${first}`]);
-  assert.match((await followUps(first))[0]!.detail!, /连续失败 6 次，HTTP 403/);
+  assert.match((await followUps(first))[0]!.detail!, /failed 6 times in a row, HTTP 403/);
   await sql`UPDATE sources SET health = 'ok', fail_count = 0, last_error = NULL WHERE id = ${first}`;
   assert.deepEqual(await followUps(first), []);
   assert.deepEqual((await followUps(second)).map(f => f.key), [`sources.failing.${second}`]);
@@ -137,8 +137,8 @@ test("weekly totals count every silent source and include successful attributed 
     assert.equal(result.silent, 20, "18 silent plus two chronic sources, not the display limit or the collector");
   } finally { console.log = log; }
   const text = lines.join("\n");
-  assert.match(text, /编辑内容/);
-  assert.match(text, /热度信号/);
+  assert.match(text, /Editorial/);
+  assert.match(text, /Popularity signal/);
   assert.doesNotMatch(text, new RegExp(`· ${collector}`));
 });
 
@@ -151,8 +151,8 @@ test("quality follow-ups count undated editorial articles and edits without judg
     SELECT ${article.articleId},i,'changed',${new Date(now)} FROM generate_series(2,6) i`;
   const [quality] = await followUps(editorial);
   assert.equal(quality?.key, `sources.quality.${editorial}`);
-  assert.match(quality!.detail!, /缺发布时间 1/);
-  assert.match(quality!.detail!, /反复修订 1/);
+  assert.match(quality!.detail!, /1 without a publish time/);
+  assert.match(quality!.detail!, /1 revised repeatedly/);
   assert.deepEqual(await followUps(signal), []);
 });
 
@@ -171,10 +171,10 @@ test("detail pages that keep failing are a follow-up, an occasional timeout amon
   const [f, ...more] = await followUps(refused);
   assert.equal(more.length, 0);
   assert.equal(f?.key, `sources.details.${refused}`);
-  assert.match(f!.detail!, /近 7 天失败 6\/34 页/);
+  assert.match(f!.detail!, /failed 6\/34 pages in the last 7 days/);
   const report = await weekly();
   assert.doesNotMatch(report, new RegExp(`${once}|${rare}`), "nor a line in the weekly report");
-  assert.match(report, new RegExp(`详情补全失败：[^\\n]*${refused}）：近 7 天失败 6/34 页`));
+  assert.match(report, new RegExp(`Detail pages fail to load: [^\\n]*${refused}\\): failed 6/34 pages in the last 7 days`));
 });
 
 test("a low-frequency source quiet for a week is not late, while a daily one is", async () => {
@@ -190,8 +190,8 @@ test("a low-frequency source quiet for a week is not late, while a daily one is"
   assert.ok(group.overdue.some(s => s.id === daily), "a daily source quiet for a week is overdue");
   assert.deepEqual(await followUps(daily), [], "being late is not a daily follow-up: it may never end by itself");
   const report = await weekly();
-  assert.match(report, /超出自身更新节奏（先对照原站/);
-  assert.match(report, new RegExp(`${daily}）：近 7 天没有新内容，平时约 1 天一条（7 倍）`));
+  assert.match(report, /Past their own rhythm \(compare with the original site first/);
+  assert.match(report, new RegExp(`${daily}\\): nothing new for 7 days, usually one every 1 days \\(7x\\)`));
 });
 
 test("a source without enough history to have a rhythm stays visible instead of being called fine", async () => {
@@ -202,12 +202,12 @@ test("a source without enough history to have a rhythm stays visible instead of 
   assert.ok(group.unknown.some(s => s.id === thin), "two dated days are not a rhythm");
   assert.ok(group.unknown.some(s => s.id === never), "a source that never produced anything is visible too");
   assert.ok(!group.overdue.some(s => s.id === thin || s.id === never));
-  assert.match(rhythmText(group.unknown.find(s => s.id === thin)!), /近 7 天 \d+ 次抓取、0 条新内容；窗口内可比较的历史只有 2 天/);
-  assert.match(rhythmText(group.unknown.find(s => s.id === never)!), /近 7 天 \d+ 次抓取、0 条新内容；从未收到过内容/);
+  assert.match(rhythmText(group.unknown.find(s => s.id === thin)!), /\d+ fetches and 0 new items in the last 7 days; only 2 days of comparable history in the window/);
+  assert.match(rhythmText(group.unknown.find(s => s.id === never)!), /\d+ fetches and 0 new items in the last 7 days; never received anything/);
   assert.deepEqual([...await followUps(thin), ...await followUps(never)], []);
   const report = await weekly();
-  assert.match(report, new RegExp(`${thin}）：近 7 天 \\d+ 次抓取、0 条新内容；窗口内可比较的历史只有 2 天`));
-  assert.match(report, new RegExp(`${never}）：近 7 天 \\d+ 次抓取、0 条新内容；从未收到过内容`));
+  assert.match(report, new RegExp(`${thin}\\): \\d+ fetches and 0 new items in the last 7 days; only 2 days of comparable history in the window`));
+  assert.match(report, new RegExp(`${never}\\): \\d+ fetches and 0 new items in the last 7 days; never received anything`));
 });
 
 // Which days count as output: a first import is the one day it arrived, only the rhythm window counts,
@@ -276,7 +276,7 @@ test("collection failures stay reported on their own, also when the source is pa
   assert.ok(!group.unstable.some(s => s.id === broken), "listed once, as failing, not also as failing often");
   assert.ok(group.overdue.some(s => s.id === broken), "a failed source past its rhythm is not excused by its silence");
   assert.deepEqual((await followUps(broken)).map(f => f.key), [`sources.failing.${broken}`]);
-  assert.match(await weekly(), new RegExp(`超出自身更新节奏[^\\n]*${broken}`));
+  assert.match(await weekly(), new RegExp(`Past their own rhythm[^\\n]*${broken}`));
 });
 
 // Ways closing a source follow-up as "not to be fixed" goes wrong: it still shows in the digest; it is
@@ -291,7 +291,7 @@ test("a source follow-up closed as not to be fixed leaves the digest until it is
   const log = console.log;
   const digest = async () => {
     const lines: string[] = [];
-    console.log = (value: unknown) => { if (String(value).includes("系统日报")) lines.push(...JSON.parse(String(value)).lines); };
+    console.log = (value: unknown) => { if (String(value).includes("System daily report")) lines.push(...JSON.parse(String(value)).lines); };
     try { await sendDigest(now); } finally { console.log = log; }
     return lines.join("\n");
   };
@@ -309,7 +309,7 @@ test("a source follow-up closed as not to be fixed leaves the digest until it is
     await dismissFollowUp(KEY, "原站屏蔽机房出口，改用其他信源", "test", now);
     assert.ok(!(await digest()).includes(blocked));
     assert.ok(!(await digest()).includes(blocked), "still closed the next day while the problem lasts");
-    assert.match(await weekly(), new RegExp(`${blocked}）：连续失败 9 次，HTTP 403（已判定不修：原站屏蔽机房出口，改用其他信源）`));
+    assert.match(await weekly(), new RegExp(`${blocked}\\): failed 9 times in a row, HTTP 403 \\(marked won't fix: 原站屏蔽机房出口，改用其他信源\\)`));
 
     assert.ok(await restoreFollowUp(KEY, "原站恢复访问", "test"));
     assert.ok((await digest()).includes(blocked));

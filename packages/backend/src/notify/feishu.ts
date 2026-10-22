@@ -4,7 +4,7 @@
 // Everything outward is off unless explicitly enabled (development and tests stay silent).
 import { readFile, unlink } from "node:fs/promises";
 import path from "node:path";
-import { beijingStamp } from "@aihot/contracts/time";
+import { siteStamp } from "@aihot/contracts/time";
 import { config, credential } from "../config.ts";
 import { sql } from "../db.ts";
 
@@ -90,27 +90,27 @@ const MARK: Record<Exclude<Level, "later">, string> = { now: "🔴", today: "�
 
 export function duration(ms: number): string {
   const min = Math.max(1, Math.round(ms / 60_000));
-  if (min < 60) return `${min} 分钟`;
-  if (min < 48 * 60) return `${Math.floor(min / 60)} 小时${min % 60 ? ` ${min % 60} 分钟` : ""}`;
-  return `${Math.floor(min / 1440)} 天`;
+  if (min < 60) return `${min} min`;
+  if (min < 48 * 60) return `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ""}`;
+  return `${Math.floor(min / 1440)} days`;
 }
 
 /** The message for an open problem: first notice or a repeat. */
 export function formatAlert(f: Finding, since: Date, now: number, repeat = false): { title: string; lines: string[] } {
   const level = f.level === "later" ? "today" : f.level;
-  const lasting = now - since.getTime() >= 60_000 ? `（已持续 ${duration(now - since.getTime())}）` : "";
-  const lines = [f.impact && `影响：${f.impact}`, f.heals && `会自己好吗：${f.heals}`, f.action && `你需要：${f.action}`];
-  return { title: `${MARK[level]} ${repeat ? "仍未恢复：" : ""}${f.title}${lasting}`, lines: lines.filter((l): l is string => !!l) };
+  const lasting = now - since.getTime() >= 60_000 ? ` (ongoing for ${duration(now - since.getTime())})` : "";
+  const lines = [f.impact && `Impact: ${f.impact}`, f.heals && `Will it fix itself: ${f.heals}`, f.action && `What you need to do: ${f.action}`];
+  return { title: `${MARK[level]} ${repeat ? "Still not recovered: " : ""}${f.title}${lasting}`, lines: lines.filter((l): l is string => !!l) };
 }
 
 export function formatRecovery(title: string, since: Date, now: number): { title: string; lines: string[] } {
-  return { title: `✅ 已恢复：${title}`, lines: [`持续 ${duration(now - since.getTime())}（${beijingStamp(since)} 起）`] };
+  return { title: `✅ Recovered: ${title}`, lines: [`Lasted ${duration(now - since.getTime())} (from ${siteStamp(since)})`] };
 }
 
 /** Operations alert: the alert chat, falling back to the internal feedback chat — never a content group. */
 export async function sendAlert(title: string, lines: string[]): Promise<"sent" | "disabled"> {
   // Production needs no label; any other environment that has sending on says which one it is.
-  const text = `${config.environmentName === "production" ? "" : `【${config.environmentName}】`}${title}\n${lines.join("\n")}`;
+  const text = `${config.environmentName === "production" ? "" : `[${config.environmentName}] `}${title}\n${lines.join("\n")}`;
   if (!feishuInternalEnabled()) {
     console.log(JSON.stringify({ level: "warn", msg: "alert (not sent: FEISHU_INTERNAL_ENABLED is off)", title, lines }));
     return "disabled";
@@ -131,14 +131,14 @@ const SCREENSHOT_GIVE_UP_MS = 24 * 3600_000;
 async function screenshotFor(fb: { id: number; screenshot_key: string | null; created_at: Date }): Promise<{ imageKey: string | null; note: string | null }> {
   const key = fb.screenshot_key;
   if (key?.startsWith("feishu:")) return { imageKey: key.slice("feishu:".length), note: null };
-  if (key === "gone:upload") return { imageKey: null, note: "（截图未能上传，已删除）" };
-  if (key === "gone:missing") return { imageKey: null, note: "（截图文件已不存在）" };
+  if (key === "gone:upload") return { imageKey: null, note: "(The screenshot could not be uploaded and was deleted)" };
+  if (key === "gone:missing") return { imageKey: null, note: "(The screenshot file no longer exists)" };
   if (!key?.startsWith("local:")) return { imageKey: null, note: null };
   const file = path.join(config.dataDir, "feedback-screenshots", key.slice("local:".length));
   const data = await readFile(file).catch(() => null);
   if (!data) {
     await sql`UPDATE feedback SET screenshot_key = 'gone:missing' WHERE id = ${fb.id}`;
-    return { imageKey: null, note: "（截图文件已不存在）" };
+    return { imageKey: null, note: "(The screenshot file no longer exists)" };
   }
   try {
     const imageKey = await uploadImage(data, path.basename(file));
@@ -151,7 +151,7 @@ async function screenshotFor(fb: { id: number; screenshot_key: string | null; cr
     if (!(error instanceof ImageRefusedError) && Date.now() - fb.created_at.getTime() < SCREENSHOT_GIVE_UP_MS) throw error;
     await sql`UPDATE feedback SET screenshot_key = 'gone:upload' WHERE id = ${fb.id}`;
     await unlink(file).catch(() => {});
-    return { imageKey: null, note: "（截图未能上传，已删除）" };
+    return { imageKey: null, note: "(The screenshot could not be uploaded and was deleted)" };
   }
 }
 
@@ -170,13 +170,13 @@ export async function forwardFeedbackToFeishu(id: number): Promise<"sent" | "dis
     const shot = await screenshotFor(fb);
     const paragraphs: unknown[][] = [
       [{ tag: "text", text: fb.content }],
-      [{ tag: "text", text: `页面：${fb.page_url ?? "—"}` }],
-      [{ tag: "text", text: `邮箱：${fb.email ?? "（未留）"}` }],
+      [{ tag: "text", text: `Page: ${fb.page_url ?? "—"}` }],
+      [{ tag: "text", text: `Email: ${fb.email ?? "(not given)"}` }],
     ];
     if (fb.note) paragraphs.push([{ tag: "text", text: fb.note }]);
     if (shot.imageKey) paragraphs.push([{ tag: "img", image_key: shot.imageKey }]);
     else if (shot.note) paragraphs.push([{ tag: "text", text: shot.note }]);
-    await sendToChat(chat, "post", { zh_cn: { title: `反馈 #${fb.id}`, content: paragraphs } });
+    await sendToChat(chat, "post", { zh_cn: { title: `Feedback #${fb.id}`, content: paragraphs } });
     await sql`UPDATE feedback SET forwarded_at = now(), forward_error = NULL WHERE id = ${id}`;
     return "sent";
   } catch (error) {

@@ -1,10 +1,10 @@
-将以下推文翻译为中文,并取一个 10-15 字的中文标题(用于日报排版,不影响推文展示)。
+Translate the following post into English, and give it an English title of 5 to 12 words (used in the daily brief layout; it does not change how the post is shown).
 {{> safety}}
 
-- 保留原文的换行格式
-- 简洁直译,不要扩写（推文短，最容易扩出原文没有的内容）
-- 只翻译主推文,不要把引用推文逐句展开到结果里
-- 标题概括推文核心,不要照抄推文开头
+- Keep the original line breaks
+- Translate plainly and directly; do not expand (short posts are the easiest to pad with things the original never said)
+- Translate only the main post; do not unfold the quoted post sentence by sentence in the result
+- The title sums up the post's core; do not copy the post's opening
 
 {{> rules-self-contained-title}}
 
@@ -12,11 +12,11 @@
 
 {{> rules-anti-hallucination}}
 
-输出格式（严格遵守）：
-title_zh: <10-15字中文标题>
-body_zh: <中文翻译>
+Output format (follow strictly; keep the labels, write the text in English):
+title_zh: <English title, 5 to 12 words>
+body_zh: <English translation>
 
-来源：{{sourceName}}
+Source: {{sourceName}}
 {{identity}}
-主推文内容：
+Main post:
 {{post}}

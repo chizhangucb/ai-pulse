@@ -9,7 +9,7 @@ export interface ReaderCopy {
   reasonZh: string | null;
 }
 
-const FIELDS: Array<[keyof ReaderCopy, string]> = [["titleZh", "标题"], ["summaryZh", "摘要"], ["reasonZh", ITEM_COPY.reasonLabel]];
+const FIELDS: Array<[keyof ReaderCopy, string]> = [["titleZh", "Title"], ["summaryZh", "Summary"], ["reasonZh", ITEM_COPY.reasonLabel]];
 
 /**
  * Every use of a word of the list in a copy, each as a line the model can act on: where, the words around it,
@@ -22,7 +22,7 @@ export function wordingProblems(copy: ReaderCopy): string[] {
     if (!text) continue;
     for (const [pattern, fix] of READER_WORDING) {
       for (const hit of text.matchAll(new RegExp(pattern.source, `${pattern.flags.replace("g", "")}g`))) {
-        problems.push(`${name}用了“${hit[0]}”（“${text.slice(Math.max(0, hit.index - 8), hit.index + hit[0].length + 8)}”）：${fix}`);
+        problems.push(`${name} uses "${hit[0]}" ("${text.slice(Math.max(0, hit.index - 20), hit.index + hit[0].length + 20)}"): ${fix}`);
       }
     }
   }

@@ -79,6 +79,8 @@ function extractJson(text: string): unknown {
   let t = text.trim();
   const fence = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(t);
   if (fence) t = fence[1]!;
+  // A one-number answer ("81"): the schema of a step that asks for one number decides whether it may stand alone.
+  if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
   const start = t.indexOf("{");
   const end = t.lastIndexOf("}");
   if (start === -1 || end === -1) throw new ModelOutputError("No JSON object in model output");
@@ -215,11 +217,13 @@ async function chatOnce<S extends z.ZodType>(opts: ChatJsonOptions<S>, circuit =
         json = { unparsable: text.slice(0, 20000) };
       }
       const usage = (json.usage as Record<string, unknown> | undefined) ?? null;
+      // OpenRouter bills in USD credits and reports the charge of each answer as usage.cost.
+      const charged = typeof usage?.cost === "number" && Number.isFinite(usage.cost) ? usage.cost : null;
       return {
         response: { ...json, _latencyMs: Math.round(performance.now() - started) },
         requestId: (json.id as string | undefined) ?? res.headers.get("x-request-id"),
         usage,
-        cost: null,
+        cost: charged === null ? null : { amount: charged, currency: "USD", basis: "actual" },
       };
     },
     circuit ? async tx => { permit = await enterModelCircuit(tx, spec.service, timeoutMs); } : undefined,

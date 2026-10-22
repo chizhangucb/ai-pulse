@@ -25,8 +25,8 @@ let response: "complete" | "missing" = "complete";
 const provider = await stub((_hit, request) => {
   const body = JSON.parse(request.body);
   const text = body.messages[1].content as string;
-  if (text.includes("【报道 A】")) return { choices: [{ message: { content: JSON.stringify({ a: "发布", b: "发布", relation: "SAME_OCCURRENCE", difference: "", confidence: 1 }) } }] };
-  const ids = [...text.matchAll(/【候选 (C\d+)】/g)].map(m => m[1]);
+  if (text.includes("[Report A]")) return { choices: [{ message: { content: JSON.stringify({ a: "发布", b: "发布", relation: "SAME_OCCURRENCE", difference: "", confidence: 1 }) } }] };
+  const ids = [...text.matchAll(/\[Candidate (C\d+)\]/g)].map(m => m[1]);
   return { choices: [{ message: { content: JSON.stringify({ query: "新模型发布", decisions: (response === "missing" ? [] : ids).map(id => ({ id, relation: "SAME_OCCURRENCE", confidence: 1, note: "" })), selection: { addsValue: true, reason: "fixture news" } }) } }] };
 });
 pointModels(provider.url, ["deepseek-flash", "mimo-v2.6-flash", "glm-5.3-flash"]);
@@ -65,6 +65,14 @@ before(async () => {
   await groupArticle(id);
 });
 after(async () => { await provider.close(); await embeddings.close(); await stopBoss(); await closeDb(); });
+
+test("a reading-value reason over 400 characters is cut to 400, not a failed grouping answer", () => {
+  const reason = `${"Adds the benchmark table. ".repeat(20)}Tail beyond the limit.`;
+  const parsed = BatchSchema.parse({ query: "q", decisions: [], selection: { addsValue: true, reason } });
+  assert.equal(parsed.selection.reason, reason.slice(0, 400));
+  assert.equal(parsed.selection.reason.length, 400);
+  assert.equal(BatchSchema.safeParse({ query: "q", decisions: [], selection: { addsValue: true, reason: " " } }).success, false);
+});
 
 test("missing and invalid identity answers cannot silently assert unrelated", () => {
   assert.equal(BatchSchema.safeParse({}).success, false);

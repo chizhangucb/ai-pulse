@@ -1,9 +1,9 @@
 // The upstream budget of image fetches. The image proxy is the one path where the origin fetches
 // third-party bytes on a reader's behalf (vision analysis shares it), so a site may cap them per minute
-// and per Beijing day (site.ts DEPLOYMENT.imageUpstreamBudget; IMGPROXY_UPSTREAM_MB_PER_MINUTE and
+// and per day in the site's zone (site.ts DEPLOYMENT.imageUpstreamBudget; IMGPROXY_UPSTREAM_MB_PER_MINUTE and
 // IMGPROXY_UPSTREAM_GB_PER_DAY win). Past it, uncached images get 503 until the window resets (cached ones
 // are still served); a spent day goes into the alerts' digest.
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 import { DEPLOYMENT } from "@aihot/site";
 import { sql } from "../db.ts";
 import type { Finding } from "../notify/feishu.ts";
@@ -23,7 +23,7 @@ let tripped: string | null = null;
 export function upstreamAllowed(now = Date.now()): { ok: true } | { ok: false; reason: string } {
   const m = Math.floor(now / 60_000);
   if (minute.at !== m) minute = { at: m, bytes: 0 };
-  const d = beijingDate(now);
+  const d = siteDate(now);
   if (day.key !== d) day = { key: d, bytes: 0 };
   if (minute.bytes >= MINUTE_BUDGET) return trip("minute", now);
   if (day.bytes >= DAY_BUDGET) return trip("day", now);
@@ -32,7 +32,7 @@ export function upstreamAllowed(now = Date.now()): { ok: true } | { ok: false; r
 }
 
 function trip(window: "minute" | "day", now: number): { ok: false; reason: string } {
-  const reason = window === "minute" ? `图片代理上游流量超过每分钟 ${MINUTE_BUDGET / 1e6} MB` : `图片代理上游流量超过当日 ${DAY_BUDGET / 1e9} GB`;
+  const reason = window === "minute" ? `image proxy upstream traffic over ${MINUTE_BUDGET / 1e6} MB a minute` : `image proxy upstream traffic over ${DAY_BUDGET / 1e9} GB today`;
   if (tripped !== window) {
     tripped = window;
     void sql`INSERT INTO settings (key, value, updated_by) VALUES ('egress.imgproxy', ${sql.json({ window, reason, at: new Date(now).toISOString(), dayBytes: day.bytes })}, 'api')
@@ -52,5 +52,5 @@ export function recordUpstream(bytes: number, now = Date.now()): void {
 export async function upstreamFindings(now = Date.now()): Promise<Finding[]> {
   const [img] = await sql<{ value: { window: string; reason: string }; updated_at: Date }[]>`SELECT value, updated_at FROM settings WHERE key = 'egress.imgproxy'`;
   if (!img || img.value.window !== "day" || now - img.updated_at.getTime() >= 86400_000) return [];
-  return [{ key: "egress.imgproxy", level: "later", title: "图片代理今天的流量额度用完了，未缓存的图片到零点前显示不出来", detail: String(img.value.reason) }];
+  return [{ key: "egress.imgproxy", level: "later", title: "The image proxy used up today's traffic budget; uncached images will not show until midnight", detail: String(img.value.reason) }];
 }

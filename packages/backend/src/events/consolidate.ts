@@ -3,7 +3,7 @@
 // see one story. Stories that stay apart though reports keep tying them list each other as related
 // events (linkRelatedStories, hourly).
 import { modelRoute } from "../editorial/models.ts";
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 import { sql } from "../db.ts";
 import { chatJson } from "../providers/llm.ts";
 import { completeReceipt } from "../providers/receipts.ts";
@@ -49,7 +49,7 @@ async function storyRoot(storyId: number): Promise<StoryRoot | null> {
     storyId, at: row.started_at, roundup: row.roundup,
     report: {
       title: row.title, source: row.source, firstParty: row.first_party, at: row.at, publicationTime: row.publicationTime, summary: row.summary,
-      frame: { subject: row.subject, action: row.action, object: row.object, occurredAt: row.occurred_at ? beijingDate(row.occurred_at) : null },
+      frame: { subject: row.subject, action: row.action, object: row.object, occurredAt: row.occurred_at ? siteDate(row.occurred_at) : null },
     },
   };
 }
@@ -115,7 +115,7 @@ export async function consolidate(storyIds: number[]): Promise<Consolidation[]> 
     const second = await judgeStories("groupReview", other, anchor);
     await completeReceipt(sql, second.receiptId);
     const merge = firmlyTied(second.relation, second.confidence, STORY_REVIEW_MIN_CONFIDENCE)
-      && !!await mergeStoryInto(other.storyId, anchor.storyId, `同一事件（${first.relation}，复核 ${second.relation}）：${other.report.title}｜${anchor.report.title}`, "grouping");
+      && !!await mergeStoryInto(other.storyId, anchor.storyId, `same story (${first.relation}, review ${second.relation}): ${other.report.title} | ${anchor.report.title}`, "grouping");
     out.push({ ...base, merge, first: first.relation, second: second.relation, difference: first.difference || second.difference });
   }
   return out;

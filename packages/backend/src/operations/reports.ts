@@ -31,29 +31,29 @@ export async function sourceHealthWeekly(now = Date.now()) {
     dismissedFollowUps(),
   ]);
   const lines = [
-    `本周收录 ${n(items!.week)} 条（上周 ${n(items!.prev)}，${pct(items!.week, items!.prev)}），其中精选 ${n(items!.selected)} 条`,
-    `在用信源 ${counts!.enabled} 个，本周新增 ${counts!.added} 个；抓取失败 ${counts!.failing} 个，不太稳定 ${counts!.degraded} 个`,
+    `${n(items!.week)} items this week (last week ${n(items!.prev)}, ${pct(items!.week, items!.prev)}), ${n(items!.selected)} of them selected`,
+    `${counts!.enabled} sources in use, ${counts!.added} added this week; ${counts!.failing} failing, ${counts!.degraded} unstable`,
   ];
   // The modules' own collectors, a line each.
   for (const m of serverModules()) if (m.sourceHealth) lines.push(...(await m.sourceHealth(now)));
   for (const group of groups) {
-    lines.push("", `${group.name}：${group.sources.length} 个在用信源；本周归属条目 ${n(group.sources.reduce((sum, s) => sum + s.items, 0))} 条；连续失败 ${group.failing.length} 个、反复失败 ${group.unstable.length} 个、超出自身更新节奏 ${group.overdue.length} 个、7 天没有新内容 ${group.unknown.length} 个`);
+    lines.push("", `${group.name}: ${group.sources.length} sources in use; ${n(group.sources.reduce((sum, s) => sum + s.items, 0))} items this week; ${group.failing.length} failing in a row, ${group.unstable.length} failing intermittently, ${group.overdue.length} past their own rhythm, ${group.unknown.length} with nothing new for 7 days`);
     for (const p of SOURCE_PROBLEMS) {
       if (!group[p.problem].length) continue;
-      lines.push(`${p.title}：${sourceHealthList(group[p.problem], s => {
+      lines.push(`${p.title}: ${sourceHealthList(group[p.problem], s => {
         const dismissal = dismissed[`sources.${p.problem}.${s.id}`];
-        return p.describe(s) + (dismissal ? `（已判定不修：${dismissal.reason}）` : "");
+        return p.describe(s) + (dismissal ? ` (marked won't fix: ${dismissal.reason})` : "");
       })}`);
     }
-    if (group.overdue.length) lines.push(`超出自身更新节奏（先对照原站，区分采集失效与它自己变慢）：${sourceHealthList(group.overdue, rhythmText)}`);
-    if (group.unknown.length) lines.push(`7 天没有新内容（窗口内产出历史不足以判断节奏，或从未收到内容）：${sourceHealthList(group.unknown, rhythmText)}`);
+    if (group.overdue.length) lines.push(`Past their own rhythm (compare with the original site first, to tell a broken collection from a source that slowed down): ${sourceHealthList(group.overdue, rhythmText)}`);
+    if (group.unknown.length) lines.push(`Nothing new for 7 days (not enough output in the window to judge a rhythm, or never received anything): ${sourceHealthList(group.unknown, rhythmText)}`);
   }
   const failing = counts!.failing;
   const overdue = groups.reduce((sum, g) => sum + g.overdue.length, 0);
   // Quiet sources still worth a look: past their own rhythm, or not judgeable.
   const silent = overdue + groups.reduce((sum, g) => sum + g.unknown.length, 0);
   const followUp = counts!.failing > 0 || silent > 0 || groups.some(g => g.failing.length || g.unstable.length || g.quality.length || g.details.length);
-  lines.push("", followUp ? "需要处理的话，把这条转给 AI；详情在后台“信源”与“运行”页。" : "没有需要处理的信源。");
-  await sendAlert("📊 信源周报", lines);
+  lines.push("", followUp ? "To act on this, hand this message to the AI; details are on the admin Sources and Runs pages." : "No sources need attention.");
+  await sendAlert("📊 Weekly source report", lines);
   return { failing, silent, overdue };
 }

@@ -1,53 +1,53 @@
-# 给 Agent 的说明
+# Notes for agents
 
-这是一个行业热点网站的框架：采集信源、用模型筛选和写作、归组事件、出日报周报月报，并通过网站、RSS、公开 API、Agent Markdown 和 MCP 对外提供。默认配置是一个 AI 行业的示例站。先读 README，再按任务读 `docs/` 里对应的文档。
+This is a framework for an industry news site: it collects sources, uses models to screen and write, groups items into events, produces daily, weekly and monthly reports, and serves them through the website, RSS, a public API, Agent Markdown and MCP. The default configuration is an example site for the AI industry. Read the README first, then the documents in `docs/` that match your task.
 
-## 最常见的任务：改成另一个行业
+## The most common task: switching to another industry
 
-按 `docs/customize.md` 的顺序做。这个站自己的东西在 `site/`：站名文案（`site.ts`）、每一步的模型（`models.ts`）、品牌与 Logo（`brand/`）、条款页（`pages/`）、发布在网站根目录的固定文件（`public/`，替换占位符后发布）、更新日志（`changelog.json`）。行业知识在 `industry/`：分类标签（`taxonomy.ts`）、主题（`topics.json`）、示范信源（`sources.json`）、提示词（`prompts/`）、门槛（`selection.ts`）。通常不需要改 `apps/` 和 `packages/`；框架里没有、只有这个站要的功能，做成模块放进 `modules/`（`docs/architecture.md` 的“模块”）。
+Follow the order in `docs/customize.md`. What belongs to this site is in `site/`: the site name and copy (`site.ts`), the model for each step (`models.ts`), brand and logo (`brand/`), terms pages (`pages/`), the fixed files published at the site root (`public/`, published with their placeholders filled in) and the changelog (`changelog.json`). Industry knowledge is in `industry/`: categories and tags (`taxonomy.ts`), topics (`topics.json`), demo sources (`sources.json`), prompts (`prompts/`) and thresholds (`selection.ts`). You usually do not need to change `apps/` or `packages/`. A feature the framework lacks and only this site needs becomes a module in `modules/` ("Modules" in `docs/architecture.md`).
 
-这些事要问使用者本人，不要替他决定：站名；要盯哪些信源；什么消息重要、什么是噪声；分类怎么分；条款和隐私说明的内容（`site/pages/` 是模板，上线前需要他本人确认）。
+Ask the user these things instead of deciding for them: the site name; which sources to follow; what news matters and what is noise; how to divide the categories; the content of the terms and privacy pages (`site/pages/` are templates that the user must confirm before going live).
 
-改评分标准时保留原有结构（内容类型、五个维度加权、噪声压制、安全边界），替换的是“什么算重要”“什么算噪声”的例子。门槛要用使用者标注的样本重新校准（`docs/selection.md`），不要凭感觉改数字。
+When you change the scoring rubric, keep its structure (content types, five weighted dimensions, noise suppression, safety limits) and replace the examples of "what counts as important" and "what counts as noise". Recalibrate the thresholds with samples the user has labeled (`docs/selection.md`); do not change the numbers by feel.
 
-## 运行与检查
+## Running and checking
 
-- Node.js 24 直接运行 TypeScript，后端没有构建步骤。npm workspaces：`apps/*`、`packages/*`、`industry`、`site`、`modules/*`。
-- 本机运行和 Docker 见 `docs/deploy.md`。
-- 改完至少跑：
+- Node.js 24 runs TypeScript directly; the backend has no build step. npm workspaces: `apps/*`, `packages/*`, `industry`, `site`, `modules/*`.
+- Running locally and with Docker is in `docs/deploy.md`.
+- After a change, run at least:
   ```bash
   npm run typecheck
-  DATABASE_URL=postgres://127.0.0.1:5432/<名字>_test npm test   # 名字必须以 _test 或 _ci 结尾；没有会自动建好并迁移，账号要能建库
+  DATABASE_URL=postgres://127.0.0.1:5432/<name>_test npm test   # the name must end in _test or _ci; it is created and migrated if missing, so the account must be able to create databases
   npm run build -w @aihot/web && node --test apps/web/tests/*.test.ts
-  node scripts/smoke.ts --base http://localhost:3000             # 站点跑起来以后
+  node scripts/smoke.ts --base http://localhost:3000             # once the site is running
   ```
-- `tests/` 里部分测试用的是示例行业的分类、标签和公司，改了 `industry/taxonomy.ts` 后把这些例子换成新行业的对应项。
+- Some tests in `tests/` use the example industry's categories, tags and companies. After changing `industry/taxonomy.ts`, replace those examples with the matching items of the new industry.
 
-## 要守住的规则
+## Rules to keep
 
-- 前端（`apps/web`）只通过 HTTP 读 `apps/api`，数据库、模型调用和密钥只在后端。
-- 所有公开出口都从 `packages/backend/src/publication/` 这一个读取层读，新增公开出口也一样。
-- 读者打开页面不触发模型调用；模型只在 worker 的任务里调用。
-- 付费请求都经过回执（`providers/receipts.ts`）和预算熔断，不要绕开。
-- 安全阀只有设成 `true` 才打开。开发时保持关闭：`COLLECT_ENABLED`、`MODEL_CALLS_ENABLED`、`FEISHU_*_ENABLED`、`INDEXNOW_SUBMIT_ENABLED`。测试里推送一直关着，采集和模型调用只连本地假服务，不访问任何外部服务。
-- 信源默认只展示摘要和原文链接（`site_fulltext` 关）；只有来源明确允许时才打开全文。
-- 公开内容匿名，管理员和访客看到的一样；后台只允许管理员。
-- 停用或替换一个功能、机制时，同一个改动删掉它的代码、测试、文档和存下的状态（库表与列、定时任务、settings、环境变量和 `.env.example` 里的项）；会删掉使用者已有数据的，在 `docs/deploy.md` 的更新说明里写明。加锁、重试、兼容旧格式、开关和兜底，先要有证据：真实部署里发生过，或平台的语义决定它会发生。
-- 数据库迁移放在 `database/migrations/`（只属于某个模块的表放在它的 `migrations/`），按完整文件名排序执行和记账；编号相同的不同文件分别执行，新增迁移使用新的文件名，已经发布的迁移不改。从 `0055` 起，每个文件只放一条允许在线执行的语句，PR 会检查；索引使用 `CONCURRENTLY IF NOT EXISTS`，大批数据回填不放进发布迁移。约束验证和破坏性变更先按 [迁移约定](docs/architecture.md#数据库迁移) 设计，不能修改历史文件或关闭检查绕过。
-- 不要提交 `.env`、密钥和 `.data/`。
-- 不要使用 AIHOT 的名字和 Logo。
+- The frontend (`apps/web`) reads `apps/api` only over HTTP; the database, model calls and secrets stay in the backend.
+- Every public output reads from the one read layer in `packages/backend/src/publication/`, and so does any new public output.
+- A reader opening a page never triggers a model call; models are called only in worker jobs.
+- Every paid request goes through receipts (`providers/receipts.ts`) and the budget circuit breaker; do not bypass them.
+- A safety valve is open only when set to `true`. Keep these off during development: `COLLECT_ENABLED`, `MODEL_CALLS_ENABLED`, `FEISHU_*_ENABLED`, `INDEXNOW_SUBMIT_ENABLED`. In tests pushing is always off, and collection and model calls go only to local fake services, never to an external service.
+- A source shows only a summary and the link to the original by default (`site_fulltext` off); turn full text on only when the source clearly allows it.
+- Public content is anonymous: an admin and a visitor see the same thing. The admin area is for admins only.
+- When you retire or replace a feature or mechanism, delete its code, tests, docs and stored state (tables and columns, scheduled jobs, settings, environment variables and their entries in `.env.example`) in the same change; if that deletes data users already have, say so in the update notes in `docs/deploy.md`. Locks, retries, compatibility with old formats, switches and fallbacks need evidence first: it happened in a real deployment, or the platform's semantics make it certain to happen.
+- Database migrations go in `database/migrations/` (tables that belong to one module go in its `migrations/`), and run and are recorded in order of their full file names; different files with the same number each run, a new migration uses a new file name, and a released migration is never changed. From `0055` on, each file holds one statement that is safe to run online, and the PR checks this; indexes use `CONCURRENTLY IF NOT EXISTS`, and large data backfills stay out of release migrations. Design constraint validation and destructive changes by the [migration rules](docs/architecture.md#database-migrations) first; never edit history files or turn the check off to get around it.
+- Never commit `.env`, secrets or `.data/`.
+- Do not use the AIHOT name or logo.
 
-## 写代码
+## Writing code
 
-匹配周围代码的写法、命名和注释密度。选能清楚解决问题的简单方案，只定义正在使用的抽象。验证改动涉及的重要行为，不为简单的样式改动写测试。
+Match the style, naming and comment density of the surrounding code. Choose the simple solution that clearly solves the problem, and define only abstractions that are in use. Verify the important behavior a change touches; do not write tests for simple style changes.
 
-## 给本仓库提 PR
+## Sending a PR to this repository
 
-要把改动提回 `KKKKhazix/AIHOT` 时，先读 `CONTRIBUTING.md`。下面是评审里最常被退回或返工的情况：
+To send a change back to `KKKKhazix/AIHOT`, read `CONTRIBUTING.md` first. These are the cases most often sent back or reworked in review:
 
-- **只收对所有站都成立的改进。** 新开关、新的配置入口和新功能再小也算产品行为，先开 Issue 讲清场景：每个开关所有站都要长期维护，没讨论就提交的这类 PR 大多没有收。你们站自己的规定、数字和例子留在自己的 `industry/`、`site/`，不写进共享的提示词模板、注释和测试。
-- **先找现有的。** 加函数、插口或配置前先搜一遍，常见能力多半已有一份：模块发自己的文件用 `apps/api/src/routes/static.ts` 的 `sendFile`，接中转站填 `LLM_BASE_URL`。再写一份，两处迟早不一致。
-- **测试只证明你想到的情况。** 动了采集、日期、正文清洗、精选或归组的，拿一批公开的真实订阅和网页跑改动前后，在 PR 里写有多少条结果变了、变的是否都对。中文网页的时间常不带时区，按信源时区读（默认 `+08:00`），上面的 “CST” 一般指北京时间；测试结果不能取决于运行机器的时区。
-- **测试守行为，不守写法。** 复现问题的测试并进这个功能已有的测试文件，不为一次修复新开文件；不断言私有常量、CSS 类名、像素位置或浏览器自己的行为，不把重构前的输出钉成永久测试。合并前会按这个标准删减测试。
-- **这几类文件不收外部 PR 的修改：** 依赖与锁文件（版本升级由 dependabot 提）、`AGENTS.md`、`CLAUDE.md`、`CONTRIBUTING.md`、`SECURITY.md` 和 `.agents/`、`.claude/` 下的规则、二进制文件（测试要的样本请用代码生成）。需要改的先开 Issue 说明，由维护者来改：规则文件决定之后的 Agent 怎么做事，依赖和二进制没法逐行审。
-- **改全。** 新的环境变量写进 `.env.example`，新的站点配置写进 `site/`；改了配置字段的意思，示例配置跟着改，让已部署的站升级后行为不变（比如改成只给声明了 `vision` 的模型附图，本来就能看图的预设要补上声明）；改一个读者看到的名字或入口，出现它的地方一起改。新增或更改导航配置时，分别核对默认配置与非默认配置的电脑侧栏、手机底栏、返回和“我的”入口，入口变少时的标签布局也要在浏览器里看；默认值不变只能证明原行为，不能证明配置可用。
+- **Only improvements that hold for every site are accepted.** A new switch, a new configuration entry or a new feature, however small, is product behavior: open an Issue first and explain the scenario. Every switch has to be maintained by every site for the long term, and most PRs of this kind submitted without discussion were not accepted. Your own site's rules, numbers and examples stay in your own `industry/` and `site/`, not in the shared prompt templates, comments and tests.
+- **Look for what exists first.** Search before adding a function, hook or configuration; a common capability usually exists once already. A module sends its own files with `sendFile` from `apps/api/src/routes/static.ts`; a relay service is set with `LLM_BASE_URL`. A second copy will drift from the first sooner or later.
+- **Tests only prove the cases you thought of.** If you changed collection, dates, body cleaning, selection or grouping, run a batch of real public feeds and pages before and after the change, and state in the PR how many results changed and whether every change is right. Times on Chinese web pages often lack a zone; read them in the source's zone (default `+08:00`), and "CST" on them usually means Beijing time. Test results must not depend on the time zone of the machine running them.
+- **Tests guard behavior, not wording.** Put a test that reproduces a problem in the feature's existing test file; do not open a new file for one fix. Do not assert private constants, CSS class names, pixel positions or the browser's own behavior, and do not pin the pre-refactor output as a permanent test. Tests are trimmed to this standard before merging.
+- **External PRs may not change these files:** dependencies and lock files (dependabot proposes version upgrades), `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `SECURITY.md`, the rules under `.agents/` and `.claude/`, and binary files (generate test samples in code). If one needs changing, open an Issue and a maintainer will change it: the rules files decide how later agents work, and dependencies and binaries cannot be reviewed line by line.
+- **Change everything it touches.** A new environment variable goes into `.env.example`, and new site configuration into `site/`. If you change what a configuration field means, update the example configuration so deployed sites behave the same after upgrading (for example, if images are sent only to models that declare `vision`, add the declaration to the presets that could already see images). When you change a name or entry point readers see, change every place it appears. When you add or change navigation configuration, check the desktop sidebar, the mobile bottom bar, back navigation and the "Me" entry with both the default and a non-default configuration, and look at the tab layout in a browser when there are fewer entries; an unchanged default only proves the old behavior, not that the configuration works.

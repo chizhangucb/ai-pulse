@@ -58,6 +58,20 @@ test("the website filters by each of its own categories", async () => {
   }
 });
 
+test("the API description dates reports in the site's own zone", async () => {
+  const spec = (await app.inject('/openapi-v1.json')).json();
+  assert.match(spec.paths['/api/v1/dailies/{date}'].get.description, /^A single past daily report by America\/Los_Angeles calendar date \(YYYY-MM-DD\)\./);
+  assert.equal(spec.paths['/api/v1/dailies/{date}'].get.summary, "Get a daily report by calendar date in the site's time zone");
+  const outputs = {
+    openapi: JSON.stringify(spec),
+    mcp: JSON.stringify(await client.listTools()),
+    llms: (await app.inject('/llms.txt')).body,
+  };
+  for (const [name, body] of Object.entries(outputs)) {
+    assert.doesNotMatch(body, /Shanghai|Beijing|UTC\s*\+\s*0?8\b|\{\{timeZone\}\}/, name);
+  }
+});
+
 test("HTTP, Agent, MCP and discovery agree on the public categories and returned items", async () => {
   const spec = (await app.inject('/openapi-v1.json')).json();
   for (const path of ['/api/v1/items', '/api/v1/agent/latest', '/api/v1/agent/search']) {

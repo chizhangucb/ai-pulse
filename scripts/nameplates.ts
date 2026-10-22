@@ -1,8 +1,8 @@
 // Generates the report nameplates (site/brand/nameplates/*.svg and index.json): the subject word
-// from site/site.ts (in the accent) and the Chinese title, set solid in Noto Sans SC Black
-// (SIL OFL 1.1) as SVG paths, so the nameplate is one static logotype on every system. The Latin
-// capitals are scaled to stand as tall as the Chinese glyphs, both centred on one line, and the spacing
-// is set by ink, pair by pair.
+// from site/site.ts (in the accent) and the brief's name, set solid in Noto Sans SC Black
+// (SIL OFL 1.1) as SVG paths, so the nameplate is one static logotype on every system. Latin capitals
+// are scaled to stand as tall as any Chinese glyphs, both centred on one line; spacing is set by ink,
+// pair by pair, with a word space between parts, and the box follows the ink (descenders included).
 //
 // Usage: node scripts/nameplates.ts <@fontsource/noto-sans-sc package directory>
 //   (fetch it with `npm pack @fontsource/noto-sans-sc@5.3.0` and untar; it is not a dependency)
@@ -31,21 +31,23 @@ const S = SITE.subject;
 const NAMEPLATES: Record<string, Array<{ text: string; accent: boolean }>> = {
   daily: [
     { text: S, accent: true },
-    { text: "日报", accent: false },
+    { text: "Daily", accent: false },
   ],
   weekly: [
     { text: S, accent: true },
-    { text: "周报", accent: false },
+    { text: "Weekly", accent: false },
   ],
   monthly: [
     { text: S, accent: true },
-    { text: "月报", accent: false },
+    { text: "Monthly", accent: false },
   ],
   archive: [
-    { text: "日报", accent: false },
-    { text: "合订本", accent: true },
+    { text: "Daily", accent: false },
+    { text: "Archive", accent: true },
   ],
 };
+/** Space between two Latin parts (words). */
+const WORD = H * 0.3;
 
 // Which woff slice of the 900 weight holds each character.
 const css = readFileSync(path.join(pkg, "900.css"), "utf8");
@@ -75,29 +77,37 @@ function fit(group: string[], height: number) {
   const size = (1000 * height) / (bottom - top);
   return { size, baseline: -((top + bottom) / 2) * (size / 1000) };
 }
-const cjk = fit(chars.filter((ch) => !isLatin(ch)), H);
-const latin = chars.some(isLatin) ? fit(chars.filter(isLatin), CAPS) : cjk;
+const ideographs = chars.filter((ch) => !isLatin(ch));
+// Latin is fitted by its capitals, so lowercase letters keep their natural x-height and descenders.
+const capitals = chars.filter((ch) => /[A-Z]/.test(ch));
+const latin = fit(capitals.length ? capitals : chars.filter(isLatin), CAPS);
+const cjk = ideographs.length ? fit(ideographs, H) : latin;
 
 const out: Record<string, { viewBox: string; accent: string; ink: string }> = {};
 for (const [name, parts] of Object.entries(NAMEPLATES)) {
   const accent: string[] = [];
   const ink: string[] = [];
   let x = MARGIN;
+  let top = -Math.max(H, CAPS) / 2;
+  let bottom = Math.max(H, CAPS) / 2;
   let prev: string | null = null;
   for (const part of parts) {
+    let first = true;
     for (const ch of part.text) {
       const { size, baseline } = isLatin(ch) ? latin : cjk;
       const box = boxes.get(ch)!;
       const scale = size / 1000;
-      if (prev) x += gap(prev, ch);
+      if (prev) x += first && isLatin(prev) && isLatin(ch) ? WORD : gap(prev, ch);
+      first = false;
+      top = Math.min(top, baseline + box.y1 * scale);
+      bottom = Math.max(bottom, baseline + box.y2 * scale);
       const origin = x - box.x1 * scale;
       (part.accent ? accent : ink).push(fontFor(ch).getPath(ch, origin, baseline, size).toPathData(1));
       x = origin + box.x2 * scale;
       prev = ch;
     }
   }
-  const half = Math.max(H, CAPS) / 2 + MARGIN;
-  out[name] = { viewBox: `0 ${(-half).toFixed(1)} ${(x + MARGIN).toFixed(1)} ${(2 * half).toFixed(1)}`, accent: accent.join(" "), ink: ink.join(" ") };
+  out[name] = { viewBox: `0 ${(top - MARGIN).toFixed(1)} ${(x + MARGIN).toFixed(1)} ${(bottom - top + 2 * MARGIN).toFixed(1)}`, accent: accent.join(" "), ink: ink.join(" ") };
 }
 
 const target = "site/brand/nameplates";

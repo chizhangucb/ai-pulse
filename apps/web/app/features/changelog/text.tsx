@@ -1,3 +1,4 @@
+import { monthDay } from "@aihot/contracts/time";
 import { weekdayShort } from "../../lib/format";
 
 /** Release notes carry a little Markdown: **bold** runs. */
@@ -6,6 +7,5 @@ export function Inline({ text }: { text: string }) {
 }
 
 export function dateHeading(date: string): { label: string; weekday: string } {
-  const [y, m, d] = date.split("-").map(Number) as [number, number, number];
-  return { label: `${y} 年 ${m} 月 ${d} 日`, weekday: weekdayShort(date) };
+  return { label: monthDay(date, "0000"), weekday: weekdayShort(date) };
 }

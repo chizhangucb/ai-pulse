@@ -2,29 +2,30 @@ import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import { closeDb, sql } from "@aihot/backend/db";
-import { beijingDate, beijingMidnight } from "@aihot/contracts/time";
+import { siteDate, siteMidnight } from "@aihot/contracts/time";
 import { countTimelineDays, loadTimeline } from "@aihot/backend/publication/timeline";
 
 after(closeDb);
 const reference = (grouped: readonly { anchor: number }[], days: ReadonlySet<string>) => {
   const counts: Record<string, number> = {};
   for (const group of grouped) {
-    const day = beijingDate(group.anchor);
+    const day = siteDate(group.anchor);
     if (days.has(day)) counts[day] = (counts[day] ?? 0) + 1;
   }
   return counts;
 };
 const descending = (anchors: number[]) => anchors.sort((a, b) => b - a).map(anchor => ({ anchor }));
 
-test("day counts retain exact Beijing midnight, leap-day and year boundaries", () => {
+test("day counts retain exact Pacific midnight, leap-day, year and daylight-saving boundaries", () => {
   assert.deepEqual(countTimelineDays([], new Set()), {});
-  // UTC inputs and calendar answers are independent of the production timezone helpers.
-  const anchors = ["2023-12-30T16:00:00Z", "2023-12-31T16:00:00Z", "2024-02-28T16:00:00Z", "2024-02-29T16:00:00Z"].flatMap(time => {
+  // UTC inputs and calendar answers are independent of the production timezone helpers. 10 March 2024 is
+  // 23 hours long in Los Angeles: its midnight is 08:00Z, the next one 07:00Z.
+  const anchors = ["2023-12-31T08:00:00Z", "2024-01-01T08:00:00Z", "2024-02-29T08:00:00Z", "2024-03-01T08:00:00Z", "2024-03-10T08:00:00Z", "2024-03-11T07:00:00Z"].flatMap(time => {
     const midnight = Date.parse(time);
     return [midnight - 1, midnight, midnight, midnight + 1];
   });
   const grouped = descending(anchors);
-  const expected = { "2023-12-30": 1, "2023-12-31": 4, "2024-01-01": 3, "2024-02-28": 1, "2024-02-29": 4, "2024-03-01": 3 };
+  const expected = { "2023-12-30": 1, "2023-12-31": 4, "2024-01-01": 3, "2024-02-28": 1, "2024-02-29": 4, "2024-03-01": 3, "2024-03-09": 1, "2024-03-10": 4, "2024-03-11": 3 };
   assert.deepEqual(countTimelineDays(grouped, new Set(Object.keys(expected))), expected);
   assert.deepEqual(countTimelineDays(grouped, new Set()), {});
   assert.deepEqual(countTimelineDays(grouped, new Set(["1900-01-01"])), {});
@@ -33,11 +34,11 @@ test("day counts retain exact Beijing midnight, leap-day and year boundaries", (
 test("deterministic varied timelines match the full-scan reference", () => {
   let seed = 0x13579bdf;
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed; };
-  const base = beijingMidnight("2024-03-01").getTime();
+  const base = siteMidnight("2024-03-01").getTime();
   for (let sample = 0; sample < 40; sample++) {
     const grouped = descending(Array.from({ length: random() % 1200 }, () => base - (random() % 10_000) * 60_000));
     const offset = grouped.length ? random() % grouped.length : 0;
-    const days = new Set(grouped.slice(offset, offset + 40).map(group => beijingDate(group.anchor)));
+    const days = new Set(grouped.slice(offset, offset + 40).map(group => siteDate(group.anchor)));
     assert.deepEqual(countTimelineDays(grouped, days), reference(grouped, days), `sample ${sample}`);
   }
 });
@@ -47,7 +48,7 @@ test("real grouped timeline pagination keeps whole-day counts across midnight", 
   const source = `day-counts-${T}`;
   const facts: number[] = [];
   const groups: Array<{ anchor: number; key: string }> = [];
-  const midnight = beijingMidnight("2024-02-29").getTime();
+  const midnight = siteMidnight("2024-02-29").getTime();
   const now = new Date("2024-03-02T00:00:00Z");
   await sql`INSERT INTO sources(id,name,kind,tier) VALUES(${source},'Day counts','rss','T1')`;
   const add = async (index: string, at: number, fact: number | null = null, story: number | null = null) => {
@@ -83,7 +84,7 @@ test("real grouped timeline pagination keeps whole-day counts across midnight", 
     const data = await loadTimeline({ channel: "all", category: null, tag: T, now, limit: 7, cursor });
     const pageGroups = groups.slice(seen.length, seen.length + 7);
     assert.deepEqual(data.cards.map(card => card.key), pageGroups.map(group => group.key));
-    const days = new Set(pageGroups.map(group => beijingDate(group.anchor)));
+    const days = new Set(pageGroups.map(group => siteDate(group.anchor)));
     assert.deepEqual(data.dayCounts, reference(groups, days));
     seen.push(...data.cards.map(card => card.key));
     cursor = data.nextCursor;

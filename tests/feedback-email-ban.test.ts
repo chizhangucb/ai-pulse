@@ -47,7 +47,7 @@ test("email moderation does not block shared domains, anonymous security reports
   const accepted = await submitFeedback({ ...base, email: "other-reader@example.com" });
   assert.ok(accepted.id);
   assert.ok((await submitFeedback({ ...base, content: base.content + " anonymous" })).id);
-  await assert.rejects(banFeedbackEmail((await submitFeedback({ ...base, content: "no contact" })).id, "reason", "test"), /没有可封禁的邮箱/);
+  await assert.rejects(banFeedbackEmail((await submitFeedback({ ...base, content: "no contact" })).id, "reason", "test"), /has no email to ban/);
   const forged = { ...base, ip: "203.0.113.237", email: "victim@example.com" };
   for (let i = 0; i < 20; i++) await submitFeedback(forged);
   await assert.rejects(submitFeedback(forged), e => e instanceof FeedbackRejected && e.status === 429);

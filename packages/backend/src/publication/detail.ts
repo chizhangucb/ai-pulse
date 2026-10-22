@@ -6,7 +6,7 @@ import { sql } from "../db.ts";
 import { stripTagMarkup } from "../lib/text.ts";
 import { proxyBodyImages } from "../media/imgproxy.ts";
 import { textToHtml } from "../content/sanitize.ts";
-import { exportTranslation, isChineseBody, ITEM_COLUMNS, ITEM_FROM, seatHolders, showsPost, toItemSummary, xView, type ItemRow } from "./items.ts";
+import { exportTranslation, isEnglishBody, ITEM_COLUMNS, ITEM_FROM, seatHolders, showsPost, toItemSummary, xView, type ItemRow } from "./items.ts";
 import { evidenceCondition, listedCondition } from "./scope.ts";
 import { itemUrl, siteUrl } from "./links.ts";
 import { hasItemPage, publicSourceName } from "./rules.ts";
@@ -125,9 +125,9 @@ export async function loadItemDetail(id: string, language: "zh" | "original" = "
       x = shown;
     }
   } else if (row.body_mode === "full" && row.body_html) {
-    const chinese = isChineseBody(row);
-    const zh = chinese ? { html: row.body_html, kind: "original" as const } : row.tr_html ? { html: row.tr_html, kind: "translation" as const } : null;
-    reading = readingBody(language, zh, chinese ? null : row.body_html, chinese ? true : row.tr_complete ?? false, (html) => withOutline(proxyBodyImages(html)));
+    const english = isEnglishBody(row);
+    const zh = english ? { html: row.body_html, kind: "original" as const } : row.tr_html ? { html: row.tr_html, kind: "translation" as const } : null;
+    reading = readingBody(language, zh, english ? null : row.body_html, english ? true : row.tr_complete ?? false, (html) => withOutline(proxyBodyImages(html)));
   }
 
   let group: SiteItemDetail["group"] = null;
@@ -183,29 +183,29 @@ export async function exportMarkdown(id: string): Promise<{ filename: string; bo
   if (!row || !markdownAvailable(row)) return null;
   const lines: string[] = [];
   lines.push(`# ${row.title}`, "");
-  if (row.original_title) lines.push(`> 原标题：${row.original_title}`, "");
-  lines.push(`- 来源：${publicSourceName(row.source_name)}`);
+  if (row.original_title) lines.push(`> Original title: ${row.original_title}`, "");
+  lines.push(`- Source: ${publicSourceName(row.source_name)}`);
   // Without a reliable date from the original, the time it was collected says so.
-  lines.push(row.published_at ? `- 发布时间：${row.published_at.toISOString()}` : `- 收录时间：${row.discovered_at.toISOString()}`);
-  lines.push(`- ${SITE.name}：${itemUrl(row.id)}`);
-  lines.push(`- 原文：${row.url}`, "");
-  if (row.summary) lines.push("## 摘要", "", row.summary, "");
+  lines.push(row.published_at ? `- Published: ${row.published_at.toISOString()}` : `- Collected: ${row.discovered_at.toISOString()}`);
+  lines.push(`- ${SITE.name}: ${itemUrl(row.id)}`);
+  lines.push(`- Original: ${row.url}`, "");
+  if (row.summary) lines.push("## Summary", "", row.summary, "");
   if (row.selected && row.seat && row.reason) lines.push(`## ${ITEM_COPY.reasonLabel}`, "", row.reason, "");
   if (showsPost(row) && row.x_post) {
     const post = xView(row);
-    if (post?.text) lines.push("## 正文", "", post.text, "");
-    if (post?.translation) lines.push("## 中文译文", "", post.translation, "");
+    if (post?.text) lines.push("## Text", "", post.text, "");
+    if (post?.translation) lines.push("## English translation", "", post.translation, "");
     for (const media of post?.media ?? []) {
       const url = media.url.startsWith("/") ? siteUrl(media.url) : media.url;
-      lines.push(media.kind === "image" ? `![${media.alt ?? ""}](${url})` : `[视频](${url})`, "");
+      lines.push(media.kind === "image" ? `![${media.alt ?? ""}](${url})` : `[Video](${url})`, "");
     }
     const q = post?.quoted;
-    if (q?.text) lines.push(`## 引用 @${q.handle ?? ""}`, "", ...String(q.text).split("\n").map((l) => `> ${l}`), "", ...(q.url ? [q.url, ""] : []));
-    if (q?.text && q.translation) lines.push("### 引用中文译文", "", ...q.translation.split("\n").map((l) => `> ${l}`), "");
+    if (q?.text) lines.push(`## Quoting @${q.handle ?? ""}`, "", ...String(q.text).split("\n").map((l) => `> ${l}`), "", ...(q.url ? [q.url, ""] : []));
+    if (q?.text && q.translation) lines.push("### Quoted post, English translation", "", ...q.translation.split("\n").map((l) => `> ${l}`), "");
   } else if (row.body_mode === "full" && row.body_html) {
     const translation = exportTranslation(row);
-    if (translation) lines.push("## 正文 · 中文译文", "", bodyToMarkdown(translation, row.url), "");
-    lines.push(isChineseBody(row) ? "## 正文" : "## 正文 · 原文", "", bodyToMarkdown(row.body_html, row.url), "");
+    if (translation) lines.push("## Text · English translation", "", bodyToMarkdown(translation, row.url), "");
+    lines.push(isEnglishBody(row) ? "## Text" : "## Text · original", "", bodyToMarkdown(row.body_html, row.url), "");
   }
   return { filename: `${SITE.mcpPrefix}-${row.id}.md`, body: lines.join("\n").replace(/\n{3,}/g, "\n\n") };
 }
