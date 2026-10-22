@@ -7,6 +7,7 @@ import { config } from "@aihot/backend/config";
 import { fetchRss } from "@aihot/backend/sources/rss";
 import { admitListing } from "@aihot/backend/sources/filters";
 import { unsupportedConfig } from "@aihot/backend/sources/config-keys";
+import demo from "../industry/sources.json" with { type: "json" };
 
 const entry = (links: string, base = "") => `<entry${base}><id>urn:test:entry</id><title>Research update</title><updated>2026-10-01T00:00:00Z</updated>${links}</entry>`;
 const feed = (entries: string, base = "") => `<feed xmlns="http://www.w3.org/2005/Atom"${base}><id>urn:test:feed</id><title>News</title><updated>2026-10-01T00:00:00Z</updated><author><name>Publisher</name></author>${entries}</feed>`;
@@ -21,7 +22,7 @@ const pages: Record<string, string> = {
   "/missing": feed(entry("") + entry('<link rel="alternate"/>')),
   "/dates": feed(entry('<link href="undated"/>') + entry('<link href="published"/><published>2020-02-15T00:00:00Z</published>') + entry('<link href="invalid"/><published>unknown</published>')),
   "/rss/feed.xml": `<rss version="2.0"><channel><title>Blog</title><item><title>Release notes</title><link>/blog/zh/posts/release/</link></item><item><title>Elsewhere</title><link>https://publisher.example/post</link></item></channel></rss>`,
-  "/releases": feed([["v0.40.9-rc1", "v0.40.9", "2026-10-22T01:33:10Z"], ["v0.40.9-rc0", "v0.40.9-rc0: ci fix", "2026-10-21T20:12:06Z"], ["v5.0.0rc1", "v5.0.0rc1", "2026-10-21T19:00:00Z"], ["v0.40.8", "v0.40.8", "2026-10-21T21:46:35Z"], ["v1.2.3-src", "v1.2.3-src", "2026-10-20T08:00:00Z"]]
+  "/releases": feed([["v0.40.9-rc1", "v0.40.9", "2026-10-22T01:33:10Z"], ["v0.40.9-rc0", "v0.40.9-rc0: ci fix", "2026-10-21T20:12:06Z"], ["v5.0.0rc1", "v5.0.0rc1", "2026-10-21T19:00:00Z"], ["v0.40.8", "v0.40.8", "2026-10-21T21:46:35Z"], ["v1.2.3-src", "v1.2.3-src", "2026-10-20T08:00:00Z"], ["proto-v0.12.0", "proto-v0.12.0", "2026-10-19T08:00:00Z"]]
     .map(([tag, title, updated]) => `<entry><id>tag:github.com,2008:Repository/1/${tag}</id><updated>${updated}</updated><link rel="alternate" type="text/html" href="https://github.com/acme/tool/releases/tag/${tag}"/><title>${title}</title></entry>`).join("")),
   "/fragments": feed(entry('<link href="notes#first"/>') + entry('<link href="notes#second"/>'), ' xml:base="https://publisher.example/"'),
 };
@@ -88,15 +89,16 @@ test("Atom update time never substitutes for missing or malformed publication ti
   }
 });
 
-test("a GitHub releases feed is dated by each entry's updated time and its release candidates are dropped by URL", async () => {
-  const source = { config: { feedUrl: root + "/releases", atomUpdatedIsPublished: true, denyUrlPattern: "/releases/tag/[^/]*[\\d.-]rc\\.?\\d*$" }, participation_mode: "editorial" } as never;
+test("a GitHub releases feed is dated by each entry's updated time, and vLLM's release candidates and proto releases are dropped by URL", async () => {
+  const vllm = demo.sources.find((s) => s.id === "gh-vllm")!;
+  const source = { config: { ...vllm.config, feedUrl: root + "/releases" }, participation_mode: "editorial" } as never;
   const kept = admitListing((await fetchRss(source)).candidates, source);
   assert.deepEqual(kept.map((c) => [c.url.split("/tag/")[1], c.title, c.publishedAt?.toISOString()]), [
     ["v0.40.8", "v0.40.8", "2026-10-21T21:46:35.000Z"],
     ["v1.2.3-src", "v1.2.3-src", "2026-10-20T08:00:00.000Z"],
   ]);
   const undated = await read("/releases");
-  assert.deepEqual(undated.map((c) => c.publishedAt ?? null), [null, null, null, null, null]);
+  assert.deepEqual(undated.map((c) => c.publishedAt ?? null), [null, null, null, null, null, null]);
 });
 
 test("a URL pattern that does not compile and a non-boolean updated switch are refused", () => {

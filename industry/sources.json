@@ -696,7 +696,7 @@
       "config": {
         "feedUrl": "https://github.com/vllm-project/vllm/releases.atom",
         "atomUpdatedIsPublished": true,
-        "denyUrlPattern": "/releases/tag/[^/]*[\\d.-]rc\\.?\\d*$",
+        "denyUrlPattern": "/releases/tag/(?:proto-v[^/]*|[^/]*[\\d.-]rc\\.?\\d*)$",
         "_aihot": {
           "initialBackfillLimit": 3
         }

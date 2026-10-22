@@ -1,11 +1,13 @@
 // Seeds a fresh site from the industry pack: the demo sources (industry/sources.json) and one external source per
 // X account in industry/x-accounts.json (its posts are pushed through POST /api/ingest/items), only the ones not
 // there yet, so admin edits are never undone. Topics need no seeding: they are read from industry/topics.json.
+// On an upgraded site it also pauses retired demo sources once and renames text the Chinese release stored.
 // Re-runnable:  node --env-file=.env scripts/seed.ts
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { REPO_ROOT } from "@aihot/backend/config";
 import { closeDb, sql } from "@aihot/backend/db";
+import { updateSource } from "@aihot/backend/admin/sources";
 import { AUTO_RELEASE_NOTE } from "@aihot/backend/operations/recover";
 import { assertSupportedConfig } from "@aihot/backend/sources/config-keys";
 
@@ -61,6 +63,17 @@ for (const s of sources) {
   added += inserted.length;
 }
 console.log(`sources: ${added} added, ${sources.length - added} already there`);
+
+// Demo sources that stopped working, paused the way the admin pauses one (stored articles stay). Each is paused
+// once: its audit entry from the seed marks it done, so an admin who turns it back on is not overruled.
+const RETIRED: Record<string, string> = { "web-meta-ai-blog": "The ai.meta.com/blog/ index stopped listing new posts; replaced by rss-meta-newsroom-ai" };
+let retired = 0;
+for (const [id, reason] of Object.entries(RETIRED)) {
+  const [s] = await sql<{ updated_at: Date }[]>`SELECT updated_at FROM sources WHERE id = ${id} AND enabled
+    AND NOT EXISTS (SELECT 1 FROM audit_log WHERE actor = 'script:seed' AND subject = ${`source:${id}`})`;
+  if (s && await updateSource(id, { patch: { enabled: false }, version: s.updated_at.toISOString(), reason }, "script:seed")) retired += 1;
+}
+console.log(`sources: ${retired} retired`);
 
 // Text that earlier releases stored in Chinese. Release migrations take no data updates, so the seed renames it;
 // a value an admin has since changed is left alone. The auto-release note is matched by prefix to release a receipt only once.
