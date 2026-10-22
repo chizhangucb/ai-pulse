@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { looksZh } from "@aihot/backend/editorial/writing";
-import { isChineseBody, exportTranslation } from "@aihot/backend/publication/items";
+import { looksEnglish } from "@aihot/backend/editorial/writing";
+import { isEnglishBody, exportTranslation } from "@aihot/backend/publication/items";
 import { stripTags } from "@aihot/backend/lib/text";
 
 // Regression coverage for HTML attributes that contain `>` in real source pages.
@@ -52,14 +52,14 @@ test("stripTags decodes character references, also when a feed escaped them twic
 
 test("writing and public reading agree about Chinese, including Japanese with kanji", () => {
   for (const body_text of ["新しい人工知能モデルを公開しました。", "人工知能 모델을 공개했습니다."]) {
-    assert.equal(looksZh(body_text), false);
+    assert.equal(looksEnglish(body_text), false);
     for (const language of [null, "ja", "ko"]) {
-      assert.equal(isChineseBody({ language, body_text }), false);
+      assert.equal(isEnglishBody({ language, body_text }), false);
       assert.equal(exportTranslation({ language, body_text, tr_html: "<p>发布了新模型。</p>", tr_complete: true }), "<p>发布了新模型。</p>");
     }
   }
-  assert.equal(isChineseBody({ language: "ja", body_text: "人工知能研究開発" }), false);
-  assert.equal(isChineseBody({ language: null, body_text: "新的人工智能模型发布了。" }), true);
-  assert.equal(isChineseBody({ language: "zh-Hans", body_text: "API" }), true);
-  assert.equal(isChineseBody({ language: "en", body_text: "An English article quoting 人工智能." }), false);
+  assert.equal(isEnglishBody({ language: "ja", body_text: "人工知能研究開発" }), false);
+  assert.equal(isEnglishBody({ language: null, body_text: "新的人工智能模型发布了。" }), true);
+  assert.equal(isEnglishBody({ language: "zh-Hans", body_text: "API" }), true);
+  assert.equal(isEnglishBody({ language: "en", body_text: "An English article quoting 人工智能." }), false);
 });

@@ -90,8 +90,8 @@ export function readPublicationDate(value: string | null | undefined, utcOffset 
 
 /** Legacy timestamps have lost their source precision; midnight never tells us which it was. */
 export function describePublicationTime(at: Date | null, source: string | null | undefined): string {
-  if (!at) return "未知";
-  if (!source) return `${siteDate(at)} ${siteTime(at)}（历史记录，原始精度未知）`;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(source)) return `${source}（原文仅有日期，时刻未知）`;
-  return `${siteDate(at)} ${siteTime(at)}（北京时间）`;
+  if (!at) return "unknown";
+  if (!source) return `${siteDate(at)} ${siteTime(at)} (legacy record, original precision unknown)`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(source)) return `${source} (date only in the original, time unknown)`;
+  return `${siteDate(at)} ${siteTime(at)} (Pacific Time)`;
 }

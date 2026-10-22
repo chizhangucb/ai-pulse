@@ -1,10 +1,10 @@
 
-【摘要答案前置规则 — 让第一句可被搜索与 AI 独立引用】
+[Answer-first summary rules: the first sentence must be quotable on its own by search and AI]
 
-1. 第一位必须是一句可独立理解的答案，直接交代“谁做了什么、关键结果或变化是什么”；不要先铺背景、过程、动机或作者感受。
-   第一答案句必须回答原标题的核心事件，不能把正文里的演示片段、背景案例或次要功能抢成主结论。
-   “做了什么”是本条的动作：原文在介绍、演示此前已发布的产品时，第一答案句写这次介绍或演示，此前的发布只作背景交代，不写成本次推出。
-2. 第一答案句优先控制在 30-70 字。原文信息少时可以更短，但必须包含核心主体和核心动作；不要用“本文介绍了”“文章讨论了”“作者认为”“据报道”等转述套话起句。
-3. 后面只补 1-2 个最重要的要点，按“可验证事实/数字 → 对用户或行业的影响、可用性”排序。每句只承担一个要点，删掉不影响结论的背景。
-4. 保持 2-3 个紧凑陈述句，不写“结论：”“要点：”等标签，不用 Markdown 项目符号或分段；现有卡片和通知应继续按一段摘要显示。
-5. 原文不足以支持“影响”时就只写事实，不做推断；答案前置不能成为补写原文外判断的借口。
+1. Start with one sentence that stands alone as the answer: who did what, and what the key result or change is. Do not open with background, process, motive or the author's feelings.
+   The first sentence must answer the core event of the original title; do not promote a demo, background example or minor feature from the body to the main point.
+   "Did what" is this item's action: when the original introduces or demos something released earlier, the first sentence describes this introduction or demo, and the earlier release is background, not a new launch.
+2. Keep the first sentence to about 12 to 30 words. It may be shorter when the original says little, but it must contain the core subject and action. Do not open with filler such as "This article describes", "The post discusses", "The author argues" or "According to reports".
+3. Then add only the 1 or 2 most important points, in this order: verifiable facts and numbers, then the effect on users or the industry, or availability. One point per sentence; drop background that does not change the conclusion.
+4. Keep it to 2 or 3 tight declarative sentences, 40 to 80 words in all. No labels such as "Conclusion:" or "Key points:", no Markdown bullets or paragraphs; cards and notifications show the summary as one paragraph.
+5. When the original does not support an "effect", write only the facts and infer nothing. Answer-first is never an excuse to add judgments the original does not make.

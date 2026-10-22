@@ -1,1 +1,1 @@
-(原文为空，请输出 summary_zh: 空字符串，不要根据标题脑补内容)
+(The original is empty. Output summary_zh: as an empty string; do not imagine content from the title.)

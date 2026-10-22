@@ -42,7 +42,7 @@ export interface AnalyzeInputArticle {
  */
 export function withXArticle(xPost: Record<string, any> | null, article: { title?: string; text?: string } | null): Record<string, any> | null {
   if (!xPost || !article?.text) return xPost;
-  const parts = [String(xPost.text ?? "").trim(), article.title ? `【X 长文】${article.title}` : "【X 长文】", article.text];
+  const parts = [String(xPost.text ?? "").trim(), article.title ? `[X Article] ${article.title}` : "[X Article]", article.text];
   return { ...xPost, text: parts.filter(Boolean).join("\n\n") };
 }
 
@@ -72,34 +72,34 @@ export async function loadAnalyzeInput(articleId: string): Promise<AnalyzeInputA
 }
 
 const KIND_LABEL: Record<string, string> = {
-  rss: "RSS", web_list: "网页", json_list: "网页接口", x_search: "X 帖子", mp_account: "微信公众号", external: "外部上报",
+  rss: "RSS", web_list: "web page", json_list: "web API", x_search: "X post", mp_account: "WeChat account", external: "external push",
 };
 
 /** The material as the structure step reads it (source facts, text, link). */
 export function buildMaterial(a: AnalyzeInputArticle): string {
   // Conditions often occur at the end of an announcement. Use the existing body budget instead of
   // only its lead; beyond it, state the missing tail so it is not mistaken for complete evidence.
-  const body = (text: string) => text.length <= MAX_BODY_CHARS ? text : `${text.slice(0, MAX_BODY_CHARS)}\n【原文超过 ${MAX_BODY_CHARS} 字符，后文未提供】`;
+  const body = (text: string) => text.length <= MAX_BODY_CHARS ? text : `${text.slice(0, MAX_BODY_CHARS)}\n[The original is longer than ${MAX_BODY_CHARS} characters; the rest is not provided]`;
   const lines: string[] = [];
   lines.push("<source>");
-  lines.push(`名称：${a.source.name}`);
-  lines.push(`类型：${KIND_LABEL[a.source.kind] ?? a.source.kind}；分级：${a.source.tier}；一手来源：${a.source.firstParty ? "是" : "否"}`);
+  lines.push(`Name: ${a.source.name}`);
+  lines.push(`Kind: ${KIND_LABEL[a.source.kind] ?? a.source.kind}; tier: ${a.source.tier}; first-party: ${a.source.firstParty ? "yes" : "no"}`);
   lines.push("</source>");
   lines.push("<material>");
-  if (a.publishedAt) lines.push(`发布时间：${describePublicationTime(a.publishedAt, a.publicationTime)}`);
-  if (a.author) lines.push(`作者：${a.author}`);
+  if (a.publishedAt) lines.push(`Published: ${describePublicationTime(a.publishedAt, a.publicationTime)}`);
+  if (a.author) lines.push(`Author: ${a.author}`);
   if (a.xPost) {
-    lines.push(`作者：${a.xPost.authorName ?? ""} (@${a.xPost.handle ?? ""})`);
-    lines.push(`帖子：\n${body(String(a.xPost.text ?? a.title))}`);
-    if (a.xPost.quoted?.text) lines.push(`引用的帖子（@${a.xPost.quoted.handle ?? ""}）：\n${body(String(a.xPost.quoted.text))}`);
-    if (a.translationZh) lines.push(`帖子中文译文：\n${truncate(a.translationZh, 4000)}`);
+    lines.push(`Author: ${a.xPost.authorName ?? ""} (@${a.xPost.handle ?? ""})`);
+    lines.push(`Post:\n${body(String(a.xPost.text ?? a.title))}`);
+    if (a.xPost.quoted?.text) lines.push(`Quoted post (@${a.xPost.quoted.handle ?? ""}):\n${body(String(a.xPost.quoted.text))}`);
+    if (a.translationZh) lines.push(`English translation of the post:\n${truncate(a.translationZh, 4000)}`);
   } else {
-    lines.push(`标题：${collapseWhitespace(a.title)}`);
+    lines.push(`Title: ${collapseWhitespace(a.title)}`);
     const original = a.bodyText ?? a.excerpt ?? "";
-    lines.push(original ? `正文：\n${body(original)}` : "正文：（无）");
-    if (a.translationZh && !a.bodyText) lines.push(`正文中文译文：\n${truncate(a.translationZh, 5000)}`);
+    lines.push(original ? `Body:\n${body(original)}` : "Body: (none)");
+    if (a.translationZh && !a.bodyText) lines.push(`English translation of the body:\n${truncate(a.translationZh, 5000)}`);
   }
-  lines.push(`原文链接：${a.url}`);
+  lines.push(`Original link: ${a.url}`);
   lines.push("</material>");
   return lines.join("\n");
 }

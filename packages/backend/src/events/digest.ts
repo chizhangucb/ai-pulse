@@ -30,10 +30,10 @@ export const byReportTime = (a: { at: Date }, b: { at: Date }) => a.at.getTime()
  */
 export function buildStoryDigestInput(story: { title: string; digest: string | null }, reports: Omit<DigestReport, "story_id">[], opts: { corrected: boolean; knownArticleIds?: string[] }) {
   const known = new Set(opts.knownArticleIds ?? []);
-  const lines = reports.slice(-40).map((r) => `${opts.corrected || known.has(r.id) ? "" : "【新】"}报道 ${r.id}｜事实 ${r.fact_id}｜${siteDate(r.at)} ${siteTime(r.at)}｜${r.source_name}${r.first_party ? "（一手）" : ""}｜${r.title}｜${r.summary ?? ""}\n事实条件与来源证据：${JSON.stringify(digestFactEvidence(r))}`);
+  const lines = reports.slice(-40).map((r) => `${opts.corrected || known.has(r.id) ? "" : "[New] "}Report ${r.id} | fact ${r.fact_id} | ${siteDate(r.at)} ${siteTime(r.at)} | ${r.source_name}${r.first_party ? " (first-hand)" : ""} | ${r.title} | ${r.summary ?? ""}\nFact conditions and source evidence: ${JSON.stringify(digestFactEvidence(r))}`);
   return opts.corrected
-    ? `事件当前标题：${story.title}\n\n报道内容或事实证据经过更正。请只依据下面这些报道的当前内容重写综述，不要沿用以前版本的说法。\n报道（按时间）：\n${lines.join("\n")}`
-    : `事件当前标题：${story.title}\n${story.digest ? `上一版综述：${story.digest}\n` : ""}\n报道（按时间，标【新】的是上一版之后的新报道）：\n${lines.join("\n")}`;
+    ? `Current story title: ${story.title}\n\nReport content or fact evidence was corrected. Rewrite the overview only from the current content of the reports below; do not reuse earlier versions' claims.\nReports (by time):\n${lines.join("\n")}`
+    : `Current story title: ${story.title}\n${story.digest ? `Previous overview: ${story.digest}\n` : ""}\nReports (by time; [New] marks reports since the previous version):\n${lines.join("\n")}`;
 }
 
 /**

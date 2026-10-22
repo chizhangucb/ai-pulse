@@ -8,7 +8,7 @@ const ALLOWED_TAGS = new Set<string>([...CATEGORY_TAGS, ...TOPIC_TAGS, ...ENTITY
 
 /**
  * Known tags only, synonyms mapped, duplicates dropped, at most six; the category tag goes first, and a
- * list without one gets the pack's last category tag (其他).
+ * list without one gets the pack's last category tag (Other).
  */
 export function normalizeTags(v: unknown): string[] {
   const raw = Array.isArray(v) ? v : typeof v === "string" ? v.split(/[,，]/g) : [];
@@ -25,7 +25,7 @@ export function normalizeTags(v: unknown): string[] {
 }
 
 /** The category boundaries the structure step reads, one line per category. */
-export const CATEGORY_GUIDE = CATEGORIES.map((c) => `- ${c.key}（${c.label}）：${c.guide}`).join("\n");
+export const CATEGORY_GUIDE = CATEGORIES.map((c) => `- ${c.key} (${c.label}): ${c.guide}`).join("\n");
 
 /** The industry's headline launch (RELEASE): narrower than its category, which also holds prices and benchmarks. */
 export const isRelease = (category: string | null, tags: readonly string[]) => RELEASE !== null && category === RELEASE.category && tags.includes(RELEASE.tag);

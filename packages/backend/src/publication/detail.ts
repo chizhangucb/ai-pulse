@@ -6,7 +6,7 @@ import { sql } from "../db.ts";
 import { stripTagMarkup } from "../lib/text.ts";
 import { proxyBodyImages } from "../media/imgproxy.ts";
 import { textToHtml } from "../content/sanitize.ts";
-import { exportTranslation, isChineseBody, ITEM_COLUMNS, ITEM_FROM, seatHolders, showsPost, toItemSummary, xView, type ItemRow } from "./items.ts";
+import { exportTranslation, isEnglishBody, ITEM_COLUMNS, ITEM_FROM, seatHolders, showsPost, toItemSummary, xView, type ItemRow } from "./items.ts";
 import { evidenceCondition, listedCondition } from "./scope.ts";
 import { itemUrl, siteUrl } from "./links.ts";
 import { hasItemPage, publicSourceName } from "./rules.ts";
@@ -125,9 +125,9 @@ export async function loadItemDetail(id: string, language: "zh" | "original" = "
       x = shown;
     }
   } else if (row.body_mode === "full" && row.body_html) {
-    const chinese = isChineseBody(row);
-    const zh = chinese ? { html: row.body_html, kind: "original" as const } : row.tr_html ? { html: row.tr_html, kind: "translation" as const } : null;
-    reading = readingBody(language, zh, chinese ? null : row.body_html, chinese ? true : row.tr_complete ?? false, (html) => withOutline(proxyBodyImages(html)));
+    const english = isEnglishBody(row);
+    const zh = english ? { html: row.body_html, kind: "original" as const } : row.tr_html ? { html: row.tr_html, kind: "translation" as const } : null;
+    reading = readingBody(language, zh, english ? null : row.body_html, english ? true : row.tr_complete ?? false, (html) => withOutline(proxyBodyImages(html)));
   }
 
   let group: SiteItemDetail["group"] = null;
@@ -205,7 +205,7 @@ export async function exportMarkdown(id: string): Promise<{ filename: string; bo
   } else if (row.body_mode === "full" && row.body_html) {
     const translation = exportTranslation(row);
     if (translation) lines.push("## 正文 · 中文译文", "", bodyToMarkdown(translation, row.url), "");
-    lines.push(isChineseBody(row) ? "## 正文" : "## 正文 · 原文", "", bodyToMarkdown(row.body_html, row.url), "");
+    lines.push(isEnglishBody(row) ? "## 正文" : "## 正文 · 原文", "", bodyToMarkdown(row.body_html, row.url), "");
   }
   return { filename: `${SITE.mcpPrefix}-${row.id}.md`, body: lines.join("\n").replace(/\n{3,}/g, "\n\n") };
 }
