@@ -86,7 +86,7 @@ test("a disabled target cannot receive a manual retry", async () => {
   const before = await state(id);
   await sql`UPDATE notify_targets SET enabled = false WHERE key = ${TARGET}`;
   try {
-    await assert.rejects(resendDelivery(id), /disabled|停用/);
+    await assert.rejects(resendDelivery(id), /disabled/);
     assert.deepEqual(await state(id), before);
     assert.equal(requests.filter((n) => n === id).length, 0);
   } finally { await sql`UPDATE notify_targets SET enabled = true WHERE key = ${TARGET}`; }
@@ -107,7 +107,7 @@ test("a withdrawn selected item cannot be sent through manual recovery", async (
   const id = await delivery();
   await sql`UPDATE deliveries SET subject_kind = 'selected', subject_id = ${articleId} WHERE id = ${id}`;
   await sql`UPDATE publications SET visibility = 'withdrawn' WHERE article_id = ${articleId}`;
-  await assert.rejects(resendDelivery(id), /不可推送|not public|不再/);
+  await assert.rejects(resendDelivery(id), /no longer qualifies/);
   assert.equal(requests.filter((n) => n === id).length, 0);
   assert.equal((await state(id)).status, "unknown");
 });

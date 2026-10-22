@@ -106,7 +106,7 @@ test("an authorized recovery preserves unknown billing instead of claiming no ch
   const result = await releaseReceipt(receipt!.id, { billed: null, note: "owner authorized recovery; billing remains unknown" }, "test");
   assert.equal(result?.requeued, true);
   const [record] = await sql`SELECT error FROM receipts WHERE id=${receipt!.id}`;
-  assert.match(record!.error, /计费未知/);
+  assert.match(record!.error, /billing unknown/);
   assert.doesNotMatch(record!.error, /供应商未计费/);
   const [logged] = await sql`SELECT after FROM audit_log WHERE action='receipt.release' AND subject=${`receipt:${receipt!.id}`}`;
   assert.equal(logged!.after.billed, null);

@@ -60,12 +60,12 @@ test("one alert when the worker stops, none while it stays stopped, one recovery
   await checkWorkerHeartbeat();
   await checkWorkerHeartbeat();
   assert.equal(attempts.length, 1);
-  assert.match(attempts[0]!, /后台处理服务停了/);
+  assert.match(attempts[0]!, /background worker stopped/);
   await heartbeat(false);
   await checkWorkerHeartbeat();
   await checkWorkerHeartbeat();
   assert.equal(attempts.length, 2);
-  assert.match(attempts[1]!, /已恢复/);
+  assert.match(attempts[1]!, /Recovered/);
 });
 
 test("a failed send is tried again at the next check", async () => {
@@ -76,5 +76,5 @@ test("a failed send is tried again at the next check", async () => {
   await checkWorkerHeartbeat();
   await checkWorkerHeartbeat();
   assert.equal(attempts.length, 2, "the failed alert goes out at the next check, and only then");
-  assert.ok(attempts.every((text) => text.includes("后台处理服务停了")));
+  assert.ok(attempts.every((text) => text.includes("background worker stopped")));
 });

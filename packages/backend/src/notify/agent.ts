@@ -52,7 +52,7 @@ export async function claimAgentWake(eventId: string, run: string, actor: string
     const changed = await tx`UPDATE settings SET value=value || ${tx.json({ status: "claimed", run })},updated_by=${actor},updated_at=now()
       WHERE key LIKE 'agent.wake.%' AND value->>'eventId'=${eventId} RETURNING key`;
     if (!changed.count) throw new Error("handoff event is no longer current");
-    await audit(actor,"agent.claim",eventId,`接手运行 ${run}`,null,{ status: "claimed", run },{ db: tx });
+    await audit(actor,"agent.claim",eventId,`claimed run ${run}`,null,{ status: "claimed", run },{ db: tx });
   });
 }
 
@@ -75,7 +75,7 @@ export async function closeAgentWake(key: string) {
 export async function agentHandoffs(now: number): Promise<Finding[]> {
   const rows = await sql<{ value: Handoff }[]>`SELECT value FROM settings WHERE key LIKE 'agent.wake.%' AND value->>'status'<>'claimed'`;
   return rows.filter(({value: v}) => v.status === "refused" || now-Date.parse(v.attemptedAt ?? v.since) > 30*60_000).map(({value: v}) => ({
-    key: `agent.handoff.${v.eventId}`, level: "later", title: `运维尚未确认接手：${v.title}`,
-    detail: `${v.eventId}；${v.status === "received" ? "Webhook 已接收，尚无接手回执" : v.status === "refused" ? `Webhook 拒绝（HTTP ${v.response}）` : "Webhook 结果未知或等待核对重投"}；核对任务记录后接手，确认没有运行才重投`,
+    key: `agent.handoff.${v.eventId}`, level: "later", title: `Operations has not confirmed the handoff: ${v.title}`,
+    detail: `${v.eventId}; ${v.status === "received" ? "webhook received, no claim yet" : v.status === "refused" ? `webhook refused (HTTP ${v.response})` : "webhook result unknown or awaiting a checked resend"}; check the task log before taking it over, and resend only after confirming nothing is running`,
   }));
 }

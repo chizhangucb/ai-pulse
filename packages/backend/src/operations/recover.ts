@@ -13,7 +13,7 @@ import { markStaleDeliveries } from "../notify/deliver.ts";
 import { awaitingRelease, markStalePendingReceipts, releaseUnknownReceipt } from "../providers/receipts.ts";
 
 const AUTO_RELEASE_AFTER_MS = 30 * 60_000;
-export const AUTO_RELEASE_NOTE = "自动放行：结果未知超过 30 分钟，未核对是否计费";
+export const AUTO_RELEASE_NOTE = "Released automatically: result unknown for over 30 minutes, billing not checked";
 
 async function release(id: number, error: string, actor: string, note: string, billed: boolean | null) {
   return sql.begin(async (tx) => {
@@ -31,9 +31,9 @@ export async function releaseReceipt(id: number, input: { billed: boolean | null
   if (input.billed !== null && typeof input.billed !== "boolean") throw new Error("billed must be true, false or null");
   const [row] = await sql<{ status: string }[]>`SELECT status FROM receipts WHERE id = ${id}`;
   if (!row) return null;
-  if (row.status !== "unknown") throw new Conflict("只有结果未知的回执需要人工核对");
-  const error = input.billed === null ? `人工放行：计费未知，按授权恢复。${input.note}`
-    : `人工核对：${input.billed ? "供应商已计费但结果未取回" : "供应商未计费"}。${input.note}`;
+  if (row.status !== "unknown") throw new Conflict("Only a receipt with an unknown result needs a manual check");
+  const error = input.billed === null ? `Released by an admin: billing unknown, recovered under authorization. ${input.note}`
+    : `Checked by an admin: ${input.billed ? "the provider billed it but the result was not retrieved" : "the provider did not bill it"}. ${input.note}`;
   return release(id, error, actor, input.note, input.billed);
 }
 
@@ -51,7 +51,7 @@ export async function autoReleaseUnknownReceipts(now = Date.now()) {
   let released = 0;
   let requeued = 0;
   for (const r of rows) {
-    const done = await release(r.id, AUTO_RELEASE_NOTE, "ops.recover", "结果未知，自动放行一次", null);
+    const done = await release(r.id, AUTO_RELEASE_NOTE, "ops.recover", "Result unknown, released automatically once", null);
     if (done) released += 1;
     if (done?.requeued) requeued += 1;
   }

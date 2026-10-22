@@ -11,10 +11,10 @@ const WORKER_STALE_MS = 30 * 60_000;
 const WORKER_DOWN: Finding = {
   key: "worker",
   level: "now",
-  title: "后台处理服务停了，网站不会出现新内容",
-  impact: "新内容的采集、处理、推送和日报全部暂停，网站停在旧内容上",
-  heals: "系统自动重启没有成功",
-  action: "尽快发起一次维护处理",
+  title: "The background worker stopped; no new content will reach the site",
+  impact: "Collecting, processing, pushing and the daily report are all paused; the site is stuck on old content",
+  heals: "The automatic restart did not succeed",
+  action: "Start a maintenance run soon",
 };
 
 /**

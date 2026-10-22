@@ -54,7 +54,7 @@ test("an outage is announced once, repeated hourly, and closed with one recovery
     const [state] = await sql<{ value: Record<string, { since: string }> }[]>`SELECT value FROM settings WHERE key = 'alerts.state'`;
     assert.equal(Date.parse(state!.value["content.process"]!.since), t0, "the episode is not dated by the oldest waiting article");
     const finding = (await collectFindings(t0)).find((f) => f.key === "content.process")!;
-    assert.match(finding.detail!, /最老的一篇 .* 收进/);
+    assert.match(finding.detail!, /oldest came in at /);
     r = await checkAlerts(t0 + 50 * 60_000);
     assert.deepEqual(stuck(r.sent), [], "no repeat within the hour");
     r = await checkAlerts(t0 + 61 * 60_000);
@@ -217,8 +217,8 @@ test("selected identity delays show reader impact, recovery state and the affect
     await make("group-alert-failed", 20, "failed");
     let warning = await finding();
     assert.equal(warning?.level, "now");
-    assert.match(warning!.impact!, /1 条.*精选/);
-    assert.match(warning!.heals!, /人工|处理后/);
+    assert.match(warning!.impact!, /^1 items that qualify for the selection/);
+    assert.match(warning!.heals!, /need manual handling/);
     assert.match(warning!.detail!, /group-alert-failed/);
     const runs = await runsOverview();
     assert.equal(runs.grouping.waiting, 3, "the runs page includes normal waits but no false candidates");
@@ -229,12 +229,12 @@ test("selected identity delays show reader impact, recovery state and the affect
       VALUES('group-alert-receipt','deepseek','event_identity','article:group-alert-failed','unknown') RETURNING id`;
     await sql`UPDATE articles SET grouping_receipt_id=${receipt!.id} WHERE id='group-alert-failed'`;
     warning = await finding();
-    assert.match(warning!.heals!, /自动/);
-    assert.match(warning!.heals!, /30 分钟/);
+    assert.match(warning!.heals!, /automatically/);
+    assert.match(warning!.heals!, /30 minutes/);
     await sql`INSERT INTO receipt_attempts(receipt_id,service,attempt,status,error)
-      VALUES(${receipt!.id},'deepseek',1,'failed','自动放行：结果未知超过 30 分钟，未核对是否计费')`;
+      VALUES(${receipt!.id},'deepseek',1,'failed','Released automatically: result unknown for over 30 minutes, billing not checked')`;
     warning = await finding();
-    assert.match(warning!.heals!, /人工|处理后/);
+    assert.match(warning!.heals!, /need manual handling/);
     assert.match(warning!.detail!, new RegExp(`#${receipt!.id}`));
 
     await checkAlerts(now);
@@ -268,8 +268,8 @@ test("the ops digest does not describe unknown paid work as harmless or already 
     console.log = (value: unknown) => { lines.push(String(value)); };
     await sendDigest();
     const message = lines.join("\n");
-    assert.match(message, /结果.*未知|结果.*确认/);
-    assert.doesNotMatch(message, /以下事项不影响读者|自动重试过一次/);
+    assert.match(message, /unconfirmed results/);
+    assert.doesNotMatch(message, /do not affect readers|already retried/);
   } finally {
     console.log = log;
     if (enabled === undefined) delete process.env.FEISHU_INTERNAL_ENABLED;
@@ -357,12 +357,12 @@ test("provider recovery follows the refused model and current routing", async ()
     assert.ok((await checkAlerts(now+2*3600_000)).open.includes('provider.refused.dashscope:qwen3.7-flash'), 'another model cannot prove recovery');
     let finding=(await collectFindings(now+2*3600_000)).find(f=>f.key==='provider.refused.dashscope:qwen3.7-flash')!;
     assert.match(finding.impact!, /Pick prefilter/);
-    assert.doesNotMatch(finding.impact!, /结构抽取/);
+    assert.doesNotMatch(finding.impact!, /Structuring/);
     process.env.PREFILTER_MODEL = "qwen3.8-flash";
     invalidateModelCache();
     finding=(await collectFindings(now+2*3600_000)).find(f=>f.key==='provider.refused.dashscope:qwen3.7-flash')!;
     assert.equal(finding.level,'later');
-    assert.match(finding.impact!, /当前.*未使用.*旧限制.*未验证/);
+    assert.match(finding.impact!, /No current processing step uses these restricted models; the old restriction is still unverified/);
     assert.ok(!(await checkAlerts(now+2*3600_000+60_000)).sent.includes('provider.refused.dashscope:qwen3.7-flash:recovered'));
     await sql`INSERT INTO receipt_attempts(receipt_id,attempt,service,model,status)
       VALUES(${r!.id},5,'dashscope','qwen3.7-flash','received')`;

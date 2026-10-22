@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { REPO_ROOT } from "@aihot/backend/config";
 import { closeDb, sql } from "@aihot/backend/db";
+import { AUTO_RELEASE_NOTE } from "@aihot/backend/operations/recover";
 import { assertSupportedConfig } from "@aihot/backend/sources/config-keys";
 
 interface SeedSource {
@@ -60,4 +61,16 @@ for (const s of sources) {
   added += inserted.length;
 }
 console.log(`sources: ${added} added, ${sources.length - added} already there`);
+
+// Text that earlier releases stored in Chinese. Release migrations take no data updates, so the seed renames it;
+// a value an admin has since changed is left alone. The auto-release note is matched by prefix to release a receipt only once.
+const OLD_AUTO_RELEASE_NOTE = "自动放行：结果未知超过 30 分钟，未核对是否计费";
+const renamed = [
+  await sql`UPDATE notify_targets SET note = 'Feishu content group (main)' WHERE key = 'feishu-content-main' AND note = '飞书内容主群'`,
+  await sql`UPDATE notify_targets SET note = 'Feishu content group (mirror)' WHERE key = 'feishu-content-mirror' AND note = '飞书内容镜像群'`,
+  await sql`UPDATE admin_users SET display_name = 'Admin' WHERE email = 'admin@local' AND display_name = '管理员'`,
+  await sql`UPDATE receipt_attempts SET error = ${AUTO_RELEASE_NOTE} || substr(error, ${OLD_AUTO_RELEASE_NOTE.length + 1})
+    WHERE error LIKE ${OLD_AUTO_RELEASE_NOTE + "%"}`,
+].reduce((sum, result) => sum + result.count, 0);
+console.log(`renamed: ${renamed} rows stored in Chinese`);
 await closeDb();
