@@ -4,10 +4,10 @@ This is the template that comes with the open-source framework. It covers only t
 
 | Item | Value |
 |---|---|
-| Version | To be filled in |
-| Effective date | To be filled in |
-| Operator | To be filled in |
-| Contact | To be filled in |
+| Version | TBD |
+| Effective date | TBD |
+| Operator | TBD |
+| Contact | @chizhangData (https://x.com/chizhangData) |
 
 Page intro:
 
@@ -31,4 +31,4 @@ This site shows summaries of and links to third-party originals. When you follow
 
 ## 5. Contact us
 
-State how to reach you, and how people can ask to see, correct or delete their feedback.
+Reach the operator on X at [@chizhangData](https://x.com/chizhangData), including to ask to see, correct or delete your feedback.

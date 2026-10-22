@@ -310,7 +310,7 @@ The api is the only service with the volume, so it runs the jobs that use `/data
 
 ### Moving existing services onto the file
 
-Railway refuses to plan for services that still read a `railway.json` or `railway.toml`. The services Engineering Lead created from the earlier JSON files need one cutover:
+Railway refuses to plan for services that still read a `railway.json` or `railway.toml`. Services the operator created from the earlier JSON files need one cutover:
 
 1. Run `railway config migrate status` to list the services still on config-as-code, then `railway config migrate cutover`. It saves the old config-file paths, so `railway config migrate undo` reverses it.
 2. Run `railway config plan` and read it before applying. The file names the services `web`, `api`, `worker` and `Postgres`, and the volumes `api-volume` and `postgres-volume`.
