@@ -52,7 +52,7 @@ jobs:
           MIGRATION_BASE: ${{ github.event.pull_request.base.sha || github.sha }}
         run: node scripts/check-migrations.ts --base "$MIGRATION_BASE"
       - name: PostgreSQL backup tools
-        # 恢复测试需要与 PostgreSQL 17 服务匹配的客户端，不能依赖 runner 的默认版本。
+        # The restore test needs a client that matches the PostgreSQL 17 service, not the runner's default version.
         run: |
           sudo install -d /usr/share/postgresql-common/pgdg
           sudo curl --fail --silent --show-error -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc

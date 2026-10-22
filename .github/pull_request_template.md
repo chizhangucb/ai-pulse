@@ -1,11 +1,11 @@
-## 解决什么问题
+## What problem this solves
 
-<!-- 描述具体问题、改动后的行为；有关联 Issue 时写 Fixes #编号 或 Refs #编号。 -->
+<!-- Describe the problem and the behavior after the change; for a related issue, write Fixes #number or Refs #number. -->
 
-## 如何验证
+## How it was verified
 
-<!-- 写明实际执行的检查和结果；未运行的检查说明原因。页面改动附截图。 -->
+<!-- List the checks you actually ran and their results; for a check you did not run, say why. Attach screenshots for page changes. -->
 
-## 兼容与使用影响
+## Compatibility and impact
 
-<!-- 是否涉及配置、数据库迁移、公开 API 或升级步骤？没有可写“无”。 -->
+<!-- Does it involve configuration, a database migration, the public API or upgrade steps? If not, write "None". -->
