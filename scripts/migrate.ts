@@ -97,10 +97,9 @@ export async function runMigrations(sql: postgres.Sql, root: string, { backupWai
 }
 
 if (import.meta.main) {
-  const { REPO_ROOT } = await import("@aihot/backend/config");
+  const { config, REPO_ROOT } = await import("@aihot/backend/config");
   const { closeDb, sql } = await import("@aihot/backend/db");
-  // As long as the worker waits for a whole backup on stop: the dump is the first part of it.
-  const { STOP_TIMEOUT_MS } = await import("@aihot/backend/jobs/queue");
-  try { await runMigrations(sql, REPO_ROOT, { backupWaitMs: STOP_TIMEOUT_MS }); }
+  // As long as a stopping process waits for a whole backup: the dump is the first part of it.
+  try { await runMigrations(sql, REPO_ROOT, { backupWaitMs: config.stopTimeoutMs }); }
   finally { await closeDb(); }
 }

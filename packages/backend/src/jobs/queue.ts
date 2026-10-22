@@ -78,9 +78,6 @@ export async function getBoss(): Promise<PgBoss> {
   return starting;
 }
 
-/** Let in-flight backups and paid calls finish; process supervisors wait longer for cleanup. */
-export const STOP_TIMEOUT_MS = 470_000;
-
 export async function stopBoss(): Promise<void> {
   shutdownSignal.abort();
   if (boss) {
@@ -106,7 +103,7 @@ export async function stopBoss(): Promise<void> {
     const progress = setInterval(() => report("waiting"), 10_000);
     progress.unref();
     try {
-      await draining.stop({ graceful: true, timeout: STOP_TIMEOUT_MS });
+      await draining.stop({ graceful: true, timeout: config.stopTimeoutMs });
       report("complete");
     } finally {
       clearInterval(progress);
