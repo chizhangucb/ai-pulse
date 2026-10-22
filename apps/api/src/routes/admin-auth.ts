@@ -60,7 +60,7 @@ export function adminHandler(fn: AdminHandler) {
       return await fn(req, reply, admin);
     } catch (error) {
       if (error instanceof ZodError) {
-        return sendProblem(req, reply, { status: 400, code: "invalid_request", detail: error.issues.map((issue) => `${issue.path.join(".") || "请求"}: ${issue.message}`).join("; ").slice(0, 300) });
+        return sendProblem(req, reply, { status: 400, code: "invalid_request", detail: error.issues.map((issue) => `${issue.path.join(".") || "request"}: ${issue.message}`).join("; ").slice(0, 300) });
       }
       if ((error as { statusCode?: number }).statusCode === 400 || error instanceof SyntaxError) {
         return sendProblem(req, reply, { status: 400, code: "invalid_request", detail: String((error as Error).message).slice(0, 300) });
@@ -132,9 +132,9 @@ export function registerAdminAuth(app: FastifyInstance) {
       reply.header("Set-Cookie", [cookie(SESSION_COOKIE, token, SESSION_DAYS * 86400, secure()), cookie(STATE_COOKIE, "", 0, secure())]);
       return reply.redirect(returnTo, 302);
     } catch (error) {
-      const message = error instanceof LoginRejected ? error.message : "登录失败，请稍后再试";
+      const message = error instanceof LoginRejected ? error.message : "Login failed. Please try again later";
       if (!(error instanceof LoginRejected)) req.log.error({ err: error }, "admin login failed");
-      return reply.code(403).type("text/html; charset=utf-8").send(`<!doctype html><meta charset="utf-8"><title>登录失败 · ${SITE.name}</title><p style="font:16px system-ui;padding:40px">${message}。<a href="/api/auth/login">重新登录</a></p>`);
+      return reply.code(403).type("text/html; charset=utf-8").send(`<!doctype html><meta charset="utf-8"><title>Login failed · ${SITE.name}</title><p style="font:16px system-ui;padding:40px">${message}. <a href="/api/auth/login">Log in again</a></p>`);
     }
   });
 

@@ -26,10 +26,10 @@ export async function loadItemOgCard(id: string): Promise<OgCard | null> {
   const item = await loadItemShare(id);
   if (!item) return null;
   return {
-    kicker: item.category ? CATEGORY_LABELS[item.category] : withSubject('动态'),
+    kicker: item.category ? CATEGORY_LABELS[item.category] : withSubject('news'),
     title: item.title,
     subtitle: item.summary,
     meta: `${item.source.name} · ${siteDate(item.timelineAt)}`,
-    badge: item.selected && item.score !== null && ITEM_COPY.showScore ? { value: String(Math.round(item.score)), label: '精选评分' } : null,
+    badge: item.selected && item.score !== null && ITEM_COPY.showScore ? { value: String(Math.round(item.score)), label: 'Pick score' } : null,
   };
 }

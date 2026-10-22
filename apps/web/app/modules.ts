@@ -34,7 +34,7 @@ export interface AgentTrack {
   key: string;
   /** On its card and in the aside's list. */
   name: string;
-  /** Where the page and the 我的 page list the ways in a few words. */
+  /** Where the page and the Me page list the ways in a few words. */
   short: string;
   badge?: string;
   pitch: string;
@@ -87,21 +87,21 @@ export interface AgentPart {
   resources?: Array<[label: string, href: string, note: string]>;
   /** The MCP panel's tool table: its tools. */
   tools?: Array<{ name: string; does: string; ask: string }>;
-  /** The MCP panel's 连不上怎么办: entries after the engine's first. */
+  /** The MCP panel's "Can't connect?": entries after the engine's first. */
   mcpTroubles?: ReactNode[];
-  /** What the RSS panel's opening sentence goes on to say, a clause each after "；". */
+  /** What the RSS panel's opening sentence goes on to say, a clause each after "; ". */
   rssLead?: string[];
   /** The API panel's table: a group of its addresses. */
   api?: { group: string; rows: Array<[path: string, does: string, often: string]> };
   /** The API panel's usage tabs: one each, after the engine's. */
   recipes?: Array<{ key: string; label: string; Body: ComponentType<{ base: string; curl: string }> }>;
-  /** The API panel's 出错了怎么办: [status, what to do], after the engine's. */
+  /** The API panel's "When something goes wrong": [status, what to do], after the engine's. */
   apiErrors?: Array<[status: string, what: ReactNode]>;
 }
 
 /** A module's part of a topic page (routes/topic.tsx), from what its server module's topics.page returned for it. */
 export interface TopicPagePart {
-  /** What it is called: after "最新动态与" in the page's title, and in the name of its structured-data list. */
+  /** What it is called: after "latest news and" in the page's title, and in the name of its structured-data list. */
   name: string;
   /** Whether it has anything on this page; without, the page leaves it out of its body and its head. */
   shows: (data: unknown, topic: TopicSummary) => boolean;
@@ -116,22 +116,22 @@ export interface TopicPagePart {
 export interface WebModule {
   /** Its folder under modules/. */
   name: string;
-  /** Desktop sidebar: entries in a section between the engine's 内容 and 更多; modules naming the same section share it. */
+  /** Desktop sidebar: entries in a section between the engine's Read and More; modules naming the same section share it. */
   sidebar?: { section: string; items: NavItem[] };
-  /** Phone tab bar: tabs before 我的. */
+  /** Phone tab bar: tabs before Me. */
   tabs?: Tab[];
-  /** The 我的 page: rows ahead of the engine's tools. */
+  /** The Me page: rows ahead of the engine's tools. */
   tools?: Array<{ to: string; label: string; icon: ReactNode }>;
   admin?: {
     /** Navigation groups of its own, ahead of the engine's. */
     groups?: Array<{ group: string; items: AdminNavEntry[] }>;
-    /** Entries in the 内容 group, after the engine's 信源. */
+    /** Entries in the content group, after the engine's sources. */
     content?: AdminNavEntry[];
     /** Its part of the runs page, drawn from what its server module's admin.runs returns. */
     runs?: Part<ComponentType<{ data: unknown }>>;
     /** The page the admin opens on instead of the sources (routes/admin/index.tsx); the first module's wins. */
     landing?: string;
-    /** Where the model prices are kept: the models page links its 未定价 there (routes/admin/models.tsx). */
+    /** Where the model prices are kept: the models page links its unpriced models there (routes/admin/models.tsx). */
     prices?: string;
   };
   /** Parts of every public page (root.tsx); the admin has its own chrome and gets none of them. */
@@ -149,7 +149,7 @@ export interface WebModule {
   topicPage?: Part<TopicPagePart>;
   /** Paths of the marks it serves that are drawn in white, for a dark tile (components/BrandMark.tsx). */
   darkMarks?: string[];
-  /** The starred page (routes/starred.tsx): buttons ahead of 导入文件 that bring stars in from elsewhere, each resolving to the line it reports. */
+  /** The starred page (routes/starred.tsx): buttons ahead of Import file that bring stars in from elsewhere, each resolving to the line it reports. */
   starredImports?: Array<{ label: string; run: () => Promise<{ ok: boolean; text: string }> }>;
   /**
    * The feedback page (routes/feedback.tsx): a draft kept elsewhere in this browser, read when the page
@@ -158,7 +158,7 @@ export interface WebModule {
   feedbackDraft?: { read: () => unknown; clear: () => void };
   /** The terms page's footer: links after the engine's (routes/terms.tsx). */
   termsLinks?: Array<{ to: string; label: string }>;
-  /** Its ways into the agent page (AgentPart.tracks) by their short names: the 我的 page's row names the first three (routes/more.tsx). */
+  /** Its ways into the agent page (AgentPart.tracks) by their short names: the Me page's row names the first three (routes/more.tsx). */
   agentWays?: string[];
 }
 
