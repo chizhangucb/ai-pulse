@@ -6,7 +6,7 @@ import { ACCESS, EDITION_WHEN, ITEM_COPY, POLICY, SITE, subjectAfter } from "@ai
 import { CATEGORIES } from "@aihot/industry/taxonomy";
 import { MCP_TOOL_NAMES as T } from "@aihot/contracts/mcp";
 import { CATEGORY_LABELS, isCategoryKey, PUBLIC_API_CATEGORY_KEYS, toPublicApiCategory, type PublicApiCategoryKey } from "@aihot/contracts/taxonomy";
-import { beijingDate, beijingTime, beijingWeekday } from "@aihot/contracts/time";
+import { siteDate, siteTime, siteWeekday } from "@aihot/contracts/time";
 import { serverModules } from "../modules.ts";
 import { siteUrl } from "./links.ts";
 import type { V1ItemPayload } from "./publish.ts";
@@ -34,8 +34,8 @@ export function answer(head: string[], data: string[] | null, hints: string[]): 
 
 /** "09-30 20:15" on the Beijing clock; the year is written only when it is not this year. */
 export function stamp(at: string | Date, now = Date.now()): string {
-  const day = beijingDate(at);
-  return `${day.slice(0, 4) === beijingDate(now).slice(0, 4) ? day.slice(5) : day} ${beijingTime(at)}`;
+  const day = siteDate(at);
+  return `${day.slice(0, 4) === siteDate(now).slice(0, 4) ? day.slice(5) : day} ${siteTime(at)}`;
 }
 
 const linkText = (title: string) => title.replace(/([[\]])/g, "\\$1");
@@ -188,7 +188,7 @@ export function dailyAnswer(r: DailyReport, via: Via, notes: Map<string, DailyNo
     data.push("【快讯】", ...r.flashes.map((f) => `- ${stamp(f.publishedAt)} · [${linkText(f.title)}](${f.links.aihot ?? f.links.original}) · ${publicSourceName(f.source.name)}`), "");
   }
   return answer([
-    `# ${SITE.name} 日报 · ${r.date}（${beijingWeekday(r.date)}）`,
+    `# ${SITE.name} 日报 · ${r.date}（${siteWeekday(r.date)}）`,
     "",
     `收录北京时间 ${stamp(r.windowStart)} 至 ${stamp(r.windowEnd)} 的动态，${EDITION_WHEN.daily} 发布。日报页：${r.links.aihot}`,
     ...(data.length ? [] : ["这一期暂时没有可以展示的条目。"]),
@@ -226,7 +226,7 @@ export function periodAnswer(r: PeriodReport, kind: "weekly" | "monthly", via: V
     data.push(`【${s.label}】`, ...(s.summary ? [`导读：${s.summary}`] : []));
     s.items.forEach((it, i) => {
       const link = it.links.aihot ?? it.links.original;
-      const when = it.publishedAt ? `（${beijingDate(it.publishedAt).slice(5)}）` : "";
+      const when = it.publishedAt ? `（${siteDate(it.publishedAt).slice(5)}）` : "";
       data.push(`${i + 1}. [${linkText(it.title)}](${link}) · ${publicSourceName(it.source.name)}${when}`, ...(it.summary ? [`   ${it.summary}`] : []));
     });
     data.push("");

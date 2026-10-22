@@ -5,7 +5,7 @@
 //   later — other follow-ups: one 09:00 message a day, meant to be handed to the AI. A source's follow-up is
 //           closed on its own: a fix removes it, and one judged not worth fixing is closed with a reason.
 // Delivery goes through sendAlert (ops chat, internal-chat fallback; off unless FEISHU_INTERNAL_ENABLED).
-import { addDays, beijingAt, beijingDate, beijingDay, beijingStamp, isValidDate } from "@aihot/contracts/time";
+import { addDays, siteAt, siteDate, siteDay, siteStamp, isValidDate } from "@aihot/contracts/time";
 import { ALERTS, EDITION_TIMES } from "@aihot/site";
 import { audit } from "../audit.ts";
 import { sql } from "../db.ts";
@@ -76,7 +76,7 @@ async function contentCollection(now: number, open: AlertState): Promise<Finding
     key: "content.collect",
     level: "now",
     title: "网站停止收录新文章",
-    impact: last?.at ? `读者看不到新文章：最后一篇收录于 ${beijingStamp(last.at)}` : "读者看不到新文章：一天内没有收录任何文章",
+    impact: last?.at ? `读者看不到新文章：最后一篇收录于 ${siteStamp(last.at)}` : "读者看不到新文章：一天内没有收录任何文章",
     heals: ALERTS.usualFlow ? `没有，${ALERTS.usualFlow}` : "没有",
     action: "尽快发起一次维护处理",
     detail: `editorial articles.discovered_at 超过 ${QUIET_MINUTES} 分钟没有新值（热度信号单独评估）；查 sources.schedule、出网代理与采集失败`,
@@ -139,7 +139,7 @@ async function contentProcessing(now: number, open: AlertState): Promise<Finding
     heals: p!.failed > 0 ? "已失败的文章需要恢复处理；服务恢复不代表积压已经补齐" : "排队中的文章会继续处理，仍需核实是否完成",
     action: "转给 AI 处理",
     // Article age is useful detail; incident duration starts at first detection.
-    detail: [p!.oldest && `最老的一篇 ${beijingStamp(p!.oldest)} 收进`, errors.map((e) => `${e.error}（${e.n}）`).join("；") || "没有记录错误"].filter(Boolean).join("；"),
+    detail: [p!.oldest && `最老的一篇 ${siteStamp(p!.oldest)} 收进`, errors.map((e) => `${e.error}（${e.n}）`).join("；") || "没有记录错误"].filter(Boolean).join("；"),
   }];
 }
 
@@ -185,12 +185,12 @@ async function backupAge(now: number): Promise<Finding[]> {
       impact: lastOk ? `万一服务器出事，最近 ${duration(age)} 的数据可能无法完整恢复` : "还没有成功的完整备份，服务器出事时可能无法恢复数据",
       heals: "不会",
       action: "转给 AI 处理",
-      detail: `${lastOk ? "最近一次成功" : "首次备份尝试"} ${beijingStamp(since)}${state ? `；${state}` : ""}；看 ops.backup 的运行记录`,
+      detail: `${lastOk ? "最近一次成功" : "首次备份尝试"} ${siteStamp(since)}${state ? `；${state}` : ""}；看 ops.backup 的运行记录`,
       since: new Date(since),
     }];
   }
   if (!b || !b.value.uploaded || age > 30 * 3600_000) {
-    return [{ key: "backup.stale", level: "later", title: "数据库备份超过一天没成功", detail: b ? `最近一次 ${beijingStamp(b.value.at)}${state ? `（${state}）` : ""}；看 ops.backup` : "还没有成功的备份记录" }];
+    return [{ key: "backup.stale", level: "later", title: "数据库备份超过一天没成功", detail: b ? `最近一次 ${siteStamp(b.value.at)}${state ? `（${state}）` : ""}；看 ops.backup` : "还没有成功的备份记录" }];
   }
   return [];
 }
@@ -345,7 +345,7 @@ const DAILY_PREFIX = "report.daily:";
 const dailyDate = (key: string) => key.startsWith(DAILY_PREFIX) && isValidDate(key.slice(DAILY_PREFIX.length))
   ? key.slice(DAILY_PREFIX.length) : undefined;
 /** Missing dailies are looked for, and announced ones followed, over the last seven Beijing calendar days. */
-const dailyScanFrom = (now: number) => addDays(beijingDate(now), -6);
+const dailyScanFrom = (now: number) => addDays(siteDate(now), -6);
 
 async function alertState(): Promise<AlertState> {
   const [row] = await sql<{ value: AlertState }[]>`SELECT value FROM settings WHERE key = 'alerts.state'`;
@@ -354,11 +354,11 @@ async function alertState(): Promise<AlertState> {
 
 async function dailyReportFindings(now: number, open: AlertState): Promise<Finding[]> {
   if (!collecting() || !modelsOn()) return [];
-  const today = beijingDate(now);
+  const today = siteDate(now);
   const [activity] = await sql<{ first_report: string | null; first_attempt: Date | null }[]>`
     SELECT (SELECT min(key) FROM reports WHERE kind = 'daily') AS first_report,
            (SELECT min(started_at) FROM job_runs WHERE job = 'reports.compose') AS first_attempt`;
-  const starts = [activity?.first_report, activity?.first_attempt && beijingDate(activity.first_attempt)]
+  const starts = [activity?.first_report, activity?.first_attempt && siteDate(activity.first_attempt)]
     .filter((date): date is string => !!date && isValidDate(date)).sort();
   const start = starts[0] ?? today;
   // New gaps and announced editions alike are followed for the scan window; settleDailies closes older ones.
@@ -367,7 +367,7 @@ async function dailyReportFindings(now: number, open: AlertState): Promise<Findi
   for (let date = from; date <= today; date = addDays(date, 1)) {
     if (date >= start) dates.add(date);
   }
-  const overdue = [...dates].filter(date => now >= beijingAt(date, EDITION_TIMES.daily).getTime() + 2 * 3600_000).sort();
+  const overdue = [...dates].filter(date => now >= siteAt(date, EDITION_TIMES.daily).getTime() + 2 * 3600_000).sort();
   if (!overdue.length) return [];
   const published = new Set((await sql<{ key: string }[]>`SELECT key FROM reports WHERE kind = 'daily' AND key IN ${sql(overdue)}`).map(r => r.key));
   return overdue.filter(date => !published.has(date)).map(date => ({
@@ -396,7 +396,7 @@ async function settleDailies(open: AlertState, found: Set<string>, now: number):
       missing.add(key);
       continue;
     }
-    await sendAlert(`${date} 的日报没能补出，停止提醒`, [`读者看不到 ${date} 的日报；缺期从 ${beijingStamp(new Date(open[key]!.since))} 起，已超出七天的检查范围`]);
+    await sendAlert(`${date} 的日报没能补出，停止提醒`, [`读者看不到 ${date} 的日报；缺期从 ${siteStamp(new Date(open[key]!.since))} 起，已超出七天的检查范围`]);
     sent.push(`${key}:expired`);
     await closeAgentWake(key);
     delete open[key];
@@ -512,6 +512,6 @@ export async function sendDigest(now = Date.now()) {
   const items = found.filter((f) => !dismissed[f.key]);
   const lines = items.map((f, i) => `${i + 1}. ${f.title}${f.detail ? `\n   ${f.detail}` : ""}`);
   if (!lines.length) return { items: 0 };
-  await sendAlert(`📋 系统日报 · ${beijingDay(now)}`, ["以下事项需要跟进，具体影响见各条说明；可把整条转给 AI 处理。", ...lines]);
+  await sendAlert(`📋 系统日报 · ${siteDay(now)}`, ["以下事项需要跟进，具体影响见各条说明；可把整条转给 AI 处理。", ...lines]);
   return { items: lines.length };
 }

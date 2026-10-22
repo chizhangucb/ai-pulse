@@ -1,7 +1,7 @@
 // Selected news timeline: ordinary reports fold by fact; standalone and independent-source articles
 // keep their own cards. Each ordinary fact stays at its first appearance.
 import type { GroupInfo, TimelineCard, TimelineFilters, TimelineResponse } from "@aihot/contracts/site";
-import { beijingDate, beijingMidnight } from "@aihot/contracts/time";
+import { addDays, siteDate, siteMidnight } from "@aihot/contracts/time";
 import { sql } from "../db.ts";
 import { cachedByKey } from "../lib/cache.ts";
 import { pickRepresentative, REPRESENTATIVE_COLUMNS, type RepresentativeRow } from "./representative.ts";
@@ -78,8 +78,8 @@ export function countTimelineDays(grouped: readonly { anchor: number }[], days: 
   };
   const counts: Record<string, number> = {};
   for (const day of days) {
-    const start = beijingMidnight(day).getTime();
-    const count = firstBelow(start) - firstBelow(start + 86_400_000);
+    // A calendar day is 23 or 25 hours on daylight-saving changes.
+    const count = firstBelow(siteMidnight(day).getTime()) - firstBelow(siteMidnight(addDays(day, 1)).getTime());
     if (count) counts[day] = count;
   }
   return counts;
@@ -155,7 +155,7 @@ export async function loadTimeline(q: TimelineQuery): Promise<Omit<TimelineRespo
   });
 
   // Day header counts for the days on this page, over the full grouped set.
-  const days = new Set(page.map((g) => beijingDate(g.anchor_at)));
+  const days = new Set(page.map((g) => siteDate(g.anchor_at)));
   const dayCounts = countTimelineDays(grouped, days);
 
   const last = page[page.length - 1];

@@ -1,3 +1,4 @@
+import { siteIso } from "@aihot/contracts/time";
 import { describePublicationTime } from "../sources/dates.ts";
 // analyzeArticle: the judging and writing steps, each with its own prompt from the industry pack
 // (industry/prompts/):
@@ -72,14 +73,10 @@ export const SCORE_SYSTEM = promptText("selection-score");
 
 export const ScoreSchema = z.object({ attentionScore: z.coerce.number().int().min(0).max(100) });
 
-const SCORE_TIME = new Intl.DateTimeFormat("sv-SE", {
-  timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
-});
-
-/** The score input's time: Beijing time, ISO 8601 with +08:00 (the form the prompt was tuned on). */
+/** The score input's time: the site's zone, ISO 8601 with its offset, milliseconds only when present. */
 export function scoreInputTime(at: Date): string {
-  const ms = at.getTime() % 1000;
-  return `${SCORE_TIME.format(at).replace(" ", "T")}${ms ? `.${String(ms).padStart(3, "0")}` : ""}+08:00`;
+  const iso = siteIso(at);
+  return at.getTime() % 1000 ? iso : `${iso.slice(0, 19)}${iso.slice(23)}`;
 }
 
 /**

@@ -7,7 +7,7 @@ import { createReadStream } from "node:fs";
 import { mkdir, readdir, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { beijingDate, beijingWeekday } from "@aihot/contracts/time";
+import { siteDate, siteWeekday } from "@aihot/contracts/time";
 import { config } from "../config.ts";
 import { sql } from "../db.ts";
 import { screenshotsForwarded } from "./feedback.ts";
@@ -128,9 +128,9 @@ export async function runBackup(now = new Date()) {
     });
   }
   const out: Array<{ key: string; bytes: number; sha256: string }> = [];
-  const today = beijingDate(now);
+  const today = siteDate(now);
   const prefixes = ["daily"];
-  if (beijingWeekday(today) === "星期日") prefixes.push("weekly");
+  if (siteWeekday(today) === "星期日") prefixes.push("weekly");
   if (today.endsWith("-01")) prefixes.push("monthly");
   for (const file of filesError ? [dump] : [dump, files]) {
     const size = (await stat(file)).size;

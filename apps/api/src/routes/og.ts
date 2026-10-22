@@ -3,7 +3,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { reportDateLabel } from "@aihot/contracts/site";
 import { CATEGORY_LABELS } from "@aihot/contracts/taxonomy";
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 import { loadItemOgCard, loadItemShare } from "@aihot/backend/publication/og";
 import { loadReport, type ReportKind } from "@aihot/backend/publication/reports";
 import { findTopic, TOPIC_GROUPS, TOPICS } from "@aihot/backend/publication/topics";
@@ -68,7 +68,7 @@ export function registerOg(app: FastifyInstance) {
       title: d.title,
       summary: d.summary,
       source: d.source.name,
-      date: beijingDate(d.timelineAt),
+      date: siteDate(d.timelineAt),
       score: d.selected && ITEM_COPY.showScore ? d.score : null,
     };
     const tag = `"poster-${posterEtag(poster)}"`;

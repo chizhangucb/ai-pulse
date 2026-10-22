@@ -1,6 +1,6 @@
 // Names, dates and grouping for daily, weekly and monthly reports.
 import { REPORT_NAMES, type ReportNavigationEntry, type ReportKind } from "@aihot/contracts/site";
-import { beijingDate, beijingWeekday, isoWeekLabel, isoWeekRange, monthDay } from "@aihot/contracts/time";
+import { siteDate, siteWeekday, isoWeekLabel, isoWeekRange, monthDay } from "@aihot/contracts/time";
 import { EDITION_WHEN, REPORTS, SITE, subjectAfter } from "@aihot/site";
 import { RELEASE } from "@aihot/industry/taxonomy";
 import { weekdayShort } from "../../lib/format.ts";
@@ -36,7 +36,7 @@ export function headline(kind: ReportKind, key: string, count: number): string {
 
 /** "09.16" for a story inside a week or month. */
 export function shortDay(iso: string): string {
-  return beijingDate(iso).slice(5).replace("-", ".");
+  return siteDate(iso).slice(5).replace("-", ".");
 }
 
 export interface ArchiveGroup {
@@ -105,7 +105,7 @@ export function issueNumber(index: ReportNavigationEntry[], key: string): number
 
 /** The masthead's date block: a large figure and two small lines beside it. */
 export function dateMark(kind: ReportKind, key: string): { figure: string; top: string; bottom: string } {
-  if (kind === "daily") return { figure: key.slice(8, 10), top: `${key.slice(0, 4)} 年 ${Number(key.slice(5, 7))} 月`, bottom: beijingWeekday(key) };
+  if (kind === "daily") return { figure: key.slice(8, 10), top: `${key.slice(0, 4)} 年 ${Number(key.slice(5, 7))} 月`, bottom: siteWeekday(key) };
   if (kind === "weekly") {
     const { start, end } = isoWeekRange(key)!;
     return { figure: key.slice(6), top: `${key.slice(0, 4)} 年第 ${Number(key.slice(6))} 周`, bottom: `${start.slice(5).replace("-", ".")} — ${end.slice(5).replace("-", ".")}` };

@@ -3,7 +3,7 @@ import { sql } from "../db.ts";
 import { itemUrl } from "../publication/links.ts";
 import { publicSourceName } from "../publication/rules.ts";
 import { type CategoryKey } from "@aihot/contracts/taxonomy";
-import { beijingDay } from "@aihot/contracts/time";
+import { siteDay } from "@aihot/contracts/time";
 import { CATEGORIES } from "@aihot/industry/taxonomy";
 import { ITEM_COPY, SITE } from "@aihot/site";
 
@@ -31,7 +31,7 @@ interface Row {
 }
 
 /** The original's publication date, so a launch introduced again weeks later does not read as today's. */
-const published = (at: Date) => `${beijingDay(at)}发布`;
+const published = (at: Date) => `${siteDay(at)}发布`;
 
 /** Model-written words go into card markdown: its markup characters are shown as written. */
 const literal = (text: string) => text.replace(/[&<>*_~`[\]]/g, (c) => `&#${c.charCodeAt(0)};`);

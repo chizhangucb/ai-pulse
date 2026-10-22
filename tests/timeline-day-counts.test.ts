@@ -2,14 +2,14 @@ import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import { closeDb, sql } from "@aihot/backend/db";
-import { beijingDate, beijingMidnight } from "@aihot/contracts/time";
+import { siteDate, siteMidnight } from "@aihot/contracts/time";
 import { countTimelineDays, loadTimeline } from "@aihot/backend/publication/timeline";
 
 after(closeDb);
 const reference = (grouped: readonly { anchor: number }[], days: ReadonlySet<string>) => {
   const counts: Record<string, number> = {};
   for (const group of grouped) {
-    const day = beijingDate(group.anchor);
+    const day = siteDate(group.anchor);
     if (days.has(day)) counts[day] = (counts[day] ?? 0) + 1;
   }
   return counts;
@@ -33,11 +33,11 @@ test("day counts retain exact Beijing midnight, leap-day and year boundaries", (
 test("deterministic varied timelines match the full-scan reference", () => {
   let seed = 0x13579bdf;
   const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed; };
-  const base = beijingMidnight("2024-03-01").getTime();
+  const base = siteMidnight("2024-03-01").getTime();
   for (let sample = 0; sample < 40; sample++) {
     const grouped = descending(Array.from({ length: random() % 1200 }, () => base - (random() % 10_000) * 60_000));
     const offset = grouped.length ? random() % grouped.length : 0;
-    const days = new Set(grouped.slice(offset, offset + 40).map(group => beijingDate(group.anchor)));
+    const days = new Set(grouped.slice(offset, offset + 40).map(group => siteDate(group.anchor)));
     assert.deepEqual(countTimelineDays(grouped, days), reference(grouped, days), `sample ${sample}`);
   }
 });
@@ -47,7 +47,7 @@ test("real grouped timeline pagination keeps whole-day counts across midnight", 
   const source = `day-counts-${T}`;
   const facts: number[] = [];
   const groups: Array<{ anchor: number; key: string }> = [];
-  const midnight = beijingMidnight("2024-02-29").getTime();
+  const midnight = siteMidnight("2024-02-29").getTime();
   const now = new Date("2024-03-02T00:00:00Z");
   await sql`INSERT INTO sources(id,name,kind,tier) VALUES(${source},'Day counts','rss','T1')`;
   const add = async (index: string, at: number, fact: number | null = null, story: number | null = null) => {
@@ -83,7 +83,7 @@ test("real grouped timeline pagination keeps whole-day counts across midnight", 
     const data = await loadTimeline({ channel: "all", category: null, tag: T, now, limit: 7, cursor });
     const pageGroups = groups.slice(seen.length, seen.length + 7);
     assert.deepEqual(data.cards.map(card => card.key), pageGroups.map(group => group.key));
-    const days = new Set(pageGroups.map(group => beijingDate(group.anchor)));
+    const days = new Set(pageGroups.map(group => siteDate(group.anchor)));
     assert.deepEqual(data.dayCounts, reference(groups, days));
     seen.push(...data.cards.map(card => card.key));
     cursor = data.nextCursor;

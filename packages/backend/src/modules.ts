@@ -11,7 +11,7 @@ import type { QueueOptions } from "./jobs/queue.ts";
 import type { Finding } from "./notify/feishu.ts";
 import type { Topic, TopicMember } from "./publication/topics.ts";
 
-/** A cron schedule (Asia/Shanghai), recorded in job_runs like the engine's (apps/worker/src/schedules.ts). */
+/** A cron schedule (the site's time zone), recorded in job_runs like the engine's (apps/worker/src/schedules.ts). */
 export interface Scheduled {
   name: string;
   cron: string;

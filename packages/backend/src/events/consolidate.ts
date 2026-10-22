@@ -3,7 +3,7 @@
 // see one story. Stories that stay apart though reports keep tying them list each other as related
 // events (linkRelatedStories, hourly).
 import { modelRoute } from "../editorial/models.ts";
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 import { sql } from "../db.ts";
 import { chatJson } from "../providers/llm.ts";
 import { completeReceipt } from "../providers/receipts.ts";
@@ -49,7 +49,7 @@ async function storyRoot(storyId: number): Promise<StoryRoot | null> {
     storyId, at: row.started_at, roundup: row.roundup,
     report: {
       title: row.title, source: row.source, firstParty: row.first_party, at: row.at, publicationTime: row.publicationTime, summary: row.summary,
-      frame: { subject: row.subject, action: row.action, object: row.object, occurredAt: row.occurred_at ? beijingDate(row.occurred_at) : null },
+      frame: { subject: row.subject, action: row.action, object: row.object, occurredAt: row.occurred_at ? siteDate(row.occurred_at) : null },
     },
   };
 }

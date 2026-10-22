@@ -2,7 +2,7 @@
 // keys and formats once readers have data under them: existing readers' data must stay readable as-is.
 // Storage failures degrade silently.
 import { useEffect, useSyncExternalStore } from "react";
-import { beijingDate } from "@aihot/contracts/time";
+import { siteDate } from "@aihot/contracts/time";
 
 export const KEYS = {
   starred: "aihot-starred-items",
@@ -147,7 +147,7 @@ function isStarredItem(v: unknown): v is LocalStarredItem {
 function isDisplayableDate(value: unknown): value is string {
   if (typeof value !== "string") return false;
   try {
-    beijingDate(value);
+    siteDate(value);
     return true;
   } catch {
     return false;

@@ -4,7 +4,7 @@
 // Everything outward is off unless explicitly enabled (development and tests stay silent).
 import { readFile, unlink } from "node:fs/promises";
 import path from "node:path";
-import { beijingStamp } from "@aihot/contracts/time";
+import { siteStamp } from "@aihot/contracts/time";
 import { config, credential } from "../config.ts";
 import { sql } from "../db.ts";
 
@@ -104,7 +104,7 @@ export function formatAlert(f: Finding, since: Date, now: number, repeat = false
 }
 
 export function formatRecovery(title: string, since: Date, now: number): { title: string; lines: string[] } {
-  return { title: `✅ 已恢复：${title}`, lines: [`持续 ${duration(now - since.getTime())}（${beijingStamp(since)} 起）`] };
+  return { title: `✅ 已恢复：${title}`, lines: [`持续 ${duration(now - since.getTime())}（${siteStamp(since)} 起）`] };
 }
 
 /** Operations alert: the alert chat, falling back to the internal feedback chat — never a content group. */

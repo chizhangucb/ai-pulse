@@ -1,10 +1,10 @@
-import { beijingDate, beijingTime, beijingWeekday, monthDay } from "@aihot/contracts/time";
+import { siteDate, siteTime, siteWeekday, monthDay } from "@aihot/contracts/time";
 
 /** A list cut into runs of the same Beijing day, in the list's own order. */
 export function byBeijingDay<T>(list: readonly T[], at: (entry: T) => string): Array<{ day: string; entries: T[] }> {
   const days: Array<{ day: string; entries: T[] }> = [];
   for (const entry of list) {
-    const day = beijingDate(at(entry));
+    const day = siteDate(at(entry));
     const last = days.at(-1);
     if (last?.day === day) last.entries.push(entry);
     else days.push({ day, entries: [entry] });
@@ -14,7 +14,7 @@ export function byBeijingDay<T>(list: readonly T[], at: (entry: T) => string): A
 
 /** "周六" of a calendar date (YYYY-MM-DD). */
 export function weekdayShort(date: string): string {
-  return beijingWeekday(date).replace("星期", "周");
+  return siteWeekday(date).replace("星期", "周");
 }
 
 export function relativeTime(iso: string, now = Date.now()): string {
@@ -27,16 +27,16 @@ export function relativeTime(iso: string, now = Date.now()): string {
   if (h < 24) return `${h} 小时前`;
   const d = Math.round(h / 24);
   if (d < 30) return `${d} 天前`;
-  return beijingDate(iso);
+  return siteDate(iso);
 }
 
 export function fullDateTime(iso: string): string {
-  return `${beijingDate(iso)} ${beijingTime(iso)}`;
+  return `${siteDate(iso)} ${siteTime(iso)}`;
 }
 
 /** "9月24日 10:51" (Beijing), for lists that span days. */
 export function monthDayTime(iso: string): string {
-  return `${monthDay(beijingDate(iso))} ${beijingTime(iso)}`;
+  return `${monthDay(siteDate(iso))} ${siteTime(iso)}`;
 }
 
 export function sourceInitial(name: string): string {

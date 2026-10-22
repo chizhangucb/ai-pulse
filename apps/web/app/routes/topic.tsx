@@ -9,7 +9,7 @@ import { DayList, Pagination } from "../features/feed/DayList";
 import { BrandMark } from "../components/BrandMark";
 import { EmptyState } from "../components/ui/Page";
 import { IconArrowLeft } from "../components/icons";
-import { beijingDate, monthDay } from "@aihot/contracts/time";
+import { siteDate, monthDay } from "@aihot/contracts/time";
 import { monthDayTime } from "../lib/format";
 import { PhoneBar } from "../components/shell/PhoneBar";
 import { navUp } from "../components/shell/nav";
@@ -51,7 +51,7 @@ function description(data: TopicPage, parts: Part[]): string {
   const { topic } = data;
   let text = topic.definition;
   const news = parts.flatMap((p) => p.news(p.data)).slice(0, 2).map((title) => title.replace(/[。.]$/u, "")).join("；");
-  if (news && topic.latest) text = `${monthDay(beijingDate(topic.latest.at))}更新：${news}。${topic.definition}`;
+  if (news && topic.latest) text = `${monthDay(siteDate(topic.latest.at))}更新：${news}。${topic.definition}`;
   return text.length > 150 ? `${text.slice(0, 149)}…` : text;
 }
 
