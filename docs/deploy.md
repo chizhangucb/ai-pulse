@@ -104,6 +104,8 @@ What to watch for in each update follows, newest first.
 - A `*_MODEL` variable that names no preset (a typo such as `or-claude-sonet`) now stops the API and worker at startup with an error naming the variable, instead of silently running that step on the default model. Check these variables in `.env` before updating. An admin choice on the Models page that names a removed preset is still ignored.
 - Migration `0090` adds a budget row for the `openrouter` service (300 per minute, 6,000 per hour, 40,000 per day), so the OpenRouter presets go through the budget circuit breaker; before it they had no limit. A row you already added is kept; change the limits under admin Settings.
 
+#### Missing-daily alerts track the date
+
 Missing-daily alerts track the specific date in the site's time zone and do not recover by themselves across midnight; a recovery notice goes out only when that daily exists. New gaps are checked over the last 7 calendar days (today included), no earlier than the earliest daily or `reports.compose` run; with no history only today is checked. A date already alerted stays tracked for those 7 days, and turning off collection or models, or the worker's startup grace period, does not count as recovery; a date still without a daily after 7 days gets one "could not be made up, reminders stop" notice and no more. The old `report.daily` state migrates by its first alert time and keeps the reminder interval. The alert two hours after the edition time, hourly reminders and the Feishu switches are unchanged; no database migration. A custom responder matching the old `report.daily` exactly needs to recognize the `report.daily:YYYY-MM-DD` date key.
 
 #### Word fixes for reader text (October 9, 2026)
