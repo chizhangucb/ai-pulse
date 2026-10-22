@@ -230,6 +230,7 @@ Set `DAJIALA_KEY` in the backend's `.env`, and use the account's original ID as 
   - `publisherUrlPrefixes`: the address prefix of a `T1` source's own articles, such as `["https://example.com/blog/"]`. Articles at those addresses brought in by other sources (aggregators, reposts) are credited to it when it is the only official source that matches. For a web list source without it, the path of its own listing counts (and the article must have appeared in its listing).
   - `publisherRole`: the role of a `T1_5` account, `organization` (an institution's official account) or `person` (an official of it). With the source's `owner_entity_id` set as well (an `ENTITIES` id in `industry/taxonomy.ts`), news the account posts whose subject is that company can be the representative report (after `T1`).
 - **Full text**: `site_fulltext` decides whether the site shows the full text, and `syndicate_fulltext` whether the full-text RSS carries the body. Both are **off by default**, showing only the summary and a link to the original; turn them on when the source clearly allows it. WeChat and paywalled content does not get full-text display just because it can be fetched.
+  - In this site's seed (`industry/sources.json`), `site_fulltext` is on for the first-party `T1` sources and off for the `T2` media and individual sources; `syndicate_fulltext` is off for all of them.
 
 ## Fetch frequency
 
